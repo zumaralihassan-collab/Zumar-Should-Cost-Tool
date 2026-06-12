@@ -75,6 +75,7 @@
       <button class="tab-btn tab-inactive" data-tab="sca" onclick="switchTab('sca')">Supply Chain Analytics</button>
       <button class="tab-btn tab-inactive" data-tab="ai" onclick="switchTab('ai')">AI Procurement Strategist</button>
       <button class="tab-btn tab-inactive" data-tab="insights" onclick="switchTab('insights')">Insights &amp; Recommendations</button>
+      <button class="tab-btn tab-inactive" data-tab="rfq" onclick="switchTab('rfq')">RFQ / RFP Manager</button>
     </nav>
   </div>
   <div class="bg-slate-900/40 text-center text-[11px] py-1.5 text-teal-100">
@@ -392,6 +393,180 @@
   <div id="insightsContent" class="hidden space-y-4"></div>
 </section>
 
+<section id="tab-rfq-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-purple-700 to-pink-600 text-white rounded-2xl p-6 mb-6">
+    <h2 class="text-2xl font-bold">RFQ &amp; RFP Manager</h2>
+    <p class="text-pink-100 text-sm">Import supplier quotes from Excel, score them against your should-cost, and generate an award recommendation</p>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-2xl card-shadow p-4">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">Quotes Received</div>
+      <div id="rfqCount" class="text-3xl font-extrabold text-purple-700 mt-1">0</div>
+      <div class="text-xs text-slate-500 mt-1">Across all suppliers</div>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-4">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">Best Quote</div>
+      <div id="rfqBest" class="text-3xl font-extrabold text-emerald-600 mt-1">—</div>
+      <div class="text-xs text-slate-500 mt-1" id="rfqBestSupplier">Lowest unit price</div>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-4">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">Variance to Should-Cost</div>
+      <div id="rfqVariance" class="text-3xl font-extrabold text-amber-600 mt-1">—</div>
+      <div class="text-xs text-slate-500 mt-1" id="rfqShouldCostRef">Run Should Cost first to compare</div>
+    </div>
+  </div>
+
+  <!-- STEP 1: IMPORT -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <div class="flex items-center gap-3 mb-3">
+      <div class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-semibold text-sm">1</div>
+      <h3 class="text-lg font-bold">Import Supplier Quotes</h3>
+    </div>
+    <p class="text-sm text-slate-600 mb-4">Download the Excel template, send it to your suppliers, then upload their filled-in files. Or enter quotes manually below.</p>
+
+    <div class="grid md:grid-cols-3 gap-3 mb-4">
+      <button onclick="downloadRFQTemplate()" class="px-4 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-semibold text-sm flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        Download Excel Template
+      </button>
+      <label class="px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        Upload Supplier RFQ File
+        <input type="file" accept=".xlsx,.xls,.csv" onchange="uploadRFQ(event)" class="hidden"/>
+      </label>
+      <button onclick="clearRFQs()" class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold text-sm">Clear All Quotes</button>
+    </div>
+
+    <details class="border border-slate-200 rounded-lg">
+      <summary class="px-4 py-3 cursor-pointer text-sm font-medium text-purple-700 flex items-center gap-2">
+        <span class="chevron">▶</span> Or enter a quote manually
+      </summary>
+      <div class="p-4 border-t border-slate-200">
+        <div class="grid md:grid-cols-6 gap-2 text-sm">
+          <input id="rfqSup" placeholder="Supplier name" class="border border-slate-300 rounded px-2 py-2 md:col-span-2"/>
+          <input id="rfqQty" type="number" placeholder="Qty" class="border border-slate-300 rounded px-2 py-2"/>
+          <input id="rfqUnit" type="number" step="0.01" placeholder="Unit price" class="border border-slate-300 rounded px-2 py-2"/>
+          <select id="rfqCurr" class="border border-slate-300 rounded px-2 py-2">
+            <option>INR</option><option>USD</option><option>EUR</option><option>GBP</option><option>AED</option><option>SAR</option>
+          </select>
+          <input id="rfqLT" type="number" placeholder="Lead time (days)" class="border border-slate-300 rounded px-2 py-2"/>
+          <input id="rfqPT" type="number" placeholder="Payment terms (days)" class="border border-slate-300 rounded px-2 py-2"/>
+          <input id="rfqMOQ" type="number" placeholder="MOQ" class="border border-slate-300 rounded px-2 py-2"/>
+          <input id="rfqValid" type="number" placeholder="Validity (days)" class="border border-slate-300 rounded px-2 py-2"/>
+          <select id="rfqShip" class="border border-slate-300 rounded px-2 py-2">
+            <option value="No">Shipping not included</option><option value="Yes">Shipping included</option>
+          </select>
+          <input id="rfqNotes" placeholder="Notes (optional)" class="border border-slate-300 rounded px-2 py-2 md:col-span-2"/>
+          <button onclick="addManualRFQ()" class="bg-purple-600 hover:bg-purple-700 text-white rounded px-3 py-2 font-medium">Add Quote</button>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- STEP 2: COMPARISON TABLE -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-semibold text-sm">2</div>
+        <h3 class="text-lg font-bold">Quote Comparison &amp; Scoring</h3>
+      </div>
+      <div class="text-xs text-slate-500">Weighted score = 50% Price · 20% Lead Time · 15% Payment Terms · 15% MOQ Flexibility</div>
+    </div>
+
+    <div id="rfqEmpty" class="text-center py-10 text-slate-400 text-sm">
+      No quotes yet. Upload an Excel file or add one manually above.
+    </div>
+
+    <div id="rfqTableContainer" class="hidden overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-xs text-slate-600 uppercase">
+          <tr>
+            <th class="text-left p-2">Rank</th>
+            <th class="text-left p-2">Supplier</th>
+            <th class="p-2 text-right">Unit Price</th>
+            <th class="p-2 text-right">Total</th>
+            <th class="p-2 text-right">Lead Time</th>
+            <th class="p-2 text-right">Pay Terms</th>
+            <th class="p-2 text-right">MOQ</th>
+            <th class="p-2 text-right">vs Should-Cost</th>
+            <th class="p-2 text-right">Score</th>
+            <th class="p-2"></th>
+          </tr>
+        </thead>
+        <tbody id="rfqTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 mt-4">
+      <div class="hidden bg-white rounded-xl border border-slate-200 p-3" id="rfqChartContainer">
+        <h4 class="font-semibold text-sm mb-2">Unit Price Comparison</h4>
+        <div class="h-56"><canvas id="rfqPriceChart"></canvas></div>
+      </div>
+      <div class="hidden bg-white rounded-xl border border-slate-200 p-3" id="rfqScoreChartContainer">
+        <h4 class="font-semibold text-sm mb-2">Overall Score</h4>
+        <div class="h-56"><canvas id="rfqScoreChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: AWARD RECOMMENDATION -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <div class="flex items-center gap-3 mb-3">
+      <div class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-semibold text-sm">3</div>
+      <h3 class="text-lg font-bold">Award Recommendation</h3>
+    </div>
+    <div id="rfqRecommendation" class="text-sm text-slate-600 italic">Add quotes to generate an award recommendation.</div>
+  </div>
+
+  <!-- RFP SECTION -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+      <h3 class="text-lg font-bold">RFP — Qualitative Scoring (Complex / Strategic Buys)</h3>
+      <div class="text-xs text-slate-500">For Strategic / Bottleneck quadrant. Adds technical, service, sustainability dimensions.</div>
+    </div>
+    <p class="text-sm text-slate-600 mb-4">Unlike an RFQ (price-driven), an RFP uses a weighted scoring model across multiple criteria. Use the standard weights below or override.</p>
+
+    <div class="grid md:grid-cols-5 gap-3 mb-4 text-sm">
+      <div class="bg-purple-50 rounded p-3"><div class="text-[10px] text-slate-600">Cost Weight</div><input id="rfpW1" type="number" value="30" class="w-full bg-transparent font-bold text-purple-700 text-xl mt-1" oninput="renderRFP()"/></div>
+      <div class="bg-blue-50 rounded p-3"><div class="text-[10px] text-slate-600">Technical Weight</div><input id="rfpW2" type="number" value="25" class="w-full bg-transparent font-bold text-blue-700 text-xl mt-1" oninput="renderRFP()"/></div>
+      <div class="bg-teal-50 rounded p-3"><div class="text-[10px] text-slate-600">Service Weight</div><input id="rfpW3" type="number" value="20" class="w-full bg-transparent font-bold text-teal-700 text-xl mt-1" oninput="renderRFP()"/></div>
+      <div class="bg-emerald-50 rounded p-3"><div class="text-[10px] text-slate-600">ESG Weight</div><input id="rfpW4" type="number" value="15" class="w-full bg-transparent font-bold text-emerald-700 text-xl mt-1" oninput="renderRFP()"/></div>
+      <div class="bg-amber-50 rounded p-3"><div class="text-[10px] text-slate-600">References Weight</div><input id="rfpW5" type="number" value="10" class="w-full bg-transparent font-bold text-amber-700 text-xl mt-1" oninput="renderRFP()"/></div>
+    </div>
+
+    <div class="grid md:grid-cols-6 gap-2 mb-3 text-sm bg-slate-50 p-3 rounded-lg">
+      <input id="rfpSup" placeholder="Vendor name" class="border border-slate-300 rounded px-2 py-2 md:col-span-2"/>
+      <input id="rfpS1" type="number" min="0" max="100" placeholder="Cost (0-100)" class="border border-slate-300 rounded px-2 py-2"/>
+      <input id="rfpS2" type="number" min="0" max="100" placeholder="Tech (0-100)" class="border border-slate-300 rounded px-2 py-2"/>
+      <input id="rfpS3" type="number" min="0" max="100" placeholder="Service (0-100)" class="border border-slate-300 rounded px-2 py-2"/>
+      <input id="rfpS4" type="number" min="0" max="100" placeholder="ESG (0-100)" class="border border-slate-300 rounded px-2 py-2"/>
+      <input id="rfpS5" type="number" min="0" max="100" placeholder="Refs (0-100)" class="border border-slate-300 rounded px-2 py-2"/>
+      <button onclick="addRFPVendor()" class="bg-purple-600 hover:bg-purple-700 text-white rounded px-3 py-2 font-medium md:col-span-2">Add Vendor</button>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm" id="rfpTable">
+        <thead class="bg-slate-50 text-xs text-slate-600 uppercase">
+          <tr><th class="text-left p-2">Rank</th><th class="text-left p-2">Vendor</th><th class="p-2 text-right">Cost</th><th class="p-2 text-right">Tech</th><th class="p-2 text-right">Service</th><th class="p-2 text-right">ESG</th><th class="p-2 text-right">Refs</th><th class="p-2 text-right">Weighted Score</th><th class="p-2"></th></tr>
+        </thead>
+        <tbody id="rfpTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <div class="flex justify-between items-center flex-wrap gap-3">
+      <div>
+        <h3 class="font-bold">Export Final Comparison</h3>
+        <p class="text-xs text-slate-500">Excel report with quote table, scoring, variance, and recommendation.</p>
+      </div>
+      <button onclick="exportRFQ()" class="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-semibold text-sm">Export RFQ Report (.xlsx)</button>
+    </div>
+  </div>
+</section>
+
 </main>
 
 <div class="watermark-fixed no-print" onclick="openAbout()">
@@ -548,6 +723,7 @@ function switchTab(name){
   if(name==='sca') initSCA();
   if(name==='ai') initAI();
   if(name==='insights') initInsights();
+  if(name==='rfq') initRFQ();
 }
 
 const TEMPLATES = {
@@ -1439,6 +1615,286 @@ function initInsights(){
 renderScenarios();
 if(scenarios.length>0) document.getElementById('scenariosSection').classList.remove('hidden');
 document.getElementById('productName').addEventListener('keydown',e=>{ if(e.key==='Enter') analyzeProduct(); });
+
+/* ============== RFQ / RFP MANAGER ============== */
+let rfqQuotes = JSON.parse(localStorage.getItem('rfqQuotesV1')||'[]');
+let rfpVendors = JSON.parse(localStorage.getItem('rfpVendorsV1')||'[]');
+
+function initRFQ(){ renderRFQTable(); renderRFP(); }
+
+function downloadRFQTemplate(){
+  const rows = [
+    ['Supplier Name','Item Description','Quantity','Unit Price','Total Price','Currency','MOQ','Lead Time (days)','Payment Terms (days)','Validity (days)','Includes Shipping (Yes/No)','Notes'],
+    ['Supplier A Inc','Red sand brick 230x110x75',10000,12.5,125000,'INR',5000,21,45,30,'No','Sample row 1 — overwrite or delete'],
+    ['Supplier B Co','Red sand brick 230x110x75',10000,11.8,118000,'INR',10000,28,60,30,'Yes','Sample row 2 — overwrite or delete'],
+    ['Supplier C Ltd','Red sand brick 230x110x75',10000,13.2,132000,'INR',2000,14,30,21,'No','Premium grade option']
+  ];
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:22},{wch:32},{wch:10},{wch:12},{wch:14},{wch:10},{wch:10},{wch:14},{wch:18},{wch:12},{wch:18},{wch:30}];
+  XLSX.utils.book_append_sheet(wb, ws, 'RFQ');
+  XLSX.writeFile(wb, 'Should_Cost_AI_RFQ_Template.xlsx');
+}
+
+function uploadRFQ(event){
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      let added = 0;
+      for(let i=1; i<rows.length; i++){
+        const r = rows[i];
+        if(!r[0] || !r[3]) continue;
+        rfqQuotes.push({
+          supplier: String(r[0]).trim(),
+          item: String(r[1]||'').trim(),
+          qty: parseFloat(r[2])||0,
+          unitPrice: parseFloat(r[3])||0,
+          totalPrice: parseFloat(r[4])|| (parseFloat(r[2])*parseFloat(r[3])) || 0,
+          currency: String(r[5]||'INR').trim(),
+          moq: parseFloat(r[6])||0,
+          leadTime: parseFloat(r[7])||0,
+          paymentTerms: parseFloat(r[8])||0,
+          validity: parseFloat(r[9])||0,
+          includesShipping: String(r[10]||'').toLowerCase().startsWith('y'),
+          notes: String(r[11]||'').trim()
+        });
+        added++;
+      }
+      saveRFQ();
+      alert(`Imported ${added} quote(s) from ${file.name}`);
+      renderRFQTable();
+    } catch(err){
+      alert('Could not parse file. Please use the template format. Error: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  event.target.value = ''; // reset for re-upload
+}
+
+function addManualRFQ(){
+  const sup = document.getElementById('rfqSup').value.trim();
+  const qty = parseFloat(document.getElementById('rfqQty').value)||0;
+  const unit = parseFloat(document.getElementById('rfqUnit').value)||0;
+  if(!sup || !unit){ alert('Supplier name and unit price required.'); return; }
+  rfqQuotes.push({
+    supplier: sup, item: '', qty: qty, unitPrice: unit, totalPrice: qty*unit,
+    currency: document.getElementById('rfqCurr').value,
+    moq: parseFloat(document.getElementById('rfqMOQ').value)||0,
+    leadTime: parseFloat(document.getElementById('rfqLT').value)||0,
+    paymentTerms: parseFloat(document.getElementById('rfqPT').value)||0,
+    validity: parseFloat(document.getElementById('rfqValid').value)||0,
+    includesShipping: document.getElementById('rfqShip').value === 'Yes',
+    notes: document.getElementById('rfqNotes').value.trim()
+  });
+  ['rfqSup','rfqQty','rfqUnit','rfqMOQ','rfqLT','rfqPT','rfqValid','rfqNotes'].forEach(id=>document.getElementById(id).value='');
+  saveRFQ(); renderRFQTable();
+}
+
+function deleteRFQ(idx){ rfqQuotes.splice(idx,1); saveRFQ(); renderRFQTable(); }
+function clearRFQs(){ if(!confirm('Remove all quotes?')) return; rfqQuotes=[]; saveRFQ(); renderRFQTable(); }
+function saveRFQ(){ localStorage.setItem('rfqQuotesV1', JSON.stringify(rfqQuotes)); }
+
+function calcRFQScores(){
+  if(rfqQuotes.length===0) return;
+  const prices = rfqQuotes.map(q=>q.unitPrice);
+  const lts = rfqQuotes.map(q=>q.leadTime||0);
+  const pts = rfqQuotes.map(q=>q.paymentTerms||0);
+  const moqs = rfqQuotes.map(q=>q.moq||0);
+  const minP=Math.min(...prices), maxP=Math.max(...prices);
+  const minL=Math.min(...lts), maxL=Math.max(...lts);
+  const minPT=Math.min(...pts), maxPT=Math.max(...pts);
+  const minM=Math.min(...moqs), maxM=Math.max(...moqs);
+  // get current should-cost if available
+  let shouldCost = null;
+  if(currentParams.length>0){
+    const sub = currentParams.filter(p=>p.group!=='margin').reduce((t,p)=>t+p.qty*p.rate,0);
+    const m = currentParams.find(p=>p.group==='margin');
+    shouldCost = sub * (1 + (m?m.rate:0));
+  }
+  rfqQuotes.forEach(q=>{
+    const priceScore = maxP===minP ? 100 : 100*(maxP-q.unitPrice)/(maxP-minP);
+    const ltScore = maxL===minL ? 100 : 100*(maxL-q.leadTime)/(maxL-minL);
+    const ptScore = maxPT===minPT ? 100 : 100*(q.paymentTerms-minPT)/(maxPT-minPT);
+    const moqScore = maxM===minM ? 100 : 100*(maxM-q.moq)/(maxM-minM);
+    q.score = +(priceScore*0.5 + ltScore*0.2 + ptScore*0.15 + moqScore*0.15).toFixed(1);
+    q.variance = shouldCost ? +((q.unitPrice - shouldCost)/shouldCost*100).toFixed(1) : null;
+  });
+}
+
+function renderRFQTable(){
+  document.getElementById('rfqCount').textContent = rfqQuotes.length;
+  if(rfqQuotes.length===0){
+    document.getElementById('rfqEmpty').classList.remove('hidden');
+    document.getElementById('rfqTableContainer').classList.add('hidden');
+    document.getElementById('rfqChartContainer').classList.add('hidden');
+    document.getElementById('rfqScoreChartContainer').classList.add('hidden');
+    document.getElementById('rfqBest').textContent = '—';
+    document.getElementById('rfqVariance').textContent = '—';
+    document.getElementById('rfqRecommendation').innerHTML = '<span class="italic">Add quotes to generate an award recommendation.</span>';
+    return;
+  }
+  calcRFQScores();
+  const ranked = [...rfqQuotes].sort((a,b)=>b.score-a.score);
+  const tbody = document.getElementById('rfqTableBody');
+  tbody.innerHTML = ranked.map((q,i)=>{
+    const origIdx = rfqQuotes.indexOf(q);
+    const sym = SYM[q.currency] || '$';
+    const varColor = q.variance===null ? 'text-slate-400' : q.variance > 8 ? 'text-red-600 font-bold' : q.variance > 0 ? 'text-amber-600' : 'text-emerald-600 font-bold';
+    const varText = q.variance===null ? '—' : (q.variance>0?'+':'') + q.variance + '%';
+    const scoreColor = q.score>=80 ? 'bg-emerald-100 text-emerald-800' : q.score>=60 ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800';
+    const rankBadge = i===0 ? '🥇' : i===1 ? '🥈' : i===2 ? '🥉' : (i+1);
+    return `<tr class="border-t border-slate-100 hover:bg-slate-50">
+      <td class="p-2 font-bold text-center">${rankBadge}</td>
+      <td class="p-2"><div class="font-semibold">${q.supplier}</div><div class="text-xs text-slate-500">${q.notes||''}</div></td>
+      <td class="p-2 text-right font-mono">${sym}${q.unitPrice.toFixed(2)}</td>
+      <td class="p-2 text-right font-mono text-xs">${sym}${(q.totalPrice).toLocaleString(undefined,{maximumFractionDigits:0})}</td>
+      <td class="p-2 text-right">${q.leadTime||'—'}d</td>
+      <td class="p-2 text-right">${q.paymentTerms||'—'}d</td>
+      <td class="p-2 text-right">${q.moq||'—'}</td>
+      <td class="p-2 text-right ${varColor}">${varText}</td>
+      <td class="p-2 text-right"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${scoreColor}">${q.score}</span></td>
+      <td class="p-2 text-right"><button onclick="deleteRFQ(${origIdx})" class="text-slate-400 hover:text-red-500 text-sm">×</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('rfqEmpty').classList.add('hidden');
+  document.getElementById('rfqTableContainer').classList.remove('hidden');
+  document.getElementById('rfqChartContainer').classList.remove('hidden');
+  document.getElementById('rfqScoreChartContainer').classList.remove('hidden');
+
+  // KPIs
+  const best = ranked.find(q=>q.unitPrice===Math.min(...rfqQuotes.map(qq=>qq.unitPrice)));
+  const bestSym = SYM[best.currency]||'$';
+  document.getElementById('rfqBest').textContent = bestSym + best.unitPrice.toFixed(2);
+  document.getElementById('rfqBestSupplier').textContent = best.supplier;
+  const variances = rfqQuotes.filter(q=>q.variance!==null);
+  if(variances.length>0){
+    const avgVar = variances.reduce((s,q)=>s+q.variance,0)/variances.length;
+    document.getElementById('rfqVariance').textContent = (avgVar>0?'+':'')+avgVar.toFixed(1)+'%';
+    document.getElementById('rfqShouldCostRef').textContent = 'Average across all quotes';
+  } else {
+    document.getElementById('rfqVariance').textContent = '—';
+    document.getElementById('rfqShouldCostRef').textContent = 'Run Should Cost first to compare';
+  }
+
+  // charts
+  drawRFQCharts(ranked);
+  // recommendation
+  renderRFQRecommendation(ranked);
+}
+
+function drawRFQCharts(ranked){
+  if(charts.rfqPrice) charts.rfqPrice.destroy();
+  if(charts.rfqScore) charts.rfqScore.destroy();
+  const labels = ranked.map(q=>q.supplier);
+  const sym = SYM[ranked[0].currency]||'$';
+  charts.rfqPrice = new Chart(document.getElementById('rfqPriceChart').getContext('2d'), {
+    type:'bar',
+    data:{labels, datasets:[{label:'Unit Price ('+sym+')',data:ranked.map(q=>q.unitPrice),backgroundColor:'#8B5CF6'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},indexAxis:labels.length>5?'y':'x'}
+  });
+  charts.rfqScore = new Chart(document.getElementById('rfqScoreChart').getContext('2d'), {
+    type:'bar',
+    data:{labels, datasets:[{label:'Score',data:ranked.map(q=>q.score),
+      backgroundColor:ranked.map(q=>q.score>=80?'#10B981':q.score>=60?'#3B82F6':'#F59E0B')}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{max:100}},indexAxis:labels.length>5?'y':'x'}
+  });
+}
+
+function renderRFQRecommendation(ranked){
+  const winner = ranked[0];
+  const sym = SYM[winner.currency]||'$';
+  const second = ranked[1];
+  const cheapest = [...rfqQuotes].sort((a,b)=>a.unitPrice-b.unitPrice)[0];
+  let html = `<div class="bg-gradient-to-r from-emerald-50 to-teal-50 border-l-4 border-emerald-500 rounded-r-xl p-4 mb-3">
+    <div class="text-xs uppercase tracking-wider text-emerald-700 font-bold mb-1">🏆 Recommended Award</div>
+    <div class="text-2xl font-extrabold text-emerald-900">${winner.supplier}</div>
+    <div class="text-sm text-slate-700 mt-1">Weighted score: <b>${winner.score}/100</b> · Unit price: <b>${sym}${winner.unitPrice.toFixed(2)}</b> · Lead time: <b>${winner.leadTime||'—'} days</b></div>
+  </div>`;
+  if(winner.supplier !== cheapest.supplier){
+    html += `<div class="text-xs text-amber-700 bg-amber-50 border-l-4 border-amber-400 p-3 rounded-r-lg mb-2">⚠️ Note: The lowest <i>unit price</i> is from <b>${cheapest.supplier}</b> (${sym}${cheapest.unitPrice.toFixed(2)}). The recommended winner scores higher overall because of better lead time, payment terms, or MOQ flexibility. Decide if pure price savings outweighs those.</div>`;
+  }
+  if(winner.variance !== null){
+    if(winner.variance > 8) html += `<div class="text-xs text-red-700 bg-red-50 border-l-4 border-red-400 p-3 rounded-r-lg mb-2">🚨 Winner is <b>+${winner.variance}%</b> over should-cost. Strong case to renegotiate or run another round.</div>`;
+    else if(winner.variance > 0) html += `<div class="text-xs text-amber-700 bg-amber-50 border-l-4 border-amber-400 p-3 rounded-r-lg mb-2">🟡 Winner is <b>+${winner.variance}%</b> over should-cost. Acceptable but room to negotiate.</div>`;
+    else html += `<div class="text-xs text-emerald-700 bg-emerald-50 border-l-4 border-emerald-400 p-3 rounded-r-lg mb-2">✅ Winner is <b>${winner.variance}%</b> vs should-cost — at or below your defensible target. Award with confidence.</div>`;
+  }
+  if(second){
+    html += `<div class="text-xs text-slate-600 bg-slate-50 p-3 rounded-lg">📋 <b>Negotiation lever:</b> Use ${second.supplier} (${sym}${second.unitPrice.toFixed(2)}, score ${second.score}) as your BATNA. Confirm winner can match or improve before signing.</div>`;
+  }
+  document.getElementById('rfqRecommendation').innerHTML = html;
+}
+
+function exportRFQ(){
+  if(rfqQuotes.length===0){ alert('No quotes to export'); return; }
+  calcRFQScores();
+  const ranked = [...rfqQuotes].sort((a,b)=>b.score-a.score);
+  const product = document.getElementById('productName').value || 'product';
+  const rows = [['RFQ Comparison Report — Should Cost AI by Mohammed Zumar Ali Hassan'],
+    ['Product', product],['Generated', new Date().toLocaleString()],['# Quotes', rfqQuotes.length],[],
+    ['Rank','Supplier','Unit Price','Currency','Total','MOQ','Lead Time (d)','Payment Terms (d)','Validity (d)','Includes Shipping','Variance vs Should-Cost','Score','Notes']];
+  ranked.forEach((q,i)=>rows.push([i+1,q.supplier,q.unitPrice,q.currency,q.totalPrice,q.moq,q.leadTime,q.paymentTerms,q.validity,q.includesShipping?'Yes':'No',q.variance===null?'N/A':(q.variance+'%'),q.score,q.notes]));
+  rows.push([],['AWARD RECOMMENDATION', ranked[0].supplier],['Recommended unit price', ranked[0].unitPrice],['Score', ranked[0].score+'/100']);
+  if(rfpVendors.length>0){
+    rows.push([],['RFP — Qualitative Scoring'],['Vendor','Cost','Tech','Service','ESG','Refs','Weighted Score']);
+    const ranked2 = computeRFP();
+    ranked2.forEach(v=>rows.push([v.name,v.s1,v.s2,v.s3,v.s4,v.s5,v.weighted]));
+  }
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:6},{wch:25},{wch:12},{wch:8},{wch:14},{wch:8},{wch:12},{wch:16},{wch:10},{wch:16},{wch:18},{wch:8},{wch:30}];
+  XLSX.utils.book_append_sheet(wb,ws,'RFQ Comparison');
+  XLSX.writeFile(wb,`RFQ_comparison_${product.replace(/\W+/g,'_').slice(0,30)}.xlsx`);
+}
+
+/* ============== RFP qualitative ============== */
+function addRFPVendor(){
+  const sup = document.getElementById('rfpSup').value.trim();
+  if(!sup){ alert('Enter vendor name'); return; }
+  rfpVendors.push({
+    name: sup,
+    s1: parseFloat(document.getElementById('rfpS1').value)||0,
+    s2: parseFloat(document.getElementById('rfpS2').value)||0,
+    s3: parseFloat(document.getElementById('rfpS3').value)||0,
+    s4: parseFloat(document.getElementById('rfpS4').value)||0,
+    s5: parseFloat(document.getElementById('rfpS5').value)||0
+  });
+  ['rfpSup','rfpS1','rfpS2','rfpS3','rfpS4','rfpS5'].forEach(id=>document.getElementById(id).value=id==='rfpSup'?'':'');
+  localStorage.setItem('rfpVendorsV1', JSON.stringify(rfpVendors));
+  renderRFP();
+}
+function deleteRFP(i){ rfpVendors.splice(i,1); localStorage.setItem('rfpVendorsV1',JSON.stringify(rfpVendors)); renderRFP(); }
+function computeRFP(){
+  const w1=parseFloat(document.getElementById('rfpW1').value)||0;
+  const w2=parseFloat(document.getElementById('rfpW2').value)||0;
+  const w3=parseFloat(document.getElementById('rfpW3').value)||0;
+  const w4=parseFloat(document.getElementById('rfpW4').value)||0;
+  const w5=parseFloat(document.getElementById('rfpW5').value)||0;
+  const total = w1+w2+w3+w4+w5 || 100;
+  return rfpVendors.map(v=>({
+    ...v,
+    weighted: +((v.s1*w1 + v.s2*w2 + v.s3*w3 + v.s4*w4 + v.s5*w5)/total).toFixed(1)
+  })).sort((a,b)=>b.weighted-a.weighted);
+}
+function renderRFP(){
+  const tbody = document.getElementById('rfpTableBody'); if(!tbody) return;
+  if(rfpVendors.length===0){ tbody.innerHTML = '<tr><td colspan="9" class="p-4 text-center text-slate-400 text-sm">No RFP vendors yet. Add vendors above with their scores 0-100 across each dimension.</td></tr>'; return; }
+  const ranked = computeRFP();
+  tbody.innerHTML = ranked.map((v,i)=>{
+    const origIdx = rfpVendors.findIndex(x=>x.name===v.name);
+    const rankBadge = i===0 ? '🥇' : i===1 ? '🥈' : i===2 ? '🥉' : (i+1);
+    const color = v.weighted>=80?'bg-emerald-100 text-emerald-800':v.weighted>=60?'bg-blue-100 text-blue-800':'bg-amber-100 text-amber-800';
+    return `<tr class="border-t border-slate-100"><td class="p-2 text-center font-bold">${rankBadge}</td><td class="p-2 font-semibold">${v.name}</td>
+      <td class="p-2 text-right">${v.s1}</td><td class="p-2 text-right">${v.s2}</td><td class="p-2 text-right">${v.s3}</td>
+      <td class="p-2 text-right">${v.s4}</td><td class="p-2 text-right">${v.s5}</td>
+      <td class="p-2 text-right"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${color}">${v.weighted}</span></td>
+      <td class="p-2 text-right"><button onclick="deleteRFP(${origIdx})" class="text-slate-400 hover:text-red-500">×</button></td></tr>`;
+  }).join('');
+}
 </script>
 </body>
 </html>
