@@ -3,167 +3,139 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Should Cost AI — Procurement Cost Analyzer</title>
+<title>Should Cost AI — Procurement & Supply Chain Intelligence Suite | by Mohammed Zumar Ali Hassan</title>
+<meta name="author" content="Mohammed Zumar Ali Hassan">
+<meta name="description" content="AI-powered procurement should-cost calculator, executive dashboard, supply chain analytics and AI strategist — built by Mohammed Zumar Ali Hassan, MS Supply Chain Management, UT Dallas">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-  :root{
-    --brand:#0F766E;
-    --brand-dark:#134E4A;
-    --brand-light:#CCFBF1;
-    --accent:#F59E0B;
-  }
-  body{ font-family: 'Inter', system-ui, -apple-system, sans-serif; background:#F8FAFC; }
-  .gradient-header{
-    background: linear-gradient(135deg, #0F766E 0%, #134E4A 60%, #1E3A8A 100%);
-  }
-  .card-shadow{ box-shadow:0 1px 3px rgba(15,23,42,.06), 0 4px 12px rgba(15,23,42,.04); }
+  :root{ --brand:#0F766E; --brand-dark:#134E4A; --brand-light:#CCFBF1; --accent:#F59E0B; }
+  body{ font-family:'Inter',system-ui,-apple-system,sans-serif; background:#F8FAFC; }
+  .gradient-header{ background:linear-gradient(135deg,#0F766E 0%,#134E4A 60%,#1E3A8A 100%); }
+  .card-shadow{ box-shadow:0 1px 3px rgba(15,23,42,.06),0 4px 12px rgba(15,23,42,.04); }
   .parameter-row:hover{ background:#F0FDFA; }
-  .scrollbar-thin::-webkit-scrollbar{ width:6px; height:6px; }
-  .scrollbar-thin::-webkit-scrollbar-thumb{ background:#94A3B8; border-radius:3px; }
-  .pulse-dot{ animation:pulse 1.4s infinite; }
-  @keyframes pulse{ 0%,100%{opacity:1}50%{opacity:.3} }
-  .ai-thinking{
-    background: linear-gradient(90deg, #14B8A6, #6366F1, #14B8A6);
-    background-size: 200% 100%;
-    animation: shimmer 2s linear infinite;
-    -webkit-background-clip: text;
-    background-clip:text;
-    color:transparent;
-  }
-  @keyframes shimmer{ 0%{background-position:0 0}100%{background-position:200% 0} }
-  .category-chip{ transition: all .2s; cursor:pointer; }
-  .category-chip:hover{ transform: translateY(-1px); }
-  details > summary { list-style: none; cursor:pointer; }
+  details > summary { list-style:none; cursor:pointer; }
   details > summary::-webkit-details-marker { display:none; }
-  .chevron{ transition: transform .2s; }
-  details[open] .chevron{ transform: rotate(90deg); }
+  .chevron{ transition:transform .2s; }
+  details[open] .chevron{ transform:rotate(90deg); }
   input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
   input[type=number]{ -moz-appearance:textfield; }
-  .tab-active{ background:#0F766E; color:white; }
-  .tab-inactive{ background:#E2E8F0; color:#334155; }
-  .glow{ box-shadow: 0 0 0 3px rgba(15,118,110,.15); }
+  .tab-btn{ padding:.65rem 1.1rem; border-radius:.6rem; font-weight:600; font-size:.9rem; transition:all .15s; cursor:pointer; border:none; }
+  .tab-active{ background:white; color:#0F766E; box-shadow:0 2px 6px rgba(15,118,110,.2); }
+  .tab-inactive{ background:transparent; color:white; opacity:.85; }
+  .tab-inactive:hover{ background:rgba(255,255,255,.15); opacity:1; }
+  .ai-thinking{ background:linear-gradient(90deg,#14B8A6,#6366F1,#14B8A6); background-size:200% 100%;
+    animation:shimmer 2s linear infinite; -webkit-background-clip:text; background-clip:text; color:transparent; }
+  @keyframes shimmer{ 0%{background-position:0 0}100%{background-position:200% 0} }
+  .watermark-fixed{ position:fixed; bottom:12px; right:18px; z-index:30; background:rgba(15,23,42,.85);
+    color:#fff; padding:6px 14px; border-radius:999px; font-size:11px; font-weight:500; cursor:pointer;
+    backdrop-filter:blur(6px); box-shadow:0 4px 14px rgba(15,23,42,.25); display:flex; align-items:center; gap:6px; }
+  .watermark-fixed:hover{ background:#0F766E; }
+  .kpi-card{ background:white; border-radius:1rem; padding:1.25rem; box-shadow:0 1px 3px rgba(15,23,42,.06),0 4px 12px rgba(15,23,42,.04); }
+  .kpi-up{ color:#16A34A; }
+  .kpi-down{ color:#DC2626; }
+  .chat-bubble-user{ background:#0F766E; color:white; border-radius:18px 18px 4px 18px; padding:10px 14px; max-width:80%; align-self:flex-end; }
+  .chat-bubble-bot{ background:white; border:1px solid #E2E8F0; border-radius:18px 18px 18px 4px; padding:10px 14px; max-width:90%; align-self:flex-start; }
+  .quadrant-cell{ border:1px solid #E2E8F0; padding:14px; min-height:140px; position:relative; }
+  .quadrant-strategic{ background:linear-gradient(135deg,#FEF3C7,#FDE68A); }
+  .quadrant-leverage{ background:linear-gradient(135deg,#DBEAFE,#BFDBFE); }
+  .quadrant-bottleneck{ background:linear-gradient(135deg,#FED7AA,#FDBA74); }
+  .quadrant-routine{ background:linear-gradient(135deg,#D1FAE5,#A7F3D0); }
+  .heat-cell{ padding:6px 4px; text-align:center; font-size:11px; color:white; font-weight:600; }
+  @media print{ .no-print{ display:none !important; } .watermark-fixed{ position:static; background:#0F766E; } }
 </style>
 </head>
 <body class="min-h-screen text-slate-800">
 
-<!-- HEADER -->
 <header class="gradient-header text-white">
-  <div class="max-w-7xl mx-auto px-6 py-8">
+  <div class="max-w-7xl mx-auto px-6 pt-6 pb-3">
     <div class="flex items-center justify-between flex-wrap gap-4">
-      <div>
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
-          </div>
-          <div>
-            <h1 class="text-3xl font-bold tracking-tight">Should Cost AI</h1>
-            <p class="text-teal-100 text-sm">AI-powered procurement cost analyzer for GSM & sourcing teams</p>
-          </div>
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+        </div>
+        <div>
+          <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Should Cost AI</h1>
+          <p class="text-teal-100 text-xs md:text-sm">Procurement &amp; Supply Chain Intelligence Suite</p>
         </div>
       </div>
-      <div class="flex gap-2">
-        <button onclick="showHelp()" class="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur rounded-lg text-sm font-medium transition">How it works</button>
-        <button onclick="resetAll()" class="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur rounded-lg text-sm font-medium transition">New Analysis</button>
+      <div class="flex gap-2 items-center">
+        <button onclick="openAbout()" class="px-3 py-1.5 bg-white/15 hover:bg-white/25 backdrop-blur rounded-lg text-xs font-medium transition flex items-center gap-2">
+          <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center font-bold text-[10px]">ZA</span>
+          About the Creator
+        </button>
+        <button onclick="showHelp()" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur rounded-lg text-xs font-medium">How it works</button>
       </div>
     </div>
+
+    <nav class="mt-5 flex flex-wrap gap-1">
+      <button class="tab-btn tab-active" data-tab="calc" onclick="switchTab('calc')">Should Cost Calculator</button>
+      <button class="tab-btn tab-inactive" data-tab="dash" onclick="switchTab('dash')">Executive Dashboard</button>
+      <button class="tab-btn tab-inactive" data-tab="sca" onclick="switchTab('sca')">Supply Chain Analytics</button>
+      <button class="tab-btn tab-inactive" data-tab="ai" onclick="switchTab('ai')">AI Procurement Strategist</button>
+      <button class="tab-btn tab-inactive" data-tab="insights" onclick="switchTab('insights')">Insights &amp; Recommendations</button>
+    </nav>
+  </div>
+  <div class="bg-slate-900/40 text-center text-[11px] py-1.5 text-teal-100">
+    Designed &amp; built by <b class="text-white">Mohammed Zumar Ali Hassan</b> · MS Supply Chain Management (STEM), UT Dallas · <a href="https://linkedin.com/in/zumarali15" target="_blank" class="underline">linkedin.com/in/zumarali15</a>
   </div>
 </header>
 
-<main class="max-w-7xl mx-auto px-6 py-8">
+<main class="max-w-7xl mx-auto px-6 py-6">
 
-  <!-- STEP 1: PRODUCT INPUT -->
-  <section id="step1" class="bg-white rounded-2xl card-shadow p-6 mb-6">
+<section id="tab-calc-content" class="tab-content">
+  <section class="bg-white rounded-2xl card-shadow p-6 mb-6">
     <div class="flex items-center gap-3 mb-4">
       <div class="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-semibold text-sm">1</div>
       <h2 class="text-xl font-bold">Define the Commodity or Product</h2>
     </div>
     <p class="text-slate-600 text-sm mb-6">Describe what you're sourcing. The AI engine will analyze and propose every cost driver — even when engineering hasn't given you full specs.</p>
-
     <div class="grid md:grid-cols-12 gap-4">
-      <div class="md:col-span-5">
-        <label class="block text-sm font-medium text-slate-700 mb-1">Product / Commodity Name</label>
-        <input id="productName" type="text" placeholder="e.g. Red sand fly-ash brick, 230×110×75 mm" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500" />
-      </div>
-      <div class="md:col-span-4">
-        <label class="block text-sm font-medium text-slate-700 mb-1">Industry / Category</label>
+      <div class="md:col-span-5"><label class="block text-sm font-medium text-slate-700 mb-1">Product / Commodity Name</label>
+        <input id="productName" type="text" placeholder="e.g. Red sand fly-ash brick, 230×110×75 mm" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500"/></div>
+      <div class="md:col-span-4"><label class="block text-sm font-medium text-slate-700 mb-1">Industry / Category</label>
         <select id="productCategory" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500">
-          <option value="auto">Auto-detect (AI decides)</option>
-          <option value="construction">Construction Materials</option>
-          <option value="cosmetics">Cosmetics & Personal Care</option>
-          <option value="garments">Garments & Textiles</option>
-          <option value="electronics">Electronics & PCB</option>
-          <option value="food">Food & Beverage</option>
-          <option value="packaging">Packaging</option>
-          <option value="metals">Metals & Castings</option>
-          <option value="chemicals">Chemicals & Polymers</option>
-          <option value="plastics">Plastic Injection Moulded</option>
-          <option value="automotive">Automotive Components</option>
-          <option value="pharma">Pharmaceutical</option>
-          <option value="furniture">Furniture & Wood</option>
-        </select>
-      </div>
-      <div class="md:col-span-3">
-        <label class="block text-sm font-medium text-slate-700 mb-1">Order Quantity (units)</label>
-        <input id="orderQty" type="number" value="10000" min="1" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500" />
-      </div>
-
-      <div class="md:col-span-12">
-        <label class="block text-sm font-medium text-slate-700 mb-1">Brief Description / Specifications (optional but recommended)</label>
-        <textarea id="productSpec" rows="2" placeholder="e.g. compressive strength 7.5 MPa, made with crusher dust + cement + red river sand, single shift production, supplier in Hyderabad" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500"></textarea>
-      </div>
-
-      <div class="md:col-span-3">
-        <label class="block text-sm font-medium text-slate-700 mb-1">Currency</label>
-        <select id="currency" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500" onchange="recalc()">
-          <option value="INR">₹ INR</option>
-          <option value="USD">$ USD</option>
-          <option value="EUR">€ EUR</option>
-          <option value="GBP">£ GBP</option>
-          <option value="AED">د.إ AED</option>
-          <option value="SAR">﷼ SAR</option>
-        </select>
-      </div>
-      <div class="md:col-span-3">
-        <label class="block text-sm font-medium text-slate-700 mb-1">Region (labor & utility rates)</label>
-        <select id="region" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500">
-          <option value="india_tier2">India - Tier 2</option>
-          <option value="india_tier1">India - Tier 1</option>
-          <option value="india_rural">India - Rural</option>
-          <option value="china">China - Coastal</option>
-          <option value="vietnam">Vietnam</option>
-          <option value="bangladesh">Bangladesh</option>
-          <option value="turkey">Turkey</option>
-          <option value="mexico">Mexico</option>
-          <option value="eu">EU - Western</option>
-          <option value="us">USA</option>
-        </select>
-      </div>
-      <div class="md:col-span-3">
-        <label class="block text-sm font-medium text-slate-700 mb-1">Production Volume</label>
-        <select id="volumeProfile" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500">
-          <option value="low">Low volume / job shop</option>
-          <option value="medium" selected>Medium volume</option>
-          <option value="high">High volume / mass production</option>
-        </select>
-      </div>
-      <div class="md:col-span-3">
-        <label class="block text-sm font-medium text-slate-700 mb-1">Quality Tier</label>
-        <select id="qualityTier" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500">
-          <option value="economy">Economy / Commodity</option>
-          <option value="standard" selected>Standard / Branded</option>
-          <option value="premium">Premium / Specification-grade</option>
-        </select>
-      </div>
+          <option value="auto">Auto-detect (AI decides)</option><option value="construction">Construction Materials</option>
+          <option value="cosmetics">Cosmetics &amp; Personal Care</option><option value="garments">Garments &amp; Textiles</option>
+          <option value="electronics">Electronics &amp; PCB</option><option value="food">Food &amp; Beverage</option>
+          <option value="packaging">Packaging</option><option value="metals">Metals &amp; Castings</option>
+          <option value="chemicals">Chemicals &amp; Polymers</option><option value="plastics">Plastic Injection Moulded</option>
+          <option value="automotive">Automotive Components</option><option value="pharma">Pharmaceutical</option>
+          <option value="furniture">Furniture &amp; Wood</option>
+        </select></div>
+      <div class="md:col-span-3"><label class="block text-sm font-medium text-slate-700 mb-1">Order Quantity (units)</label>
+        <input id="orderQty" type="number" value="10000" min="1" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500"/></div>
+      <div class="md:col-span-12"><label class="block text-sm font-medium text-slate-700 mb-1">Brief Description / Specifications (optional)</label>
+        <textarea id="productSpec" rows="2" placeholder="e.g. compressive strength 7.5 MPa, supplier in Hyderabad, single shift production" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500"></textarea></div>
+      <div class="md:col-span-3"><label class="block text-sm font-medium text-slate-700 mb-1">Currency</label>
+        <select id="currency" class="w-full border border-slate-300 rounded-lg px-3 py-2.5" onchange="recalc()">
+          <option value="INR">₹ INR</option><option value="USD">$ USD</option><option value="EUR">€ EUR</option>
+          <option value="GBP">£ GBP</option><option value="AED">د.إ AED</option><option value="SAR">﷼ SAR</option>
+        </select></div>
+      <div class="md:col-span-3"><label class="block text-sm font-medium text-slate-700 mb-1">Region</label>
+        <select id="region" class="w-full border border-slate-300 rounded-lg px-3 py-2.5">
+          <option value="india_tier2">India - Tier 2</option><option value="india_tier1">India - Tier 1</option>
+          <option value="india_rural">India - Rural</option><option value="china">China - Coastal</option>
+          <option value="vietnam">Vietnam</option><option value="bangladesh">Bangladesh</option>
+          <option value="turkey">Turkey</option><option value="mexico">Mexico</option>
+          <option value="eu">EU - Western</option><option value="us">USA</option>
+        </select></div>
+      <div class="md:col-span-3"><label class="block text-sm font-medium text-slate-700 mb-1">Production Volume</label>
+        <select id="volumeProfile" class="w-full border border-slate-300 rounded-lg px-3 py-2.5">
+          <option value="low">Low volume / job shop</option><option value="medium" selected>Medium volume</option>
+          <option value="high">High volume / mass</option>
+        </select></div>
+      <div class="md:col-span-3"><label class="block text-sm font-medium text-slate-700 mb-1">Quality Tier</label>
+        <select id="qualityTier" class="w-full border border-slate-300 rounded-lg px-3 py-2.5">
+          <option value="economy">Economy</option><option value="standard" selected>Standard</option><option value="premium">Premium</option>
+        </select></div>
     </div>
-
     <div class="mt-6 flex flex-wrap gap-3 items-center">
       <button id="analyzeBtn" onclick="analyzeProduct()" class="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-semibold flex items-center gap-2 shadow-lg shadow-teal-600/20">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-        Analyze with AI
-      </button>
-      <span class="text-sm text-slate-500">Try examples:</span>
+        Analyze with AI</button>
+      <span class="text-sm text-slate-500">Examples:</span>
       <button onclick="loadExample('brick')" class="text-sm px-3 py-1.5 border border-slate-300 rounded-full hover:border-teal-500 hover:text-teal-700">Red sand brick</button>
       <button onclick="loadExample('perfume')" class="text-sm px-3 py-1.5 border border-slate-300 rounded-full hover:border-teal-500 hover:text-teal-700">Perfume 50ml</button>
       <button onclick="loadExample('tshirt')" class="text-sm px-3 py-1.5 border border-slate-300 rounded-full hover:border-teal-500 hover:text-teal-700">Cotton T-shirt</button>
@@ -172,60 +144,36 @@
     </div>
   </section>
 
-  <!-- STEP 2: AI ANALYSIS RESULTS -->
   <section id="step2" class="hidden bg-white rounded-2xl card-shadow p-6 mb-6">
     <div class="flex items-center gap-3 mb-4">
       <div class="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-semibold text-sm">2</div>
       <h2 class="text-xl font-bold">AI Analysis — Detected Cost Drivers</h2>
     </div>
-    <div id="aiSummary" class="bg-gradient-to-r from-teal-50 to-blue-50 border border-teal-200 rounded-xl p-4 mb-6">
-      <!-- AI summary injected -->
-    </div>
-
+    <div id="aiSummary" class="bg-gradient-to-r from-teal-50 to-blue-50 border border-teal-200 rounded-xl p-4 mb-6"></div>
     <div class="grid md:grid-cols-12 gap-6">
-      <!-- Parameter Editor -->
-      <div class="md:col-span-8 space-y-4" id="paramContainer">
-        <!-- Cost category cards injected here -->
-      </div>
-
-      <!-- Live Cost Sidebar -->
+      <div class="md:col-span-8 space-y-4" id="paramContainer"></div>
       <aside class="md:col-span-4">
         <div class="sticky top-4 space-y-4">
           <div class="bg-gradient-to-br from-teal-600 to-teal-800 text-white rounded-2xl p-5 shadow-lg shadow-teal-600/20">
             <div class="text-xs uppercase tracking-wider opacity-80">Should Cost / Unit</div>
             <div id="unitCost" class="text-4xl font-extrabold mt-1">—</div>
             <div class="text-sm opacity-90 mt-1" id="unitCostHint">Edit any parameter to recalculate</div>
-
             <div class="mt-5 pt-5 border-t border-white/20 grid grid-cols-2 gap-3">
-              <div>
-                <div class="text-xs opacity-80">Total Order Cost</div>
-                <div id="totalCost" class="text-lg font-bold">—</div>
-              </div>
-              <div>
-                <div class="text-xs opacity-80">Margin Applied</div>
-                <div id="marginShown" class="text-lg font-bold">—</div>
-              </div>
-            </div>
-          </div>
-
+              <div><div class="text-xs opacity-80">Total Order Cost</div><div id="totalCost" class="text-lg font-bold">—</div></div>
+              <div><div class="text-xs opacity-80">Margin Applied</div><div id="marginShown" class="text-lg font-bold">—</div></div>
+            </div></div>
           <div class="bg-white rounded-2xl card-shadow p-4">
             <h3 class="font-semibold mb-2 text-sm">Cost Breakdown</h3>
-            <div class="relative h-64">
-              <canvas id="costChart"></canvas>
-            </div>
-            <div id="costLegend" class="mt-3 space-y-1 text-xs"></div>
-          </div>
-
+            <div class="relative h-64"><canvas id="costChart"></canvas></div>
+            <div id="costLegend" class="mt-3 space-y-1 text-xs"></div></div>
           <div class="bg-white rounded-2xl card-shadow p-4">
             <h3 class="font-semibold mb-2 text-sm">Sensitivity (what-if)</h3>
-            <label class="text-xs text-slate-600">Raw material price ± <span id="matSensVal">0</span>%</label>
+            <label class="text-xs text-slate-600">Raw material ± <span id="matSensVal">0</span>%</label>
             <input id="matSens" type="range" min="-30" max="30" value="0" oninput="document.getElementById('matSensVal').textContent=this.value; recalc()" class="w-full accent-teal-600"/>
             <label class="text-xs text-slate-600 mt-2 block">Labor rate ± <span id="labSensVal">0</span>%</label>
             <input id="labSens" type="range" min="-30" max="30" value="0" oninput="document.getElementById('labSensVal').textContent=this.value; recalc()" class="w-full accent-teal-600"/>
-            <label class="text-xs text-slate-600 mt-2 block">Energy cost ± <span id="enSensVal">0</span>%</label>
-            <input id="enSens" type="range" min="-30" max="30" value="0" oninput="document.getElementById('enSensVal').textContent=this.value; recalc()" class="w-full accent-teal-600"/>
-          </div>
-
+            <label class="text-xs text-slate-600 mt-2 block">Energy ± <span id="enSensVal">0</span>%</label>
+            <input id="enSens" type="range" min="-30" max="30" value="0" oninput="document.getElementById('enSensVal').textContent=this.value; recalc()" class="w-full accent-teal-600"/></div>
           <div class="bg-white rounded-2xl card-shadow p-4">
             <h3 class="font-semibold mb-3 text-sm">Actions</h3>
             <div class="grid grid-cols-2 gap-2">
@@ -234,29 +182,23 @@
               <button onclick="exportExcel()" class="px-3 py-2 bg-teal-600 text-white hover:bg-teal-700 rounded-lg text-sm font-medium">Export Excel</button>
               <button onclick="window.print()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium">Print / PDF</button>
             </div>
+            <button onclick="switchTab('insights')" class="mt-2 w-full px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium">View Strategic Recommendations →</button>
           </div>
         </div>
       </aside>
     </div>
-
-    <!-- Add custom parameter -->
     <div class="mt-6 border-t pt-4">
-      <details>
-        <summary class="font-medium text-teal-700 flex items-center gap-2">
-          <span class="chevron">▶</span> Add a custom cost driver
-        </summary>
+      <details><summary class="font-medium text-teal-700 flex items-center gap-2"><span class="chevron">▶</span> Add a custom cost driver</summary>
         <div class="grid md:grid-cols-6 gap-2 mt-3">
           <input id="newParamCat" placeholder="Category" class="border border-slate-300 rounded-lg px-3 py-2 text-sm"/>
           <input id="newParamName" placeholder="Parameter name" class="border border-slate-300 rounded-lg px-3 py-2 text-sm md:col-span-2"/>
           <input id="newParamQty" type="number" placeholder="Qty" class="border border-slate-300 rounded-lg px-3 py-2 text-sm"/>
           <input id="newParamRate" type="number" placeholder="Rate" class="border border-slate-300 rounded-lg px-3 py-2 text-sm"/>
           <button onclick="addCustomParam()" class="bg-teal-600 hover:bg-teal-700 text-white rounded-lg px-3 py-2 text-sm font-medium">Add</button>
-        </div>
-      </details>
+        </div></details>
     </div>
   </section>
 
-  <!-- SCENARIOS -->
   <section id="scenariosSection" class="hidden bg-white rounded-2xl card-shadow p-6 mb-6">
     <div class="flex items-center gap-3 mb-4">
       <div class="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-semibold text-sm">3</div>
@@ -264,357 +206,538 @@
     </div>
     <div id="scenariosList" class="grid md:grid-cols-3 gap-4"></div>
   </section>
+</section>
+
+<section id="tab-dash-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-6 mb-6">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div><h2 class="text-2xl font-bold">Executive Procurement Dashboard</h2>
+        <p class="text-slate-300 text-sm">Live KPIs across spend, savings, supplier performance and cost trends</p></div>
+      <div class="flex gap-2">
+        <select id="dashPeriod" onchange="initDashboard()" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm">
+          <option value="ytd">YTD 2026</option><option value="q4">Q4 2025</option><option value="ttm">Last 12 months</option></select>
+        <button onclick="exportDashboard()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-semibold">Export</button>
+      </div>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-4 gap-4 mb-6">
+    <div class="kpi-card"><div class="text-xs text-slate-500 uppercase tracking-wider">Total Addressable Spend</div>
+      <div class="text-3xl font-extrabold mt-1 text-slate-800">$24.8M</div>
+      <div class="text-xs kpi-up mt-1">▲ 6.4% vs LY</div></div>
+    <div class="kpi-card"><div class="text-xs text-slate-500 uppercase tracking-wider">Realized Savings</div>
+      <div class="text-3xl font-extrabold mt-1 text-emerald-600">$2.14M</div>
+      <div class="text-xs kpi-up mt-1">▲ 12.8% · 8.6% of spend</div></div>
+    <div class="kpi-card"><div class="text-xs text-slate-500 uppercase tracking-wider">Supplier OTIF</div>
+      <div class="text-3xl font-extrabold mt-1 text-slate-800">94.2<span class="text-lg">%</span></div>
+      <div class="text-xs kpi-up mt-1">▲ from 87% baseline</div></div>
+    <div class="kpi-card"><div class="text-xs text-slate-500 uppercase tracking-wider">Avg Cost Variance to Should-Cost</div>
+      <div class="text-3xl font-extrabold mt-1 text-amber-600">+11.3<span class="text-lg">%</span></div>
+      <div class="text-xs kpi-down mt-1">Negotiation opportunity</div></div>
+  </div>
+  <div class="grid md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-2xl card-shadow p-4 md:col-span-2"><h3 class="font-semibold text-sm mb-3">Spend by Category (Pareto)</h3>
+      <div class="h-72"><canvas id="dashCatChart"></canvas></div></div>
+    <div class="bg-white rounded-2xl card-shadow p-4"><h3 class="font-semibold text-sm mb-3">Spend by Region</h3>
+      <div class="h-72"><canvas id="dashRegionChart"></canvas></div></div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white rounded-2xl card-shadow p-4"><h3 class="font-semibold text-sm mb-3">Quarterly Savings vs Target</h3>
+      <div class="h-64"><canvas id="dashSavingsChart"></canvas></div></div>
+    <div class="bg-white rounded-2xl card-shadow p-4"><h3 class="font-semibold text-sm mb-3">Cost Index — Raw Materials Trend</h3>
+      <div class="h-64"><canvas id="dashTrendChart"></canvas></div></div>
+  </div>
+  <div class="bg-white rounded-2xl card-shadow p-4 mb-6">
+    <div class="flex justify-between items-center mb-3"><h3 class="font-semibold text-sm">Top Supplier Scorecard</h3>
+      <span class="text-xs text-slate-500">Weighted score = 40% Quality, 30% OTIF, 20% Cost, 10% Sustainability</span></div>
+    <div class="overflow-x-auto"><table class="w-full text-sm" id="scorecardTable">
+      <thead class="bg-slate-50 text-xs text-slate-600 uppercase">
+        <tr><th class="text-left p-2">Supplier</th><th class="p-2">Category</th><th class="p-2">Region</th>
+            <th class="p-2 text-right">Spend ($K)</th><th class="p-2 text-right">OTIF %</th>
+            <th class="p-2 text-right">PPM Defects</th><th class="p-2 text-right">Score</th>
+            <th class="p-2 text-right">Tier</th></tr></thead>
+      <tbody></tbody></table></div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white rounded-2xl card-shadow p-4"><h3 class="font-semibold text-sm mb-3">Lead Time vs Cost (bubble = spend)</h3>
+      <div class="h-72"><canvas id="dashBubbleChart"></canvas></div></div>
+    <div class="bg-white rounded-2xl card-shadow p-4"><h3 class="font-semibold text-sm mb-3">Risk Heatmap — Probability × Impact</h3>
+      <div id="riskHeatmap" class="grid grid-cols-6 gap-1 text-xs"></div>
+      <p class="text-xs text-slate-500 mt-2">Top-right = critical (high probability, high impact). Mitigate first.</p></div>
+  </div>
+</section>
+
+<section id="tab-sca-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-2xl p-6 mb-6">
+    <h2 class="text-2xl font-bold">Supply Chain &amp; Procurement Analytics</h2>
+    <p class="text-blue-100 text-sm">Strategic models — Kraljic, ABC/Pareto, supplier risk, geographic sourcing, inventory optimization</p>
+  </div>
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <div class="flex justify-between items-start mb-3 flex-wrap gap-2">
+      <div><h3 class="font-bold text-lg">Kraljic Portfolio Matrix</h3>
+        <p class="text-xs text-slate-500">Plot purchases on Profit Impact × Supply Risk — drives sourcing strategy choice</p></div>
+      <div class="text-xs text-slate-500">Strategy I developed during my Nykaa sourcing work — delivered $300K+ in savings</div>
+    </div>
+    <div class="grid grid-cols-2 gap-0 border border-slate-300 rounded-lg overflow-hidden">
+      <div class="quadrant-cell quadrant-strategic"><div class="font-bold text-amber-900 text-sm">STRATEGIC ITEMS</div>
+        <div class="text-[11px] text-amber-800 mt-1">High impact · High risk</div>
+        <div class="text-xs mt-2 text-slate-700"><b>Strategy:</b> Long-term partnerships, dual sourcing, joint cost-down workshops, develop alternates</div>
+        <div class="mt-2 flex flex-wrap gap-1" id="kraljic-strategic"></div></div>
+      <div class="quadrant-cell quadrant-bottleneck"><div class="font-bold text-orange-900 text-sm">BOTTLENECK ITEMS</div>
+        <div class="text-[11px] text-orange-800 mt-1">Low impact · High risk</div>
+        <div class="text-xs mt-2 text-slate-700"><b>Strategy:</b> Secure supply, buffer stock, qualify alternate suppliers, redesign-out where possible</div>
+        <div class="mt-2 flex flex-wrap gap-1" id="kraljic-bottleneck"></div></div>
+      <div class="quadrant-cell quadrant-leverage"><div class="font-bold text-blue-900 text-sm">LEVERAGE ITEMS</div>
+        <div class="text-[11px] text-blue-800 mt-1">High impact · Low risk</div>
+        <div class="text-xs mt-2 text-slate-700"><b>Strategy:</b> Competitive bidding, e-auctions, exploit buying power, drive aggressive cost reduction</div>
+        <div class="mt-2 flex flex-wrap gap-1" id="kraljic-leverage"></div></div>
+      <div class="quadrant-cell quadrant-routine"><div class="font-bold text-emerald-900 text-sm">ROUTINE ITEMS</div>
+        <div class="text-[11px] text-emerald-800 mt-1">Low impact · Low risk</div>
+        <div class="text-xs mt-2 text-slate-700"><b>Strategy:</b> Automate, P-card, catalog buying, consolidate suppliers, reduce transaction cost</div>
+        <div class="mt-2 flex flex-wrap gap-1" id="kraljic-routine"></div></div>
+    </div>
+    <div class="flex justify-between text-xs text-slate-500 mt-2 px-2">
+      <span>← Low Supply Risk · High Supply Risk →</span><span>Profit Impact ↑</span></div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white rounded-2xl card-shadow p-5">
+      <h3 class="font-bold text-sm mb-3">ABC Analysis (Pareto 80/20)</h3>
+      <div class="h-64"><canvas id="scaAbcChart"></canvas></div>
+      <p class="text-xs text-slate-500 mt-2"><b>A-items</b> = 70% of spend, manage daily. <b>B</b> = 20%, weekly. <b>C</b> = 10%, monthly.</p></div>
+    <div class="bg-white rounded-2xl card-shadow p-5">
+      <h3 class="font-bold text-sm mb-3">Geographic Sourcing Footprint</h3>
+      <div class="h-64"><canvas id="scaGeoChart"></canvas></div>
+      <p class="text-xs text-slate-500 mt-2">Reduce single-country dependence below 50% to mitigate tariff &amp; geopolitical risk.</p></div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white rounded-2xl card-shadow p-5">
+      <h3 class="font-bold text-sm mb-3">EOQ &amp; Safety Stock Optimizer</h3>
+      <div class="grid grid-cols-2 gap-3 mb-3 text-sm">
+        <label>Annual demand (units)<input id="eoqD" type="number" value="50000" class="w-full border border-slate-300 rounded px-2 py-1 mt-1" oninput="recalcEOQ()"/></label>
+        <label>Order cost ($)<input id="eoqS" type="number" value="120" class="w-full border border-slate-300 rounded px-2 py-1 mt-1" oninput="recalcEOQ()"/></label>
+        <label>Holding cost / unit / yr ($)<input id="eoqH" type="number" value="2.5" step="0.1" class="w-full border border-slate-300 rounded px-2 py-1 mt-1" oninput="recalcEOQ()"/></label>
+        <label>Lead time (days)<input id="eoqLT" type="number" value="14" class="w-full border border-slate-300 rounded px-2 py-1 mt-1" oninput="recalcEOQ()"/></label>
+        <label>Service level (%)<input id="eoqSL" type="number" value="95" class="w-full border border-slate-300 rounded px-2 py-1 mt-1" oninput="recalcEOQ()"/></label>
+        <label>Demand σ / day<input id="eoqSig" type="number" value="40" class="w-full border border-slate-300 rounded px-2 py-1 mt-1" oninput="recalcEOQ()"/></label>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="bg-teal-50 rounded p-2"><div class="text-[10px] text-slate-500">EOQ</div><div id="eoqOut" class="font-bold text-teal-700">—</div></div>
+        <div class="bg-blue-50 rounded p-2"><div class="text-[10px] text-slate-500">Safety Stock</div><div id="ssOut" class="font-bold text-blue-700">—</div></div>
+        <div class="bg-amber-50 rounded p-2"><div class="text-[10px] text-slate-500">Reorder Point</div><div id="ropOut" class="font-bold text-amber-700">—</div></div>
+      </div>
+      <p class="text-xs text-slate-500 mt-2 italic">Model based on inventory optimization work from my UT Dallas research assistantship (reduced inventory costs by 22%).</p>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-5">
+      <h3 class="font-bold text-sm mb-3">Lead Time Distribution by Supplier</h3>
+      <div class="h-64"><canvas id="scaLeadChart"></canvas></div>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <h3 class="font-bold text-sm mb-3">Tariff Impact Simulator</h3>
+    <p class="text-xs text-slate-500 mb-3">Based on regression methodology from my "Impact of Tariff Wars on Global Sourcing" research project.</p>
+    <div class="grid md:grid-cols-4 gap-3 mb-3">
+      <label class="text-sm">Origin country<select id="tarOrig" class="w-full border rounded px-2 py-1 mt-1"><option>China</option><option>Vietnam</option><option>Mexico</option><option>India</option></select></label>
+      <label class="text-sm">Tariff rate %<input id="tarRate" type="number" value="25" class="w-full border rounded px-2 py-1 mt-1" oninput="recalcTariff()"/></label>
+      <label class="text-sm">Annual import value ($M)<input id="tarValue" type="number" value="5" step="0.1" class="w-full border rounded px-2 py-1 mt-1" oninput="recalcTariff()"/></label>
+      <label class="text-sm">Demand elasticity<input id="tarElast" type="number" value="-1.3" step="0.1" class="w-full border rounded px-2 py-1 mt-1" oninput="recalcTariff()"/></label>
+    </div>
+    <div class="grid md:grid-cols-3 gap-3">
+      <div class="bg-red-50 rounded p-3"><div class="text-xs text-slate-600">Direct cost increase</div><div id="tarCost" class="text-xl font-bold text-red-700">—</div></div>
+      <div class="bg-amber-50 rounded p-3"><div class="text-xs text-slate-600">Forecast volume decline</div><div id="tarVol" class="text-xl font-bold text-amber-700">—</div></div>
+      <div class="bg-blue-50 rounded p-3"><div class="text-xs text-slate-600">Net margin erosion</div><div id="tarMargin" class="text-xl font-bold text-blue-700">—</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="tab-ai-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-teal-600 to-indigo-700 text-white rounded-2xl p-6 mb-6">
+    <div class="flex items-start justify-between flex-wrap gap-3">
+      <div><h2 class="text-2xl font-bold flex items-center gap-2">AI Procurement Strategist
+          <span class="text-xs bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full font-semibold">BETA</span></h2>
+        <p class="text-teal-100 text-sm mt-1">Ask anything about sourcing, supplier strategy, EOQ, Kraljic, RFQs, TCO, negotiation, forecasting — and get inline visualizations.</p></div>
+      <button onclick="clearChat()" class="px-3 py-1.5 bg-white/15 hover:bg-white/25 rounded-lg text-xs font-medium">Clear chat</button>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-12 gap-4">
+    <div class="md:col-span-8 bg-white rounded-2xl card-shadow flex flex-col" style="height:620px;">
+      <div id="chatLog" class="flex-1 overflow-y-auto p-5 space-y-3 flex flex-col"></div>
+      <div class="border-t p-3 flex gap-2">
+        <input id="chatInput" type="text" placeholder='e.g. Explain Kraljic Matrix · Show spend by category as pie · How to negotiate with a strategic supplier?' class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"/>
+        <button onclick="sendChat()" class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-semibold">Send</button>
+      </div>
+    </div>
+    <aside class="md:col-span-4 space-y-3">
+      <div class="bg-white rounded-2xl card-shadow p-4">
+        <h3 class="font-semibold text-sm mb-2">Try a strategy question</h3>
+        <div class="space-y-2" id="quickPrompts"></div></div>
+      <div class="bg-white rounded-2xl card-shadow p-4">
+        <h3 class="font-semibold text-sm mb-2">Ask for a visualization</h3>
+        <div class="space-y-2" id="vizPrompts"></div></div>
+      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+        <h3 class="font-semibold text-sm text-amber-900 mb-1">How it works</h3>
+        <p class="text-xs text-amber-800">The strategist runs on a built-in procurement knowledge base — Kraljic, TCO, EOQ, RFx, negotiation, supplier risk, forecasting and more — plus a chart engine that can render pie / line / scatter / bar / geo / Pareto visuals on request. Powered by curated logic from real sourcing work at Amazon, Cristal &amp; Nykaa.</p></div>
+    </aside>
+  </div>
+</section>
+
+<section id="tab-insights-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-2xl p-6 mb-6">
+    <h2 class="text-2xl font-bold">Strategic Insights &amp; Recommendations</h2>
+    <p class="text-amber-100 text-sm">Auto-generated playbook based on your current should-cost analysis + supply chain best practices</p>
+  </div>
+  <div id="insightsEmpty" class="bg-white rounded-2xl card-shadow p-8 text-center">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+    <p class="text-slate-600">Run a Should Cost analysis first — then we'll generate tailored recommendations here.</p>
+    <button onclick="switchTab('calc')" class="mt-3 px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold text-sm">Go to Calculator</button>
+  </div>
+  <div id="insightsContent" class="hidden space-y-4"></div>
+</section>
 
 </main>
 
-<!-- HELP MODAL -->
-<div id="helpModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl max-w-2xl w-full p-6">
-    <div class="flex justify-between items-start mb-4">
-      <h3 class="text-xl font-bold">How Should Cost AI works</h3>
-      <button onclick="document.getElementById('helpModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+<div class="watermark-fixed no-print" onclick="openAbout()">
+  <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center font-bold text-[9px]">ZA</span>
+  © Mohammed Zumar Ali Hassan
+</div>
+
+<div id="modal-root">
+  <div id="aboutModal" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto">
+      <div class="bg-gradient-to-r from-teal-600 to-indigo-700 text-white p-6 rounded-t-2xl">
+        <div class="flex justify-between items-start">
+          <div class="flex items-center gap-4">
+            <div class="w-16 h-16 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center font-extrabold text-xl">ZA</div>
+            <div><h2 class="text-2xl font-bold">Mohammed Zumar Ali Hassan</h2>
+              <p class="text-teal-100 text-sm">Supply Chain &amp; Procurement Professional · Tool Creator</p>
+              <p class="text-teal-200 text-xs mt-1">📞 414-317-5496 · 📧 mohammedzumarali.hassan@utdallas.edu · 🔗 linkedin.com/in/zumarali15</p></div>
+          </div>
+          <button onclick="document.getElementById('aboutModal').classList.add('hidden')" class="text-white/70 hover:text-white text-3xl leading-none">&times;</button>
+        </div>
+      </div>
+      <div class="p-6 space-y-5 text-sm text-slate-700">
+        <div><h3 class="font-bold text-teal-700 uppercase text-xs tracking-wider mb-1">Education</h3>
+          <p><b>The University of Texas at Dallas</b> — Master of Science, Supply Chain Management (STEM)<br>
+            <span class="text-xs text-slate-500">Dean's Excellence Scholarship · GPA 3.66 · Expected Dec 2026</span></p>
+          <p class="text-xs text-slate-600 mt-1"><b>Coursework:</b> Purchasing, Sourcing &amp; Contract Management · Global SCM · Operations Management · Global Transportation · PLM · SAP &amp; AI in Supply Chain · Retail Operations</p></div>
+        <div><h3 class="font-bold text-teal-700 uppercase text-xs tracking-wider mb-2">Experience</h3>
+          <div class="space-y-3">
+            <div class="border-l-4 border-teal-500 pl-3">
+              <div class="font-semibold">Supply Chain Research Assistant · UT Dallas <span class="text-xs text-slate-500 font-normal">(Jun 2025 – Present)</span></div>
+              <ul class="list-disc pl-5 text-xs mt-1 space-y-0.5">
+                <li>Developed 3 procurement optimization models (EOQ, Safety Stock, Demand-Based Replenishment) reducing inventory costs by <b>22%</b></li>
+                <li>Supported 70+ MBA students, improving assessment scores from 71% to 84%</li></ul></div>
+            <div class="border-l-4 border-orange-500 pl-3">
+              <div class="font-semibold">Operations &amp; Logistics Analyst · Amazon <span class="text-xs text-slate-500 font-normal">(May 2023 – Aug 2024)</span></div>
+              <ul class="list-disc pl-5 text-xs mt-1 space-y-0.5">
+                <li>Resolved 50+ daily delivery exceptions, reduced resolution time from <b>36 to 18 hours</b></li>
+                <li>Built 5+ weekly KPI dashboards, drove <b>27% productivity gain</b> and unlocked <b>$200K</b> annual savings</li>
+                <li>Improved supplier on-time rate from <b>87% to 94%</b></li></ul></div>
+            <div class="border-l-4 border-amber-500 pl-3">
+              <div class="font-semibold">Supply Chain Analyst · Cristal Constructions <span class="text-xs text-slate-500 font-normal">(May 2021 – Apr 2023)</span></div>
+              <ul class="list-disc pl-5 text-xs mt-1 space-y-0.5">
+                <li>Reduced excess stock by <b>18%</b>, cut carrying costs by <b>$27K</b> on $2.9M+ annual spend</li>
+                <li>Identified <b>$150K</b> in procurement inefficiencies via spend analysis</li>
+                <li>Built supplier risk framework across 10+ vendors, delivered <b>$720K</b> in cost savings with 95% supply continuity</li></ul></div>
+            <div class="border-l-4 border-pink-500 pl-3">
+              <div class="font-semibold">Sourcing Analyst Intern · Nykaa <span class="text-xs text-slate-500 font-normal">(Jan 2021 – May 2021)</span></div>
+              <ul class="list-disc pl-5 text-xs mt-1 space-y-0.5">
+                <li>Delivered <b>$300K+</b> savings via Kraljic Matrix segmentation, competitive bidding, game-theory market strategies</li>
+                <li>Improved supply continuity from <b>91% to 97%</b> across 20+ suppliers</li>
+                <li>Reduced vendor onboarding from <b>21 to 12 days</b></li></ul></div>
+          </div></div>
+        <div><h3 class="font-bold text-teal-700 uppercase text-xs tracking-wider mb-2">Featured Projects</h3>
+          <div class="text-xs space-y-2">
+            <div><b>Impact of Tariff Wars on Global Sourcing Strategies (Spring 2026)</b> — Regression models in Excel/Python quantifying geopolitical impacts, identifying 32% import decline, Tableau dashboards.</div>
+            <div><b>Toyota SKU Demand Forecasting (Fall 2025)</b> — ARIMA &amp; Exponential Smoothing models with ChatGPT-assisted demand analysis, reduced forecast error by <b>15%</b>.</div></div></div>
+        <div><h3 class="font-bold text-teal-700 uppercase text-xs tracking-wider mb-2">Technical Skills</h3>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">Strategic Sourcing</span>
+            <span class="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">Category Management</span>
+            <span class="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">SRM</span>
+            <span class="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">Kraljic Matrix</span>
+            <span class="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">RFQ / RFP</span>
+            <span class="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">Spend Analysis</span>
+            <span class="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">EOQ / Safety Stock</span>
+            <span class="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">Six Sigma</span>
+            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Advanced Excel + Solver</span>
+            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">SQL</span>
+            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Power BI</span>
+            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Tableau</span>
+            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Python</span>
+            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">ARIMA Forecasting</span>
+            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">SAP ERP</span>
+            <span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full">AI-Assisted Procurement Analytics</span>
+            <span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full">Generative AI</span>
+          </div></div>
+        <div class="bg-slate-50 rounded-lg p-3">
+          <h3 class="font-bold text-teal-700 uppercase text-xs tracking-wider mb-1">Recognition</h3>
+          <p class="text-xs">🏆 Finalist "Student of the Year" — UT Dallas (2025) · 🎓 SCM Program Peer Mentor · 🎵 Recipient of Multiple Talent Awards</p></div>
+        <div class="border-t pt-3 text-center text-xs text-slate-500">
+          This Should Cost AI tool was conceptualized, designed and developed by Mohammed Zumar Ali Hassan as a demonstration of applied procurement &amp; supply chain analytics.<br>© 2026 — All rights reserved.</div>
+      </div>
     </div>
-    <ol class="space-y-3 text-sm text-slate-700 list-decimal pl-5">
-      <li><b>Describe what you're sourcing.</b> Name + a one-liner is enough. You don't need the engineering BoM — the AI engine will fill the gaps.</li>
-      <li><b>AI analyzes the product</b> and proposes every relevant cost driver — raw materials, labor, energy, equipment, facility, logistics, overhead, margin — based on a built-in procurement knowledge base spanning 12+ industries.</li>
-      <li><b>Tune every parameter.</b> Edit quantities, rates and yields. Sliders let you stress-test ±30% on materials / labor / energy.</li>
-      <li><b>Get a should-cost</b> per unit and for the whole order, with a clean breakdown chart. Compare against supplier quotes to negotiate from a position of evidence.</li>
-      <li><b>Save scenarios</b> for side-by-side comparison (e.g. China vs India vs Vietnam) and export everything to Excel for the sourcing file.</li>
-    </ol>
-    <p class="mt-4 text-xs text-slate-500">Built for sourcing managers, GSM teams, category leads, and cost engineers. All rates are editable defaults — replace with verified market data for production decisions.</p>
+  </div>
+
+  <div id="helpModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6">
+      <div class="flex justify-between items-start mb-4">
+        <h3 class="text-xl font-bold">How the Suite works</h3>
+        <button onclick="document.getElementById('helpModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+      <div class="space-y-3 text-sm text-slate-700">
+        <p><b>1 · Should Cost Calculator</b> — Describe a product, AI proposes every cost driver, edit anything, get unit + total cost with breakdown chart.</p>
+        <p><b>2 · Executive Dashboard</b> — KPI cards, spend Pareto, savings tracker, supplier scorecards, risk heatmap.</p>
+        <p><b>3 · Supply Chain Analytics</b> — Kraljic Matrix, ABC analysis, geographic footprint, EOQ optimizer, tariff impact simulator.</p>
+        <p><b>4 · AI Procurement Strategist</b> — Chatbot trained on procurement strategy frameworks; renders inline charts on request.</p>
+        <p><b>5 · Insights &amp; Recommendations</b> — Auto-generated playbook from your should-cost results.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="compareModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-5xl w-full p-6 max-h-[85vh] overflow-auto">
+      <div class="flex justify-between items-start mb-4">
+        <h3 class="text-xl font-bold">Compare Scenarios</h3>
+        <button onclick="document.getElementById('compareModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+      <div id="compareContent"></div>
+    </div>
   </div>
 </div>
 
-<!-- COMPARE MODAL -->
-<div id="compareModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl max-w-5xl w-full p-6 max-h-[85vh] overflow-auto">
-    <div class="flex justify-between items-start mb-4">
-      <h3 class="text-xl font-bold">Compare Scenarios</h3>
-      <button onclick="document.getElementById('compareModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
-    </div>
-    <div id="compareContent"></div>
+<footer class="border-t mt-10 py-6 text-center text-xs text-slate-500 bg-white">
+  <div class="max-w-4xl mx-auto px-4">
+    <p><b class="text-slate-700">Should Cost AI</b> · Procurement &amp; Supply Chain Intelligence Suite</p>
+    <p class="mt-1">Designed &amp; developed by <b>Mohammed Zumar Ali Hassan</b> — MS Supply Chain Management (STEM), UT Dallas | Ex-Amazon, Cristal Constructions, Nykaa</p>
+    <p class="mt-1">📧 mohammedzumarali.hassan@utdallas.edu · 📞 414-317-5496 · 🔗 <a href="https://linkedin.com/in/zumarali15" target="_blank" class="text-teal-600 hover:underline">linkedin.com/in/zumarali15</a></p>
+    <p class="mt-2 text-[10px] text-slate-400">All cost defaults are illustrative — calibrate with verified market data before final negotiation decisions.</p>
   </div>
-</div>
-
-<footer class="border-t mt-12 py-6 text-center text-xs text-slate-500">
-  Should Cost AI · An open procurement should-cost analyzer · Defaults are illustrative — calibrate with verified market data before negotiation.
 </footer>
 
 <script>
-// =====================================================================
-// KNOWLEDGE BASE: Product templates with cost drivers
-// Each template defines categories and parameters with sensible defaults.
-// Rates use INR base; converted at calc time.
-// =====================================================================
-
 const FX = { INR:1, USD:0.012, EUR:0.011, GBP:0.0094, AED:0.044, SAR:0.045 };
 const SYM = { INR:'₹', USD:'$', EUR:'€', GBP:'£', AED:'د.إ', SAR:'﷼' };
-
 const REGION_MULT = {
-  india_rural:   { labor:0.6, utility:0.9, facility:0.7 },
-  india_tier2:   { labor:1.0, utility:1.0, facility:1.0 },
-  india_tier1:   { labor:1.5, utility:1.1, facility:1.6 },
-  china:         { labor:2.4, utility:1.0, facility:1.5 },
-  vietnam:       { labor:1.6, utility:1.0, facility:1.2 },
-  bangladesh:    { labor:0.8, utility:0.9, facility:0.9 },
-  turkey:        { labor:2.8, utility:1.4, facility:1.5 },
-  mexico:        { labor:3.2, utility:1.4, facility:1.6 },
-  eu:            { labor:14.0, utility:2.2, facility:3.5 },
-  us:            { labor:18.0, utility:2.0, facility:3.8 }
+  india_rural:{labor:0.6,utility:0.9,facility:0.7}, india_tier2:{labor:1.0,utility:1.0,facility:1.0},
+  india_tier1:{labor:1.5,utility:1.1,facility:1.6}, china:{labor:2.4,utility:1.0,facility:1.5},
+  vietnam:{labor:1.6,utility:1.0,facility:1.2}, bangladesh:{labor:0.8,utility:0.9,facility:0.9},
+  turkey:{labor:2.8,utility:1.4,facility:1.5}, mexico:{labor:3.2,utility:1.4,facility:1.6},
+  eu:{labor:14.0,utility:2.2,facility:3.5}, us:{labor:18.0,utility:2.0,facility:3.8}
 };
-
-const VOLUME_MULT = { low:{labor:1.3, equip:1.5, ovh:1.4}, medium:{labor:1.0,equip:1.0,ovh:1.0}, high:{labor:0.75,equip:0.7,ovh:0.8} };
-const QUALITY_MULT = { economy:{material:0.85, margin:0.08}, standard:{material:1.0, margin:0.12}, premium:{material:1.35, margin:0.18} };
-
-// Each parameter: { name, qty, qtyUnit, rate, rateUnit, group }
-// groups: material, labor, energy, equipment, facility, logistics, quality, overhead, margin
-
-const TEMPLATES = {
-  brick: {
-    label: "Red Sand / Fly-ash Brick",
-    description: "Compressed brick using crusher dust, cement, fly-ash and red river sand.",
-    perBatch: 1,
-    params: [
-      // RAW MATERIALS (per brick)
-      { cat:"Raw Materials", name:"Red river sand", qty:1.8, qtyUnit:"kg", rate:1.2, rateUnit:"/kg", group:"material" },
-      { cat:"Raw Materials", name:"Crusher dust / quarry fines", qty:1.2, qtyUnit:"kg", rate:0.8, rateUnit:"/kg", group:"material" },
-      { cat:"Raw Materials", name:"OPC 53 cement", qty:0.35, qtyUnit:"kg", rate:8.5, rateUnit:"/kg", group:"material" },
-      { cat:"Raw Materials", name:"Fly ash", qty:0.25, qtyUnit:"kg", rate:1.5, rateUnit:"/kg", group:"material" },
-      { cat:"Raw Materials", name:"Iron-oxide pigment (red)", qty:0.015, qtyUnit:"kg", rate:65, rateUnit:"/kg", group:"material" },
-      { cat:"Raw Materials", name:"Water (process)", qty:0.3, qtyUnit:"L", rate:0.05, rateUnit:"/L", group:"material" },
-      // LABOR
-      { cat:"Direct Labor", name:"Mixer / hopper operator", qty:0.0015, qtyUnit:"hr", rate:120, rateUnit:"/hr", group:"labor" },
-      { cat:"Direct Labor", name:"Press machine operator", qty:0.0020, qtyUnit:"hr", rate:140, rateUnit:"/hr", group:"labor" },
-      { cat:"Direct Labor", name:"Curing & stacking helper", qty:0.0025, qtyUnit:"hr", rate:90, rateUnit:"/hr", group:"labor" },
-      // ENERGY
-      { cat:"Energy & Utilities", name:"Electricity — hydraulic press", qty:0.045, qtyUnit:"kWh", rate:8.5, rateUnit:"/kWh", group:"energy" },
-      { cat:"Energy & Utilities", name:"Water (curing)", qty:0.6, qtyUnit:"L", rate:0.05, rateUnit:"/L", group:"energy" },
-      // EQUIPMENT
-      { cat:"Equipment & Tooling", name:"Hydraulic press depreciation", qty:1, qtyUnit:"unit", rate:0.35, rateUnit:"/unit", group:"equipment" },
-      { cat:"Equipment & Tooling", name:"Mould wear & tooling", qty:1, qtyUnit:"unit", rate:0.12, rateUnit:"/unit", group:"equipment" },
-      // FACILITY
-      { cat:"Facility & Overhead", name:"Shed rent / land cost amortized", qty:1, qtyUnit:"unit", rate:0.25, rateUnit:"/unit", group:"facility" },
-      { cat:"Facility & Overhead", name:"Curing yard space", qty:1, qtyUnit:"unit", rate:0.10, rateUnit:"/unit", group:"facility" },
-      { cat:"Facility & Overhead", name:"Plant overhead (supervisor, admin)", qty:1, qtyUnit:"unit", rate:0.35, rateUnit:"/unit", group:"overhead" },
-      // QUALITY
-      { cat:"Quality & Compliance", name:"QC sampling & strength test", qty:1, qtyUnit:"unit", rate:0.08, rateUnit:"/unit", group:"quality" },
-      // LOGISTICS
-      { cat:"Logistics & Warehousing", name:"In-plant handling", qty:1, qtyUnit:"unit", rate:0.10, rateUnit:"/unit", group:"logistics" },
-      { cat:"Logistics & Warehousing", name:"Stock-yard warehousing (30 day)", qty:1, qtyUnit:"unit", rate:0.15, rateUnit:"/unit", group:"logistics" },
-      { cat:"Logistics & Warehousing", name:"Outbound freight (regional)", qty:1, qtyUnit:"unit", rate:0.45, rateUnit:"/unit", group:"logistics" },
-      // MARGIN
-      { cat:"Supplier Margin", name:"Supplier markup", qty:1, qtyUnit:"unit", rate:0.12, rateUnit:"× cost", group:"margin" }
-    ]
-  },
-
-  perfume: {
-    label: "Perfume / EdT 50 ml",
-    description: "Eau de Toilette in glass bottle with atomizer & outer carton.",
-    perBatch: 1,
-    params: [
-      { cat:"Raw Materials", name:"Fragrance concentrate (10%)", qty:5, qtyUnit:"g", rate:18, rateUnit:"/g", group:"material" },
-      { cat:"Raw Materials", name:"Denatured ethanol (SDA-40)", qty:42, qtyUnit:"g", rate:0.45, rateUnit:"/g", group:"material" },
-      { cat:"Raw Materials", name:"Demineralized water", qty:5, qtyUnit:"g", rate:0.02, rateUnit:"/g", group:"material" },
-      { cat:"Raw Materials", name:"UV stabilizer / fixative", qty:0.3, qtyUnit:"g", rate:12, rateUnit:"/g", group:"material" },
-      // PACKAGING
-      { cat:"Packaging (Primary)", name:"50ml glass bottle (lacquered)", qty:1, qtyUnit:"pc", rate:28, rateUnit:"/pc", group:"material" },
-      { cat:"Packaging (Primary)", name:"Crimp neck atomizer pump (FEA15)", qty:1, qtyUnit:"pc", rate:14, rateUnit:"/pc", group:"material" },
-      { cat:"Packaging (Primary)", name:"Plastic over-cap / collar", qty:1, qtyUnit:"pc", rate:6, rateUnit:"/pc", group:"material" },
-      { cat:"Packaging (Primary)", name:"Front + back label (foil)", qty:1, qtyUnit:"pc", rate:2.5, rateUnit:"/pc", group:"material" },
-      { cat:"Packaging (Secondary)", name:"Folding carton (350 gsm + foil)", qty:1, qtyUnit:"pc", rate:9, rateUnit:"/pc", group:"material" },
-      { cat:"Packaging (Secondary)", name:"Cellophane overwrap", qty:1, qtyUnit:"pc", rate:0.8, rateUnit:"/pc", group:"material" },
-      { cat:"Packaging (Secondary)", name:"Master carton (per 24 pcs)", qty:1, qtyUnit:"pc", rate:1.2, rateUnit:"/pc", group:"material" },
-      // LABOR
-      { cat:"Direct Labor", name:"Compounding & maceration", qty:0.004, qtyUnit:"hr", rate:220, rateUnit:"/hr", group:"labor" },
-      { cat:"Direct Labor", name:"Filling line operator", qty:0.006, qtyUnit:"hr", rate:180, rateUnit:"/hr", group:"labor" },
-      { cat:"Direct Labor", name:"Crimping & cap assembly", qty:0.005, qtyUnit:"hr", rate:160, rateUnit:"/hr", group:"labor" },
-      { cat:"Direct Labor", name:"Labeling & cartoning", qty:0.008, qtyUnit:"hr", rate:140, rateUnit:"/hr", group:"labor" },
-      // EQUIPMENT
-      { cat:"Equipment & Tooling", name:"Filling line amortization", qty:1, qtyUnit:"unit", rate:2.5, rateUnit:"/unit", group:"equipment" },
-      { cat:"Equipment & Tooling", name:"Funnels, dosing nozzles wear", qty:1, qtyUnit:"unit", rate:0.4, rateUnit:"/unit", group:"equipment" },
-      // ENERGY
-      { cat:"Energy & Utilities", name:"Electricity (filling + HVAC)", qty:0.025, qtyUnit:"kWh", rate:9, rateUnit:"/kWh", group:"energy" },
-      { cat:"Energy & Utilities", name:"Compressed air", qty:1, qtyUnit:"unit", rate:0.4, rateUnit:"/unit", group:"energy" },
-      // FACILITY
-      { cat:"Facility & Overhead", name:"Cleanroom / class-D facility cost", qty:1, qtyUnit:"unit", rate:3.5, rateUnit:"/unit", group:"facility" },
-      { cat:"Facility & Overhead", name:"Plant overhead", qty:1, qtyUnit:"unit", rate:4.0, rateUnit:"/unit", group:"overhead" },
-      // QUALITY
-      { cat:"Quality & Compliance", name:"IFRA / allergen testing amortization", qty:1, qtyUnit:"unit", rate:1.2, rateUnit:"/unit", group:"quality" },
-      { cat:"Quality & Compliance", name:"Stability & alcohol QC", qty:1, qtyUnit:"unit", rate:0.8, rateUnit:"/unit", group:"quality" },
-      // LOGISTICS
-      { cat:"Logistics & Warehousing", name:"FG warehousing (45 day)", qty:1, qtyUnit:"unit", rate:1.5, rateUnit:"/unit", group:"logistics" },
-      { cat:"Logistics & Warehousing", name:"Inbound freight on packaging", qty:1, qtyUnit:"unit", rate:1.2, rateUnit:"/unit", group:"logistics" },
-      { cat:"Logistics & Warehousing", name:"Outbound freight & insurance", qty:1, qtyUnit:"unit", rate:2.5, rateUnit:"/unit", group:"logistics" },
-      // MARGIN
-      { cat:"Supplier Margin", name:"Contract-manufacturer margin", qty:1, qtyUnit:"unit", rate:0.15, rateUnit:"× cost", group:"margin" }
-    ]
-  },
-
-  tshirt: {
-    label: "Cotton Crew-neck T-shirt (180 gsm)",
-    description: "Knit cotton t-shirt, single-jersey, 180 gsm, basic dyed.",
-    perBatch:1,
-    params: [
-      { cat:"Raw Materials", name:"Combed cotton yarn 30s", qty:0.22, qtyUnit:"kg", rate:280, rateUnit:"/kg", group:"material" },
-      { cat:"Raw Materials", name:"Knitting waste allowance", qty:0.018, qtyUnit:"kg", rate:280, rateUnit:"/kg", group:"material" },
-      { cat:"Raw Materials", name:"Dye + chemicals (reactive)", qty:1, qtyUnit:"pc", rate:18, rateUnit:"/pc", group:"material" },
-      { cat:"Raw Materials", name:"Sewing thread", qty:120, qtyUnit:"m", rate:0.05, rateUnit:"/m", group:"material" },
-      { cat:"Raw Materials", name:"Care + brand label", qty:2, qtyUnit:"pc", rate:1.5, rateUnit:"/pc", group:"material" },
-      { cat:"Raw Materials", name:"Poly-bag + hangtag", qty:1, qtyUnit:"pc", rate:3, rateUnit:"/pc", group:"material" },
-      { cat:"Direct Labor", name:"Knitting CMT", qty:0.05, qtyUnit:"hr", rate:140, rateUnit:"/hr", group:"labor" },
-      { cat:"Direct Labor", name:"Dyeing & finishing", qty:0.03, qtyUnit:"hr", rate:160, rateUnit:"/hr", group:"labor" },
-      { cat:"Direct Labor", name:"Cutting", qty:0.04, qtyUnit:"hr", rate:130, rateUnit:"/hr", group:"labor" },
-      { cat:"Direct Labor", name:"Sewing (full SAM)", qty:0.18, qtyUnit:"hr", rate:130, rateUnit:"/hr", group:"labor" },
-      { cat:"Direct Labor", name:"Finishing, pressing, packing", qty:0.06, qtyUnit:"hr", rate:120, rateUnit:"/hr", group:"labor" },
-      { cat:"Energy & Utilities", name:"Electricity (machines)", qty:0.4, qtyUnit:"kWh", rate:9, rateUnit:"/kWh", group:"energy" },
-      { cat:"Energy & Utilities", name:"Steam / boiler fuel (dyeing)", qty:1, qtyUnit:"pc", rate:6, rateUnit:"/pc", group:"energy" },
-      { cat:"Equipment & Tooling", name:"Machine depreciation pool", qty:1, qtyUnit:"pc", rate:4, rateUnit:"/pc", group:"equipment" },
-      { cat:"Facility & Overhead", name:"Factory rent allocation", qty:1, qtyUnit:"pc", rate:5, rateUnit:"/pc", group:"facility" },
-      { cat:"Facility & Overhead", name:"Supervisor + admin overhead", qty:1, qtyUnit:"pc", rate:6, rateUnit:"/pc", group:"overhead" },
-      { cat:"Quality & Compliance", name:"In-line QA + AQL inspection", qty:1, qtyUnit:"pc", rate:2.5, rateUnit:"/pc", group:"quality" },
-      { cat:"Quality & Compliance", name:"Compliance (BSCI/WRAP amort.)", qty:1, qtyUnit:"pc", rate:1.5, rateUnit:"/pc", group:"quality" },
-      { cat:"Logistics & Warehousing", name:"FG storage", qty:1, qtyUnit:"pc", rate:1.2, rateUnit:"/pc", group:"logistics" },
-      { cat:"Logistics & Warehousing", name:"Inland freight to port", qty:1, qtyUnit:"pc", rate:3, rateUnit:"/pc", group:"logistics" },
-      { cat:"Supplier Margin", name:"Manufacturer margin", qty:1, qtyUnit:"unit", rate:0.13, rateUnit:"× cost", group:"margin" }
-    ]
-  },
-
-  pcb: {
-    label: "PCBA — 4-layer, ~120 SMD components",
-    description: "Mid-complexity PCB assembly, FR4, mixed SMD + 4 thru-hole.",
-    perBatch:1,
-    params:[
-      { cat:"Raw Materials", name:"Bare PCB (4 layer, 100×80 mm)", qty:1, qtyUnit:"pc", rate:85, rateUnit:"/pc", group:"material" },
-      { cat:"Raw Materials", name:"Active components (IC, MCU)", qty:1, qtyUnit:"pc", rate:240, rateUnit:"/pc", group:"material" },
-      { cat:"Raw Materials", name:"Passive components (R, C, L)", qty:90, qtyUnit:"pc", rate:0.8, rateUnit:"/pc", group:"material" },
-      { cat:"Raw Materials", name:"Connectors & headers", qty:6, qtyUnit:"pc", rate:11, rateUnit:"/pc", group:"material" },
-      { cat:"Raw Materials", name:"Solder paste + flux allocation", qty:1, qtyUnit:"pc", rate:6, rateUnit:"/pc", group:"material" },
-      { cat:"Raw Materials", name:"Stencil amortization", qty:1, qtyUnit:"pc", rate:2, rateUnit:"/pc", group:"material" },
-      { cat:"Direct Labor", name:"SMT line operator", qty:0.025, qtyUnit:"hr", rate:280, rateUnit:"/hr", group:"labor" },
-      { cat:"Direct Labor", name:"Thru-hole / hand soldering", qty:0.04, qtyUnit:"hr", rate:220, rateUnit:"/hr", group:"labor" },
-      { cat:"Direct Labor", name:"Test & programming", qty:0.05, qtyUnit:"hr", rate:320, rateUnit:"/hr", group:"labor" },
-      { cat:"Energy & Utilities", name:"Reflow oven electricity", qty:0.08, qtyUnit:"kWh", rate:9, rateUnit:"/kWh", group:"energy" },
-      { cat:"Energy & Utilities", name:"Compressed air + N2", qty:1, qtyUnit:"pc", rate:2.5, rateUnit:"/pc", group:"energy" },
-      { cat:"Equipment & Tooling", name:"SMT line depreciation", qty:1, qtyUnit:"pc", rate:18, rateUnit:"/pc", group:"equipment" },
-      { cat:"Equipment & Tooling", name:"Test jig amortization", qty:1, qtyUnit:"pc", rate:5, rateUnit:"/pc", group:"equipment" },
-      { cat:"Facility & Overhead", name:"ESD-controlled facility cost", qty:1, qtyUnit:"pc", rate:14, rateUnit:"/pc", group:"facility" },
-      { cat:"Facility & Overhead", name:"Plant overhead", qty:1, qtyUnit:"pc", rate:18, rateUnit:"/pc", group:"overhead" },
-      { cat:"Quality & Compliance", name:"AOI + ICT", qty:1, qtyUnit:"pc", rate:8, rateUnit:"/pc", group:"quality" },
-      { cat:"Quality & Compliance", name:"IPC-A-610 inspection", qty:1, qtyUnit:"pc", rate:3, rateUnit:"/pc", group:"quality" },
-      { cat:"Logistics & Warehousing", name:"Component warehousing", qty:1, qtyUnit:"pc", rate:6, rateUnit:"/pc", group:"logistics" },
-      { cat:"Logistics & Warehousing", name:"Outbound logistics (anti-static)", qty:1, qtyUnit:"pc", rate:7, rateUnit:"/pc", group:"logistics" },
-      { cat:"Supplier Margin", name:"EMS contract margin", qty:1, qtyUnit:"unit", rate:0.14, rateUnit:"× cost", group:"margin" }
-    ]
-  },
-
-  plastic: {
-    label: "PET Bottle 500 ml (blow-moulded)",
-    description: "Empty 500ml PET bottle with HDPE cap, blow moulded.",
-    perBatch:1,
-    params:[
-      { cat:"Raw Materials", name:"PET resin (food grade)", qty:25, qtyUnit:"g", rate:0.12, rateUnit:"/g", group:"material" },
-      { cat:"Raw Materials", name:"HDPE cap resin", qty:2.5, qtyUnit:"g", rate:0.14, rateUnit:"/g", group:"material" },
-      { cat:"Raw Materials", name:"Colorant master-batch", qty:0.4, qtyUnit:"g", rate:1.2, rateUnit:"/g", group:"material" },
-      { cat:"Raw Materials", name:"Label (BOPP, printed)", qty:1, qtyUnit:"pc", rate:0.5, rateUnit:"/pc", group:"material" },
-      { cat:"Direct Labor", name:"Pre-form / cap moulding op.", qty:0.0008, qtyUnit:"hr", rate:160, rateUnit:"/hr", group:"labor" },
-      { cat:"Direct Labor", name:"Blow-moulding operator", qty:0.0010, qtyUnit:"hr", rate:170, rateUnit:"/hr", group:"labor" },
-      { cat:"Direct Labor", name:"Packing & palletizing", qty:0.0006, qtyUnit:"hr", rate:120, rateUnit:"/hr", group:"labor" },
-      { cat:"Energy & Utilities", name:"Electricity (blow mould, chillers)", qty:0.06, qtyUnit:"kWh", rate:9, rateUnit:"/kWh", group:"energy" },
-      { cat:"Energy & Utilities", name:"Compressed air (high pressure)", qty:1, qtyUnit:"pc", rate:0.4, rateUnit:"/pc", group:"energy" },
-      { cat:"Equipment & Tooling", name:"Mould amortization", qty:1, qtyUnit:"pc", rate:0.6, rateUnit:"/pc", group:"equipment" },
-      { cat:"Equipment & Tooling", name:"Machine depreciation", qty:1, qtyUnit:"pc", rate:0.4, rateUnit:"/pc", group:"equipment" },
-      { cat:"Facility & Overhead", name:"Facility cost", qty:1, qtyUnit:"pc", rate:0.5, rateUnit:"/pc", group:"facility" },
-      { cat:"Facility & Overhead", name:"Plant overhead", qty:1, qtyUnit:"pc", rate:0.6, rateUnit:"/pc", group:"overhead" },
-      { cat:"Quality & Compliance", name:"Food-grade QC + migration test", qty:1, qtyUnit:"pc", rate:0.3, rateUnit:"/pc", group:"quality" },
-      { cat:"Logistics & Warehousing", name:"FG warehousing", qty:1, qtyUnit:"pc", rate:0.35, rateUnit:"/pc", group:"logistics" },
-      { cat:"Logistics & Warehousing", name:"Outbound freight (bulky low density)", qty:1, qtyUnit:"pc", rate:0.85, rateUnit:"/pc", group:"logistics" },
-      { cat:"Supplier Margin", name:"Converter margin", qty:1, qtyUnit:"unit", rate:0.10, rateUnit:"× cost", group:"margin" }
-    ]
-  },
-
-  generic: {
-    label: "Generic manufactured product",
-    description: "Fallback skeleton — edit each line with product-specific values.",
-    perBatch:1,
-    params:[
-      { cat:"Raw Materials", name:"Primary raw material", qty:1, qtyUnit:"kg", rate:120, rateUnit:"/kg", group:"material" },
-      { cat:"Raw Materials", name:"Secondary raw material", qty:0.3, qtyUnit:"kg", rate:80, rateUnit:"/kg", group:"material" },
-      { cat:"Raw Materials", name:"Consumables / additives", qty:1, qtyUnit:"unit", rate:5, rateUnit:"/unit", group:"material" },
-      { cat:"Raw Materials", name:"Packaging materials", qty:1, qtyUnit:"unit", rate:8, rateUnit:"/unit", group:"material" },
-      { cat:"Direct Labor", name:"Production labor", qty:0.05, qtyUnit:"hr", rate:160, rateUnit:"/hr", group:"labor" },
-      { cat:"Direct Labor", name:"Assembly / finishing labor", qty:0.03, qtyUnit:"hr", rate:150, rateUnit:"/hr", group:"labor" },
-      { cat:"Energy & Utilities", name:"Electricity", qty:0.1, qtyUnit:"kWh", rate:9, rateUnit:"/kWh", group:"energy" },
-      { cat:"Energy & Utilities", name:"Fuel / steam / gas", qty:1, qtyUnit:"unit", rate:2, rateUnit:"/unit", group:"energy" },
-      { cat:"Equipment & Tooling", name:"Machine depreciation", qty:1, qtyUnit:"unit", rate:4, rateUnit:"/unit", group:"equipment" },
-      { cat:"Equipment & Tooling", name:"Tooling / moulds / dies", qty:1, qtyUnit:"unit", rate:1.5, rateUnit:"/unit", group:"equipment" },
-      { cat:"Facility & Overhead", name:"Facility / shed cost", qty:1, qtyUnit:"unit", rate:3, rateUnit:"/unit", group:"facility" },
-      { cat:"Facility & Overhead", name:"Plant overhead", qty:1, qtyUnit:"unit", rate:4, rateUnit:"/unit", group:"overhead" },
-      { cat:"Quality & Compliance", name:"QC + testing", qty:1, qtyUnit:"unit", rate:1.5, rateUnit:"/unit", group:"quality" },
-      { cat:"Logistics & Warehousing", name:"Warehousing", qty:1, qtyUnit:"unit", rate:1.5, rateUnit:"/unit", group:"logistics" },
-      { cat:"Logistics & Warehousing", name:"Outbound freight", qty:1, qtyUnit:"unit", rate:3, rateUnit:"/unit", group:"logistics" },
-      { cat:"Supplier Margin", name:"Supplier margin", qty:1, qtyUnit:"unit", rate:0.12, rateUnit:"× cost", group:"margin" }
-    ]
-  }
-};
-
-// =====================================================================
-// AI ENGINE — keyword classifier (simulated, deterministic)
-// =====================================================================
-const KEYWORD_MAP = [
-  { keys:["brick","block","paver","masonry","cement block","aac"], template:"brick", cat:"construction" },
-  { keys:["perfume","fragrance","cologne","edt","edp","attar","scent","deodorant","mist"], template:"perfume", cat:"cosmetics" },
-  { keys:["tshirt","t-shirt","shirt","garment","apparel","jersey","polo","hoodie","fabric"], template:"tshirt", cat:"garments" },
-  { keys:["pcb","pcba","circuit","smt","electronic assembly","controller board"], template:"pcb", cat:"electronics" },
-  { keys:["bottle","pet","jar","cap","container","preform","blow mould","blow-mould"], template:"plastic", cat:"plastics" }
-];
-
-function detectTemplate(name, cat){
-  const n = (name||"").toLowerCase();
-  for(const k of KEYWORD_MAP){
-    if(k.keys.some(w=>n.includes(w))) return k.template;
-  }
-  // category fallback
-  if(cat==="construction") return "brick";
-  if(cat==="cosmetics") return "perfume";
-  if(cat==="garments") return "tshirt";
-  if(cat==="electronics") return "pcb";
-  if(cat==="plastics" || cat==="packaging") return "plastic";
-  return "generic";
-}
-
-// =====================================================================
-// STATE
-// =====================================================================
-let currentParams = []; // working list of param objects
-let scenarios = JSON.parse(localStorage.getItem('shouldCostScenarios')||'[]');
-let chart = null;
-
+const VOLUME_MULT = { low:{labor:1.3,equip:1.5,ovh:1.4}, medium:{labor:1.0,equip:1.0,ovh:1.0}, high:{labor:0.75,equip:0.7,ovh:0.8} };
+const QUALITY_MULT = { economy:{material:0.85,margin:0.08}, standard:{material:1.0,margin:0.12}, premium:{material:1.35,margin:0.18} };
 const CATEGORY_COLORS = {
   "Raw Materials":"#0F766E","Packaging (Primary)":"#0E7490","Packaging (Secondary)":"#0891B2",
-  "Direct Labor":"#F59E0B","Energy & Utilities":"#EAB308",
-  "Equipment & Tooling":"#8B5CF6","Facility & Overhead":"#EC4899",
-  "Quality & Compliance":"#10B981","Logistics & Warehousing":"#3B82F6",
-  "Supplier Margin":"#64748B"
+  "Direct Labor":"#F59E0B","Energy & Utilities":"#EAB308","Equipment & Tooling":"#8B5CF6",
+  "Facility & Overhead":"#EC4899","Quality & Compliance":"#10B981",
+  "Logistics & Warehousing":"#3B82F6","Supplier Margin":"#64748B"
 };
-
-// =====================================================================
-// MAIN ACTIONS
-// =====================================================================
-function analyzeProduct(){
-  const name = document.getElementById('productName').value.trim();
-  const cat = document.getElementById('productCategory').value;
-  if(!name){ alert('Please enter a product/commodity name'); return; }
-
-  const btn = document.getElementById('analyzeBtn');
-  btn.disabled=true;
-  btn.innerHTML='<span class="ai-thinking font-semibold">AI analyzing product…</span>';
-
-  setTimeout(()=>{
-    const tplKey = detectTemplate(name, cat);
-    const tpl = TEMPLATES[tplKey];
-    currentParams = JSON.parse(JSON.stringify(tpl.params)); // deep clone
-
-    // apply region/volume/quality multipliers
-    applyContextMultipliers();
-
-    // populate UI
-    renderAISummary(tplKey, tpl);
-    renderParameters();
-    document.getElementById('step2').classList.remove('hidden');
-    document.getElementById('step2').scrollIntoView({behavior:'smooth', block:'start'});
-    recalc();
-
-    btn.disabled=false;
-    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Re-analyze';
-  }, 900);
+let currentParams=[], scenarios=JSON.parse(localStorage.getItem('shouldCostScenariosV2')||'[]'), chart=null;
+const charts = {};
+function openAbout(){ document.getElementById('aboutModal').classList.remove('hidden'); }
+function showHelp(){ document.getElementById('helpModal').classList.remove('hidden'); }
+function switchTab(name){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
+  const target = document.getElementById('tab-'+name+'-content');
+  if(target) target.classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    if(b.dataset.tab===name){ b.classList.add('tab-active'); b.classList.remove('tab-inactive'); }
+    else{ b.classList.add('tab-inactive'); b.classList.remove('tab-active'); }
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(name==='dash') initDashboard();
+  if(name==='sca') initSCA();
+  if(name==='ai') initAI();
+  if(name==='insights') initInsights();
 }
 
+const TEMPLATES = {
+  brick:{label:"Red Sand / Fly-ash Brick", description:"Compressed brick using crusher dust, cement, fly-ash and red river sand.", params:[
+    {cat:"Raw Materials",name:"Red river sand",qty:1.8,qtyUnit:"kg",rate:1.2,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Crusher dust / quarry fines",qty:1.2,qtyUnit:"kg",rate:0.8,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"OPC 53 cement",qty:0.35,qtyUnit:"kg",rate:8.5,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Fly ash",qty:0.25,qtyUnit:"kg",rate:1.5,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Iron-oxide pigment (red)",qty:0.015,qtyUnit:"kg",rate:65,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Water (process)",qty:0.3,qtyUnit:"L",rate:0.05,rateUnit:"/L",group:"material"},
+    {cat:"Direct Labor",name:"Mixer / hopper operator",qty:0.0015,qtyUnit:"hr",rate:120,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Press machine operator",qty:0.0020,qtyUnit:"hr",rate:140,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Curing & stacking helper",qty:0.0025,qtyUnit:"hr",rate:90,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity — hydraulic press",qty:0.045,qtyUnit:"kWh",rate:8.5,rateUnit:"/kWh",group:"energy"},
+    {cat:"Energy & Utilities",name:"Water (curing)",qty:0.6,qtyUnit:"L",rate:0.05,rateUnit:"/L",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Hydraulic press depreciation",qty:1,qtyUnit:"unit",rate:0.35,rateUnit:"/unit",group:"equipment"},
+    {cat:"Equipment & Tooling",name:"Mould wear & tooling",qty:1,qtyUnit:"unit",rate:0.12,rateUnit:"/unit",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Shed rent amortized",qty:1,qtyUnit:"unit",rate:0.25,rateUnit:"/unit",group:"facility"},
+    {cat:"Facility & Overhead",name:"Curing yard space",qty:1,qtyUnit:"unit",rate:0.10,rateUnit:"/unit",group:"facility"},
+    {cat:"Facility & Overhead",name:"Plant overhead",qty:1,qtyUnit:"unit",rate:0.35,rateUnit:"/unit",group:"overhead"},
+    {cat:"Quality & Compliance",name:"QC sampling & strength test",qty:1,qtyUnit:"unit",rate:0.08,rateUnit:"/unit",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"In-plant handling",qty:1,qtyUnit:"unit",rate:0.10,rateUnit:"/unit",group:"logistics"},
+    {cat:"Logistics & Warehousing",name:"Stock-yard warehousing (30 day)",qty:1,qtyUnit:"unit",rate:0.15,rateUnit:"/unit",group:"logistics"},
+    {cat:"Logistics & Warehousing",name:"Outbound freight (regional)",qty:1,qtyUnit:"unit",rate:0.45,rateUnit:"/unit",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier markup",qty:1,qtyUnit:"unit",rate:0.12,rateUnit:"× cost",group:"margin"}
+  ]},
+  perfume:{label:"Perfume / EdT 50 ml", description:"Eau de Toilette in glass bottle with atomizer & outer carton.", params:[
+    {cat:"Raw Materials",name:"Fragrance concentrate (10%)",qty:5,qtyUnit:"g",rate:18,rateUnit:"/g",group:"material"},
+    {cat:"Raw Materials",name:"Denatured ethanol (SDA-40)",qty:42,qtyUnit:"g",rate:0.45,rateUnit:"/g",group:"material"},
+    {cat:"Raw Materials",name:"Demineralized water",qty:5,qtyUnit:"g",rate:0.02,rateUnit:"/g",group:"material"},
+    {cat:"Raw Materials",name:"UV stabilizer / fixative",qty:0.3,qtyUnit:"g",rate:12,rateUnit:"/g",group:"material"},
+    {cat:"Packaging (Primary)",name:"50ml glass bottle (lacquered)",qty:1,qtyUnit:"pc",rate:28,rateUnit:"/pc",group:"material"},
+    {cat:"Packaging (Primary)",name:"FEA15 atomizer pump",qty:1,qtyUnit:"pc",rate:14,rateUnit:"/pc",group:"material"},
+    {cat:"Packaging (Primary)",name:"Over-cap / collar",qty:1,qtyUnit:"pc",rate:6,rateUnit:"/pc",group:"material"},
+    {cat:"Packaging (Primary)",name:"Front + back label (foil)",qty:1,qtyUnit:"pc",rate:2.5,rateUnit:"/pc",group:"material"},
+    {cat:"Packaging (Secondary)",name:"Folding carton",qty:1,qtyUnit:"pc",rate:9,rateUnit:"/pc",group:"material"},
+    {cat:"Packaging (Secondary)",name:"Cellophane overwrap",qty:1,qtyUnit:"pc",rate:0.8,rateUnit:"/pc",group:"material"},
+    {cat:"Packaging (Secondary)",name:"Master carton (per 24)",qty:1,qtyUnit:"pc",rate:1.2,rateUnit:"/pc",group:"material"},
+    {cat:"Direct Labor",name:"Compounding",qty:0.004,qtyUnit:"hr",rate:220,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Filling line",qty:0.006,qtyUnit:"hr",rate:180,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Crimping & assembly",qty:0.005,qtyUnit:"hr",rate:160,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Labeling & cartoning",qty:0.008,qtyUnit:"hr",rate:140,rateUnit:"/hr",group:"labor"},
+    {cat:"Equipment & Tooling",name:"Filling line amortization",qty:1,qtyUnit:"unit",rate:2.5,rateUnit:"/unit",group:"equipment"},
+    {cat:"Equipment & Tooling",name:"Funnels/nozzles wear",qty:1,qtyUnit:"unit",rate:0.4,rateUnit:"/unit",group:"equipment"},
+    {cat:"Energy & Utilities",name:"Electricity",qty:0.025,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Energy & Utilities",name:"Compressed air",qty:1,qtyUnit:"unit",rate:0.4,rateUnit:"/unit",group:"energy"},
+    {cat:"Facility & Overhead",name:"Class-D cleanroom",qty:1,qtyUnit:"unit",rate:3.5,rateUnit:"/unit",group:"facility"},
+    {cat:"Facility & Overhead",name:"Plant overhead",qty:1,qtyUnit:"unit",rate:4.0,rateUnit:"/unit",group:"overhead"},
+    {cat:"Quality & Compliance",name:"IFRA / allergen testing",qty:1,qtyUnit:"unit",rate:1.2,rateUnit:"/unit",group:"quality"},
+    {cat:"Quality & Compliance",name:"Stability & QC",qty:1,qtyUnit:"unit",rate:0.8,rateUnit:"/unit",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG warehousing (45 day)",qty:1,qtyUnit:"unit",rate:1.5,rateUnit:"/unit",group:"logistics"},
+    {cat:"Logistics & Warehousing",name:"Inbound packaging freight",qty:1,qtyUnit:"unit",rate:1.2,rateUnit:"/unit",group:"logistics"},
+    {cat:"Logistics & Warehousing",name:"Outbound freight + insurance",qty:1,qtyUnit:"unit",rate:2.5,rateUnit:"/unit",group:"logistics"},
+    {cat:"Supplier Margin",name:"Contract-manufacturer margin",qty:1,qtyUnit:"unit",rate:0.15,rateUnit:"× cost",group:"margin"}
+  ]},
+  tshirt:{label:"Cotton T-shirt 180 gsm", description:"Knit cotton t-shirt, single-jersey, basic dyed.", params:[
+    {cat:"Raw Materials",name:"Combed cotton yarn 30s",qty:0.22,qtyUnit:"kg",rate:280,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Knitting waste allowance",qty:0.018,qtyUnit:"kg",rate:280,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Dye + chemicals",qty:1,qtyUnit:"pc",rate:18,rateUnit:"/pc",group:"material"},
+    {cat:"Raw Materials",name:"Sewing thread",qty:120,qtyUnit:"m",rate:0.05,rateUnit:"/m",group:"material"},
+    {cat:"Raw Materials",name:"Care + brand label",qty:2,qtyUnit:"pc",rate:1.5,rateUnit:"/pc",group:"material"},
+    {cat:"Raw Materials",name:"Poly-bag + hangtag",qty:1,qtyUnit:"pc",rate:3,rateUnit:"/pc",group:"material"},
+    {cat:"Direct Labor",name:"Knitting CMT",qty:0.05,qtyUnit:"hr",rate:140,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Dyeing & finishing",qty:0.03,qtyUnit:"hr",rate:160,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Cutting",qty:0.04,qtyUnit:"hr",rate:130,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Sewing (full SAM)",qty:0.18,qtyUnit:"hr",rate:130,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Finishing & packing",qty:0.06,qtyUnit:"hr",rate:120,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity",qty:0.4,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Energy & Utilities",name:"Steam / boiler",qty:1,qtyUnit:"pc",rate:6,rateUnit:"/pc",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Machine depreciation",qty:1,qtyUnit:"pc",rate:4,rateUnit:"/pc",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Factory rent",qty:1,qtyUnit:"pc",rate:5,rateUnit:"/pc",group:"facility"},
+    {cat:"Facility & Overhead",name:"Admin overhead",qty:1,qtyUnit:"pc",rate:6,rateUnit:"/pc",group:"overhead"},
+    {cat:"Quality & Compliance",name:"AQL inspection",qty:1,qtyUnit:"pc",rate:2.5,rateUnit:"/pc",group:"quality"},
+    {cat:"Quality & Compliance",name:"BSCI/WRAP compliance",qty:1,qtyUnit:"pc",rate:1.5,rateUnit:"/pc",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG storage",qty:1,qtyUnit:"pc",rate:1.2,rateUnit:"/pc",group:"logistics"},
+    {cat:"Logistics & Warehousing",name:"Inland freight to port",qty:1,qtyUnit:"pc",rate:3,rateUnit:"/pc",group:"logistics"},
+    {cat:"Supplier Margin",name:"Manufacturer margin",qty:1,qtyUnit:"unit",rate:0.13,rateUnit:"× cost",group:"margin"}
+  ]},
+  pcb:{label:"PCBA — 4-layer", description:"Mid-complexity PCB assembly with ~120 SMD + 4 thru-hole.", params:[
+    {cat:"Raw Materials",name:"Bare PCB (4 layer)",qty:1,qtyUnit:"pc",rate:85,rateUnit:"/pc",group:"material"},
+    {cat:"Raw Materials",name:"Active components (IC, MCU)",qty:1,qtyUnit:"pc",rate:240,rateUnit:"/pc",group:"material"},
+    {cat:"Raw Materials",name:"Passive components",qty:90,qtyUnit:"pc",rate:0.8,rateUnit:"/pc",group:"material"},
+    {cat:"Raw Materials",name:"Connectors & headers",qty:6,qtyUnit:"pc",rate:11,rateUnit:"/pc",group:"material"},
+    {cat:"Raw Materials",name:"Solder paste + flux",qty:1,qtyUnit:"pc",rate:6,rateUnit:"/pc",group:"material"},
+    {cat:"Raw Materials",name:"Stencil amortization",qty:1,qtyUnit:"pc",rate:2,rateUnit:"/pc",group:"material"},
+    {cat:"Direct Labor",name:"SMT line operator",qty:0.025,qtyUnit:"hr",rate:280,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Thru-hole/hand soldering",qty:0.04,qtyUnit:"hr",rate:220,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Test & programming",qty:0.05,qtyUnit:"hr",rate:320,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Reflow oven electricity",qty:0.08,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Energy & Utilities",name:"Compressed air + N2",qty:1,qtyUnit:"pc",rate:2.5,rateUnit:"/pc",group:"energy"},
+    {cat:"Equipment & Tooling",name:"SMT line depreciation",qty:1,qtyUnit:"pc",rate:18,rateUnit:"/pc",group:"equipment"},
+    {cat:"Equipment & Tooling",name:"Test jig amortization",qty:1,qtyUnit:"pc",rate:5,rateUnit:"/pc",group:"equipment"},
+    {cat:"Facility & Overhead",name:"ESD-controlled facility",qty:1,qtyUnit:"pc",rate:14,rateUnit:"/pc",group:"facility"},
+    {cat:"Facility & Overhead",name:"Plant overhead",qty:1,qtyUnit:"pc",rate:18,rateUnit:"/pc",group:"overhead"},
+    {cat:"Quality & Compliance",name:"AOI + ICT",qty:1,qtyUnit:"pc",rate:8,rateUnit:"/pc",group:"quality"},
+    {cat:"Quality & Compliance",name:"IPC-A-610 inspection",qty:1,qtyUnit:"pc",rate:3,rateUnit:"/pc",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"Component warehousing",qty:1,qtyUnit:"pc",rate:6,rateUnit:"/pc",group:"logistics"},
+    {cat:"Logistics & Warehousing",name:"Outbound logistics (ESD)",qty:1,qtyUnit:"pc",rate:7,rateUnit:"/pc",group:"logistics"},
+    {cat:"Supplier Margin",name:"EMS margin",qty:1,qtyUnit:"unit",rate:0.14,rateUnit:"× cost",group:"margin"}
+  ]},
+  plastic:{label:"PET Bottle 500 ml", description:"Empty 500ml PET bottle with HDPE cap, blow moulded.", params:[
+    {cat:"Raw Materials",name:"PET resin (food grade)",qty:25,qtyUnit:"g",rate:0.12,rateUnit:"/g",group:"material"},
+    {cat:"Raw Materials",name:"HDPE cap resin",qty:2.5,qtyUnit:"g",rate:0.14,rateUnit:"/g",group:"material"},
+    {cat:"Raw Materials",name:"Colorant master-batch",qty:0.4,qtyUnit:"g",rate:1.2,rateUnit:"/g",group:"material"},
+    {cat:"Raw Materials",name:"Label (BOPP, printed)",qty:1,qtyUnit:"pc",rate:0.5,rateUnit:"/pc",group:"material"},
+    {cat:"Direct Labor",name:"Pre-form / cap mould op.",qty:0.0008,qtyUnit:"hr",rate:160,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Blow-moulding operator",qty:0.0010,qtyUnit:"hr",rate:170,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Packing & palletizing",qty:0.0006,qtyUnit:"hr",rate:120,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity",qty:0.06,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Energy & Utilities",name:"Compressed air HP",qty:1,qtyUnit:"pc",rate:0.4,rateUnit:"/pc",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Mould amortization",qty:1,qtyUnit:"pc",rate:0.6,rateUnit:"/pc",group:"equipment"},
+    {cat:"Equipment & Tooling",name:"Machine depreciation",qty:1,qtyUnit:"pc",rate:0.4,rateUnit:"/pc",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Facility cost",qty:1,qtyUnit:"pc",rate:0.5,rateUnit:"/pc",group:"facility"},
+    {cat:"Facility & Overhead",name:"Plant overhead",qty:1,qtyUnit:"pc",rate:0.6,rateUnit:"/pc",group:"overhead"},
+    {cat:"Quality & Compliance",name:"Food-grade QC",qty:1,qtyUnit:"pc",rate:0.3,rateUnit:"/pc",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG warehousing",qty:1,qtyUnit:"pc",rate:0.35,rateUnit:"/pc",group:"logistics"},
+    {cat:"Logistics & Warehousing",name:"Outbound freight (bulky)",qty:1,qtyUnit:"pc",rate:0.85,rateUnit:"/pc",group:"logistics"},
+    {cat:"Supplier Margin",name:"Converter margin",qty:1,qtyUnit:"unit",rate:0.10,rateUnit:"× cost",group:"margin"}
+  ]},
+  generic:{label:"Generic manufactured product", description:"Fallback skeleton — edit each line.", params:[
+    {cat:"Raw Materials",name:"Primary raw material",qty:1,qtyUnit:"kg",rate:120,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Secondary raw material",qty:0.3,qtyUnit:"kg",rate:80,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Consumables / additives",qty:1,qtyUnit:"unit",rate:5,rateUnit:"/unit",group:"material"},
+    {cat:"Raw Materials",name:"Packaging materials",qty:1,qtyUnit:"unit",rate:8,rateUnit:"/unit",group:"material"},
+    {cat:"Direct Labor",name:"Production labor",qty:0.05,qtyUnit:"hr",rate:160,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Finishing labor",qty:0.03,qtyUnit:"hr",rate:150,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity",qty:0.1,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Energy & Utilities",name:"Fuel / steam",qty:1,qtyUnit:"unit",rate:2,rateUnit:"/unit",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Machine depreciation",qty:1,qtyUnit:"unit",rate:4,rateUnit:"/unit",group:"equipment"},
+    {cat:"Equipment & Tooling",name:"Tooling/moulds/dies",qty:1,qtyUnit:"unit",rate:1.5,rateUnit:"/unit",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Facility cost",qty:1,qtyUnit:"unit",rate:3,rateUnit:"/unit",group:"facility"},
+    {cat:"Facility & Overhead",name:"Plant overhead",qty:1,qtyUnit:"unit",rate:4,rateUnit:"/unit",group:"overhead"},
+    {cat:"Quality & Compliance",name:"QC + testing",qty:1,qtyUnit:"unit",rate:1.5,rateUnit:"/unit",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"Warehousing",qty:1,qtyUnit:"unit",rate:1.5,rateUnit:"/unit",group:"logistics"},
+    {cat:"Logistics & Warehousing",name:"Outbound freight",qty:1,qtyUnit:"unit",rate:3,rateUnit:"/unit",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.12,rateUnit:"× cost",group:"margin"}
+  ]}
+};
+const KEYWORD_MAP = [
+  {keys:["brick","block","paver","masonry"],template:"brick"},
+  {keys:["perfume","fragrance","cologne","edt","edp","attar","scent","deodorant"],template:"perfume"},
+  {keys:["tshirt","t-shirt","shirt","garment","apparel","jersey","polo","hoodie","fabric"],template:"tshirt"},
+  {keys:["pcb","pcba","circuit","smt","electronic assembly"],template:"pcb"},
+  {keys:["bottle","pet","jar","cap","container","preform","blow mould"],template:"plastic"}
+];
+function detectTemplate(name,cat){
+  const n=(name||"").toLowerCase();
+  for(const k of KEYWORD_MAP) if(k.keys.some(w=>n.includes(w))) return k.template;
+  if(cat==="construction") return "brick"; if(cat==="cosmetics") return "perfume";
+  if(cat==="garments") return "tshirt"; if(cat==="electronics") return "pcb";
+  if(cat==="plastics"||cat==="packaging") return "plastic";
+  return "generic";
+}
+function analyzeProduct(){
+  const name=document.getElementById('productName').value.trim();
+  if(!name){ alert('Please enter a product name'); return; }
+  const cat=document.getElementById('productCategory').value;
+  const btn=document.getElementById('analyzeBtn');
+  btn.disabled=true; btn.innerHTML='<span class="ai-thinking font-semibold">AI analyzing…</span>';
+  setTimeout(()=>{
+    const tplKey=detectTemplate(name,cat); const tpl=TEMPLATES[tplKey];
+    currentParams=JSON.parse(JSON.stringify(tpl.params));
+    applyContextMultipliers();
+    renderAISummary(tplKey,tpl); renderParameters();
+    document.getElementById('step2').classList.remove('hidden');
+    document.getElementById('step2').scrollIntoView({behavior:'smooth',block:'start'});
+    recalc();
+    btn.disabled=false; btn.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Re-analyze';
+  },800);
+}
 function applyContextMultipliers(){
-  const region = document.getElementById('region').value;
-  const vol = document.getElementById('volumeProfile').value;
-  const qual = document.getElementById('qualityTier').value;
-  const rm = REGION_MULT[region]; const vm = VOLUME_MULT[vol]; const qm = QUALITY_MULT[qual];
-
+  const rm=REGION_MULT[document.getElementById('region').value];
+  const vm=VOLUME_MULT[document.getElementById('volumeProfile').value];
+  const qm=QUALITY_MULT[document.getElementById('qualityTier').value];
   currentParams.forEach(p=>{
-    if(p.group==='labor') p.rate = +(p.rate * rm.labor).toFixed(3);
-    if(p.group==='energy') p.rate = +(p.rate * rm.utility).toFixed(3);
-    if(p.group==='facility') p.rate = +(p.rate * rm.facility * vm.ovh).toFixed(3);
-    if(p.group==='overhead') p.rate = +(p.rate * rm.facility * vm.ovh).toFixed(3);
-    if(p.group==='equipment') p.rate = +(p.rate * vm.equip).toFixed(3);
-    if(p.group==='material') p.rate = +(p.rate * qm.material).toFixed(3);
-    if(p.group==='margin') p.rate = qm.margin;
+    if(p.group==='labor') p.rate=+(p.rate*rm.labor).toFixed(3);
+    if(p.group==='energy') p.rate=+(p.rate*rm.utility).toFixed(3);
+    if(p.group==='facility') p.rate=+(p.rate*rm.facility*vm.ovh).toFixed(3);
+    if(p.group==='overhead') p.rate=+(p.rate*rm.facility*vm.ovh).toFixed(3);
+    if(p.group==='equipment') p.rate=+(p.rate*vm.equip).toFixed(3);
+    if(p.group==='material') p.rate=+(p.rate*qm.material).toFixed(3);
+    if(p.group==='margin') p.rate=qm.margin;
   });
 }
-
-function renderAISummary(tplKey, tpl){
-  const name = document.getElementById('productName').value;
-  const spec = document.getElementById('productSpec').value;
-  const region = document.getElementById('region').selectedOptions[0].textContent;
-  const vol = document.getElementById('volumeProfile').selectedOptions[0].textContent;
-  const qual = document.getElementById('qualityTier').selectedOptions[0].textContent;
-  const cats = [...new Set(currentParams.map(p=>p.cat))];
-
-  document.getElementById('aiSummary').innerHTML = `
+function renderAISummary(tplKey,tpl){
+  const region=document.getElementById('region').selectedOptions[0].textContent;
+  const vol=document.getElementById('volumeProfile').selectedOptions[0].textContent;
+  const qual=document.getElementById('qualityTier').selectedOptions[0].textContent;
+  const cats=[...new Set(currentParams.map(p=>p.cat))];
+  document.getElementById('aiSummary').innerHTML=`
     <div class="flex items-start gap-3">
       <div class="w-10 h-10 rounded-full bg-teal-600 text-white flex items-center justify-center flex-shrink-0">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
@@ -624,313 +747,698 @@ function renderAISummary(tplKey, tpl){
         <p class="text-sm text-slate-700">${tpl.description}</p>
         <p class="text-xs text-slate-600 mt-2">Detected <b>${currentParams.length}</b> cost drivers across <b>${cats.length}</b> categories. Context: ${region} · ${vol} · ${qual}.</p>
         <div class="mt-2 flex flex-wrap gap-1.5">
-          ${cats.map(c=>`<span class="category-chip text-xs px-2 py-0.5 rounded-full" style="background:${CATEGORY_COLORS[c]||'#94A3B8'}20;color:${CATEGORY_COLORS[c]||'#475569'}">${c}</span>`).join('')}
+          ${cats.map(c=>`<span class="text-xs px-2 py-0.5 rounded-full" style="background:${CATEGORY_COLORS[c]||'#94A3B8'}20;color:${CATEGORY_COLORS[c]||'#475569'}">${c}</span>`).join('')}
         </div>
       </div>
-    </div>
-  `;
+    </div>`;
 }
-
+function slug(s){ return s.replace(/[^a-z0-9]+/gi,'_').toLowerCase(); }
 function renderParameters(){
-  const container = document.getElementById('paramContainer');
-  const grouped = {};
-  currentParams.forEach((p,i)=>{
-    if(!grouped[p.cat]) grouped[p.cat]=[];
-    grouped[p.cat].push({...p, idx:i});
-  });
-
-  container.innerHTML = Object.entries(grouped).map(([cat, items])=>{
-    const color = CATEGORY_COLORS[cat] || '#64748B';
-    return `
-    <details open class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+  const container=document.getElementById('paramContainer');
+  const grouped={};
+  currentParams.forEach((p,i)=>{ if(!grouped[p.cat]) grouped[p.cat]=[]; grouped[p.cat].push({...p,idx:i}); });
+  container.innerHTML=Object.entries(grouped).map(([cat,items])=>{
+    const color=CATEGORY_COLORS[cat]||'#64748B';
+    return `<details open class="bg-white border border-slate-200 rounded-xl overflow-hidden">
       <summary class="px-4 py-3 flex items-center justify-between" style="background:${color}10;border-left:4px solid ${color}">
-        <div class="flex items-center gap-2">
-          <span class="chevron text-slate-500 text-sm">▶</span>
+        <div class="flex items-center gap-2"><span class="chevron text-slate-500 text-sm">▶</span>
           <span class="font-semibold" style="color:${color}">${cat}</span>
-          <span class="text-xs text-slate-500">(${items.length} items)</span>
-        </div>
+          <span class="text-xs text-slate-500">(${items.length} items)</span></div>
         <span class="text-sm font-mono text-slate-700" id="catTotal-${slug(cat)}">—</span>
       </summary>
       <div class="divide-y divide-slate-100">
         <div class="grid grid-cols-12 gap-2 px-4 py-2 text-xs font-medium text-slate-500 bg-slate-50">
-          <div class="col-span-5">Parameter</div>
-          <div class="col-span-2 text-right">Qty</div>
-          <div class="col-span-1 text-center">Unit</div>
-          <div class="col-span-2 text-right">Rate</div>
-          <div class="col-span-2 text-right">Cost</div>
-        </div>
-        ${items.map(p=>`
-          <div class="grid grid-cols-12 gap-2 px-4 py-2 parameter-row items-center">
-            <div class="col-span-5 text-sm">${p.name}</div>
-            <div class="col-span-2"><input type="number" step="0.001" value="${p.qty}" oninput="updateParam(${p.idx},'qty',this.value)" class="w-full border border-slate-200 rounded px-2 py-1 text-right text-sm focus:ring-2 focus:ring-teal-400 focus:outline-none"/></div>
-            <div class="col-span-1 text-center text-xs text-slate-500">${p.qtyUnit}</div>
-            <div class="col-span-2"><input type="number" step="0.001" value="${p.rate}" oninput="updateParam(${p.idx},'rate',this.value)" class="w-full border border-slate-200 rounded px-2 py-1 text-right text-sm focus:ring-2 focus:ring-teal-400 focus:outline-none"/></div>
-            <div class="col-span-2 text-right font-mono text-sm" id="paramCost-${p.idx}">—</div>
-          </div>
-        `).join('')}
-      </div>
-    </details>`;
+          <div class="col-span-5">Parameter</div><div class="col-span-2 text-right">Qty</div>
+          <div class="col-span-1 text-center">Unit</div><div class="col-span-2 text-right">Rate</div>
+          <div class="col-span-2 text-right">Cost</div></div>
+        ${items.map(p=>`<div class="grid grid-cols-12 gap-2 px-4 py-2 parameter-row items-center">
+          <div class="col-span-5 text-sm">${p.name}</div>
+          <div class="col-span-2"><input type="number" step="0.001" value="${p.qty}" oninput="updateParam(${p.idx},'qty',this.value)" class="w-full border border-slate-200 rounded px-2 py-1 text-right text-sm focus:ring-2 focus:ring-teal-400 focus:outline-none"/></div>
+          <div class="col-span-1 text-center text-xs text-slate-500">${p.qtyUnit}</div>
+          <div class="col-span-2"><input type="number" step="0.001" value="${p.rate}" oninput="updateParam(${p.idx},'rate',this.value)" class="w-full border border-slate-200 rounded px-2 py-1 text-right text-sm focus:ring-2 focus:ring-teal-400 focus:outline-none"/></div>
+          <div class="col-span-2 text-right font-mono text-sm" id="paramCost-${p.idx}">—</div></div>`).join('')}
+      </div></details>`;
   }).join('');
 }
-
-function slug(s){ return s.replace(/[^a-z0-9]+/gi,'_').toLowerCase(); }
-
-function updateParam(idx, field, val){
-  currentParams[idx][field] = parseFloat(val)||0;
-  recalc();
-}
-
+function updateParam(idx,field,val){ currentParams[idx][field]=parseFloat(val)||0; recalc(); }
 function addCustomParam(){
-  const cat = document.getElementById('newParamCat').value || 'Custom';
-  const name = document.getElementById('newParamName').value;
-  const qty = parseFloat(document.getElementById('newParamQty').value)||1;
-  const rate = parseFloat(document.getElementById('newParamRate').value)||0;
+  const cat=document.getElementById('newParamCat').value||'Custom';
+  const name=document.getElementById('newParamName').value;
+  const qty=parseFloat(document.getElementById('newParamQty').value)||1;
+  const rate=parseFloat(document.getElementById('newParamRate').value)||0;
   if(!name){ alert('Enter a parameter name'); return; }
-  currentParams.push({ cat, name, qty, qtyUnit:'unit', rate, rateUnit:'/unit', group:'material' });
+  currentParams.push({cat,name,qty,qtyUnit:'unit',rate,rateUnit:'/unit',group:'material'});
   ['newParamCat','newParamName','newParamQty','newParamRate'].forEach(id=>document.getElementById(id).value='');
   renderParameters(); recalc();
 }
-
-// =====================================================================
-// CALCULATION
-// =====================================================================
 function recalc(){
   if(currentParams.length===0) return;
-  const fx = FX[document.getElementById('currency').value];
-  const sym = SYM[document.getElementById('currency').value];
-  const matSens = 1 + parseFloat(document.getElementById('matSens').value)/100;
-  const labSens = 1 + parseFloat(document.getElementById('labSens').value)/100;
-  const enSens = 1 + parseFloat(document.getElementById('enSens').value)/100;
-
-  let subtotal = 0;
-  const catTotals = {};
-
-  currentParams.forEach((p,i)=>{
-    if(p.group==='margin') return; // handle separately
-    let line = p.qty * p.rate;
-    if(p.group==='material') line *= matSens;
-    if(p.group==='labor') line *= labSens;
-    if(p.group==='energy') line *= enSens;
-    subtotal += line;
-    catTotals[p.cat] = (catTotals[p.cat]||0) + line;
-    const cell = document.getElementById(`paramCost-${i}`);
-    if(cell) cell.textContent = sym + (line*fx).toFixed(2);
+  const fx=FX[document.getElementById('currency').value], sym=SYM[document.getElementById('currency').value];
+  const matSens=1+parseFloat(document.getElementById('matSens').value)/100;
+  const labSens=1+parseFloat(document.getElementById('labSens').value)/100;
+  const enSens=1+parseFloat(document.getElementById('enSens').value)/100;
+  let subtotal=0; const catTotals={};
+  currentParams.forEach((p,i)=>{ if(p.group==='margin') return;
+    let line=p.qty*p.rate;
+    if(p.group==='material') line*=matSens;
+    if(p.group==='labor') line*=labSens;
+    if(p.group==='energy') line*=enSens;
+    subtotal+=line; catTotals[p.cat]=(catTotals[p.cat]||0)+line;
+    const cell=document.getElementById(`paramCost-${i}`);
+    if(cell) cell.textContent=sym+(line*fx).toFixed(2);
   });
-
-  // margin (multiplier × subtotal)
-  const marginParam = currentParams.find(p=>p.group==='margin');
-  const marginRate = marginParam ? marginParam.rate : 0;
-  const marginAmt = subtotal * marginRate;
-  if(marginParam){
-    catTotals[marginParam.cat] = marginAmt;
-    const idx = currentParams.indexOf(marginParam);
-    const cell = document.getElementById(`paramCost-${idx}`);
-    if(cell) cell.textContent = sym + (marginAmt*fx).toFixed(2);
-  }
-
-  const unitTotal = subtotal + marginAmt;
-  const orderQty = parseFloat(document.getElementById('orderQty').value)||1;
-
-  document.getElementById('unitCost').textContent = sym + (unitTotal*fx).toFixed(2);
-  document.getElementById('totalCost').textContent = sym + (unitTotal*fx*orderQty).toLocaleString(undefined,{maximumFractionDigits:0});
-  document.getElementById('marginShown').textContent = (marginRate*100).toFixed(1)+'%';
-  document.getElementById('unitCostHint').textContent = `Across ${orderQty.toLocaleString()} units`;
-
-  // category subtotals shown in headers
-  Object.keys(catTotals).forEach(cat=>{
-    const el = document.getElementById('catTotal-'+slug(cat));
-    if(el) el.textContent = sym + (catTotals[cat]*fx).toFixed(2);
-  });
-
-  renderChart(catTotals, sym, fx);
+  const m=currentParams.find(p=>p.group==='margin'); const mr=m?m.rate:0; const ma=subtotal*mr;
+  if(m){ catTotals[m.cat]=ma; const idx=currentParams.indexOf(m); const c=document.getElementById(`paramCost-${idx}`); if(c) c.textContent=sym+(ma*fx).toFixed(2); }
+  const unit=subtotal+ma;
+  const qty=parseFloat(document.getElementById('orderQty').value)||1;
+  document.getElementById('unitCost').textContent=sym+(unit*fx).toFixed(2);
+  document.getElementById('totalCost').textContent=sym+(unit*fx*qty).toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('marginShown').textContent=(mr*100).toFixed(1)+'%';
+  document.getElementById('unitCostHint').textContent=`Across ${qty.toLocaleString()} units`;
+  Object.keys(catTotals).forEach(c=>{ const el=document.getElementById('catTotal-'+slug(c)); if(el) el.textContent=sym+(catTotals[c]*fx).toFixed(2); });
+  renderChart(catTotals,sym,fx);
 }
-
-function renderChart(catTotals, sym, fx){
-  const labels = Object.keys(catTotals);
-  const data = labels.map(l=>+(catTotals[l]*fx).toFixed(2));
-  const colors = labels.map(l=>CATEGORY_COLORS[l]||'#94A3B8');
-
+function renderChart(catTotals,sym,fx){
+  const labels=Object.keys(catTotals);
+  const data=labels.map(l=>+(catTotals[l]*fx).toFixed(2));
+  const colors=labels.map(l=>CATEGORY_COLORS[l]||'#94A3B8');
   if(chart) chart.destroy();
-  const ctx = document.getElementById('costChart').getContext('2d');
-  chart = new Chart(ctx, {
-    type:'doughnut',
-    data:{ labels, datasets:[{ data, backgroundColor:colors, borderWidth:2, borderColor:'#fff' }] },
-    options:{
-      responsive:true, maintainAspectRatio:false, cutout:'62%',
-      plugins:{
-        legend:{ display:false },
-        tooltip:{ callbacks:{ label:(c)=>` ${c.label}: ${sym}${c.parsed.toFixed(2)}` } }
-      }
-    }
+  chart=new Chart(document.getElementById('costChart').getContext('2d'),{
+    type:'doughnut', data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.label}: ${sym}${c.parsed.toFixed(2)}`}}}}
   });
-
-  const total = data.reduce((a,b)=>a+b,0);
-  document.getElementById('costLegend').innerHTML = labels.map((l,i)=>`
-    <div class="flex justify-between items-center">
-      <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background:${colors[i]}"></span><span>${l}</span></div>
-      <div class="font-mono text-slate-600">${((data[i]/total)*100).toFixed(1)}%</div>
-    </div>
-  `).join('');
+  const total=data.reduce((a,b)=>a+b,0);
+  document.getElementById('costLegend').innerHTML=labels.map((l,i)=>
+    `<div class="flex justify-between items-center"><div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background:${colors[i]}"></span><span>${l}</span></div><div class="font-mono text-slate-600">${((data[i]/total)*100).toFixed(1)}%</div></div>`).join('');
 }
-
-// =====================================================================
-// SCENARIOS
-// =====================================================================
+function loadExample(key){
+  const map={brick:{name:'Red sand brick 230×110×75 mm',cat:'construction',spec:'compressive strength ≥ 7.5 MPa'},
+    perfume:{name:'Perfume EdT 50 ml',cat:'cosmetics',spec:'10% concentrate, glass bottle + atomizer + carton'},
+    tshirt:{name:'Cotton crew-neck T-shirt 180 gsm',cat:'garments',spec:'combed cotton, single jersey'},
+    pcb:{name:'4-layer PCBA with MCU + 120 SMD',cat:'electronics',spec:'mid complexity, mixed SMD'},
+    plastic:{name:'PET water bottle 500 ml',cat:'plastics',spec:'food grade PET, HDPE cap, BOPP label'}};
+  const e=map[key]; document.getElementById('productName').value=e.name;
+  document.getElementById('productCategory').value=e.cat; document.getElementById('productSpec').value=e.spec;
+}
 function saveScenario(){
-  const name = prompt('Scenario name (e.g. "China supplier" or "Quote A"):');
-  if(!name) return;
-  const cur = document.getElementById('currency').value;
-  scenarios.push({
-    name, ts: new Date().toISOString(),
-    product: document.getElementById('productName').value,
-    region: document.getElementById('region').value,
-    qty: parseFloat(document.getElementById('orderQty').value),
-    currency: cur,
-    params: JSON.parse(JSON.stringify(currentParams))
-  });
-  localStorage.setItem('shouldCostScenarios', JSON.stringify(scenarios));
-  renderScenarios();
-  document.getElementById('scenariosSection').classList.remove('hidden');
+  const name=prompt('Scenario name (e.g. "China supplier"):'); if(!name) return;
+  const cur=document.getElementById('currency').value;
+  scenarios.push({name,ts:new Date().toISOString(),product:document.getElementById('productName').value,
+    region:document.getElementById('region').value,qty:parseFloat(document.getElementById('orderQty').value),
+    currency:cur,params:JSON.parse(JSON.stringify(currentParams))});
+  localStorage.setItem('shouldCostScenariosV2',JSON.stringify(scenarios));
+  renderScenarios(); document.getElementById('scenariosSection').classList.remove('hidden');
 }
-
 function renderScenarios(){
-  const list = document.getElementById('scenariosList');
+  const list=document.getElementById('scenariosList');
   if(scenarios.length===0){ list.innerHTML='<p class="text-sm text-slate-500 col-span-3">No scenarios saved yet.</p>'; return; }
-  list.innerHTML = scenarios.map((s,i)=>{
-    const fx = FX[s.currency]; const sym = SYM[s.currency];
-    const sub = s.params.filter(p=>p.group!=='margin').reduce((t,p)=>t+p.qty*p.rate,0);
-    const m = s.params.find(p=>p.group==='margin'); const mr = m?m.rate:0;
-    const unit = sub*(1+mr);
-    return `
-    <div class="border border-slate-200 rounded-xl p-4">
+  list.innerHTML=scenarios.map((s,i)=>{
+    const fx=FX[s.currency], sym=SYM[s.currency];
+    const sub=s.params.filter(p=>p.group!=='margin').reduce((t,p)=>t+p.qty*p.rate,0);
+    const m=s.params.find(p=>p.group==='margin'); const mr=m?m.rate:0; const unit=sub*(1+mr);
+    return `<div class="border border-slate-200 rounded-xl p-4">
       <div class="flex justify-between items-start mb-2">
-        <div>
-          <div class="font-semibold text-sm">${s.name}</div>
-          <div class="text-xs text-slate-500">${s.product||'—'}</div>
-        </div>
-        <button onclick="deleteScenario(${i})" class="text-slate-400 hover:text-red-500 text-xs">×</button>
-      </div>
+        <div><div class="font-semibold text-sm">${s.name}</div><div class="text-xs text-slate-500">${s.product||'—'}</div></div>
+        <button onclick="deleteScenario(${i})" class="text-slate-400 hover:text-red-500 text-xs">×</button></div>
       <div class="text-xs text-slate-600 mb-2">Region: ${s.region}, Qty: ${s.qty.toLocaleString()}</div>
       <div class="text-2xl font-bold text-teal-700">${sym}${(unit*fx).toFixed(2)}<span class="text-xs text-slate-500 font-normal">/unit</span></div>
-      <div class="text-sm font-medium">${sym}${(unit*fx*s.qty).toLocaleString(undefined,{maximumFractionDigits:0})} total</div>
-    </div>`;
+      <div class="text-sm font-medium">${sym}${(unit*fx*s.qty).toLocaleString(undefined,{maximumFractionDigits:0})} total</div></div>`;
   }).join('');
 }
-
-function deleteScenario(i){
-  if(!confirm('Delete this scenario?')) return;
-  scenarios.splice(i,1);
-  localStorage.setItem('shouldCostScenarios', JSON.stringify(scenarios));
-  renderScenarios();
-}
-
+function deleteScenario(i){ if(!confirm('Delete?')) return; scenarios.splice(i,1); localStorage.setItem('shouldCostScenariosV2',JSON.stringify(scenarios)); renderScenarios(); }
 function compareScenarios(){
-  if(scenarios.length<2){ alert('Save at least 2 scenarios to compare.'); return; }
-  const cats = [...new Set(scenarios.flatMap(s=>s.params.map(p=>p.cat)))];
-  let html = `<table class="w-full text-sm border-collapse"><thead><tr class="bg-slate-100"><th class="text-left p-2">Category</th>`;
-  scenarios.forEach(s=>{ html+=`<th class="text-right p-2">${s.name}</th>`; });
-  html += `</tr></thead><tbody>`;
+  if(scenarios.length<2){ alert('Save at least 2 scenarios.'); return; }
+  const cats=[...new Set(scenarios.flatMap(s=>s.params.map(p=>p.cat)))];
+  let html=`<table class="w-full text-sm border-collapse"><thead><tr class="bg-slate-100"><th class="text-left p-2">Category</th>`;
+  scenarios.forEach(s=>html+=`<th class="text-right p-2">${s.name}</th>`); html+=`</tr></thead><tbody>`;
   cats.forEach(cat=>{
-    html += `<tr class="border-b"><td class="p-2 font-medium">${cat}</td>`;
+    html+=`<tr class="border-b"><td class="p-2 font-medium">${cat}</td>`;
     scenarios.forEach(s=>{
-      const sym = SYM[s.currency]; const fx = FX[s.currency];
-      let val=0;
-      const isMargin = cat==='Supplier Margin';
-      if(isMargin){
-        const sub = s.params.filter(p=>p.group!=='margin').reduce((t,p)=>t+p.qty*p.rate,0);
-        const m = s.params.find(p=>p.group==='margin');
-        val = sub * (m?m.rate:0);
-      } else {
-        val = s.params.filter(p=>p.cat===cat && p.group!=='margin').reduce((t,p)=>t+p.qty*p.rate,0);
-      }
-      html += `<td class="p-2 text-right font-mono">${sym}${(val*fx).toFixed(2)}</td>`;
-    });
-    html += `</tr>`;
+      const sym=SYM[s.currency],fx=FX[s.currency]; let val=0;
+      if(cat==='Supplier Margin'){
+        const sub=s.params.filter(p=>p.group!=='margin').reduce((t,p)=>t+p.qty*p.rate,0);
+        const m=s.params.find(p=>p.group==='margin'); val=sub*(m?m.rate:0);
+      } else val=s.params.filter(p=>p.cat===cat && p.group!=='margin').reduce((t,p)=>t+p.qty*p.rate,0);
+      html+=`<td class="p-2 text-right font-mono">${sym}${(val*fx).toFixed(2)}</td>`;
+    }); html+=`</tr>`;
   });
-  // totals
-  html += `<tr class="bg-teal-50 font-bold"><td class="p-2">TOTAL / unit</td>`;
-  scenarios.forEach(s=>{
-    const sym = SYM[s.currency]; const fx = FX[s.currency];
-    const sub = s.params.filter(p=>p.group!=='margin').reduce((t,p)=>t+p.qty*p.rate,0);
-    const m = s.params.find(p=>p.group==='margin'); const mr = m?m.rate:0;
-    html += `<td class="p-2 text-right font-mono">${sym}${(sub*(1+mr)*fx).toFixed(2)}</td>`;
-  });
-  html += `</tr></tbody></table>`;
-  document.getElementById('compareContent').innerHTML = html;
+  html+=`<tr class="bg-teal-50 font-bold"><td class="p-2">TOTAL / unit</td>`;
+  scenarios.forEach(s=>{ const sym=SYM[s.currency],fx=FX[s.currency];
+    const sub=s.params.filter(p=>p.group!=='margin').reduce((t,p)=>t+p.qty*p.rate,0);
+    const m=s.params.find(p=>p.group==='margin'); const mr=m?m.rate:0;
+    html+=`<td class="p-2 text-right font-mono">${sym}${(sub*(1+mr)*fx).toFixed(2)}</td>`;
+  }); html+=`</tr></tbody></table>`;
+  document.getElementById('compareContent').innerHTML=html;
   document.getElementById('compareModal').classList.remove('hidden');
 }
-
-// =====================================================================
-// EXPORT
-// =====================================================================
 function exportExcel(){
-  const cur = document.getElementById('currency').value;
-  const sym = SYM[cur]; const fx = FX[cur];
-  const product = document.getElementById('productName').value || 'product';
-  const qty = parseFloat(document.getElementById('orderQty').value)||1;
+  const cur=document.getElementById('currency').value, sym=SYM[cur], fx=FX[cur];
+  const product=document.getElementById('productName').value||'product';
+  const qty=parseFloat(document.getElementById('orderQty').value)||1;
+  const rows=[['Should Cost Analysis Report — Built by Mohammed Zumar Ali Hassan'],['Product',product],['Currency',cur],
+    ['Order Quantity',qty],['Region',document.getElementById('region').selectedOptions[0].textContent],
+    ['Generated',new Date().toLocaleString()],[],['Category','Parameter','Qty','Unit','Rate','Cost ('+cur+')']];
+  let sub=0;
+  currentParams.forEach(p=>{ if(p.group==='margin') return; const c=p.qty*p.rate*fx; sub+=c;
+    rows.push([p.cat,p.name,p.qty,p.qtyUnit,p.rate*fx,+c.toFixed(4)]); });
+  const m=currentParams.find(p=>p.group==='margin'); const mr=m?m.rate:0; const ma=sub*mr;
+  rows.push([],['Subtotal','','','','',+sub.toFixed(4)]);
+  rows.push(['Margin','','','',(mr*100).toFixed(1)+'%',+ma.toFixed(4)]);
+  rows.push(['UNIT COST','','','','',+(sub+ma).toFixed(4)]);
+  rows.push(['ORDER TOTAL','','','','',+((sub+ma)*qty).toFixed(2)]);
+  const wb=XLSX.utils.book_new(); const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:22},{wch:38},{wch:10},{wch:8},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws,'Should Cost');
+  XLSX.writeFile(wb,`should-cost-${product.replace(/\W+/g,'_').slice(0,30)}.xlsx`);
+}
 
-  const rows = [['Should Cost Analysis Report'],['Product', product],['Currency', cur],
-    ['Order Quantity', qty],['Region', document.getElementById('region').selectedOptions[0].textContent],
-    ['Volume Profile', document.getElementById('volumeProfile').selectedOptions[0].textContent],
-    ['Quality Tier', document.getElementById('qualityTier').selectedOptions[0].textContent],
-    ['Generated', new Date().toLocaleString()],[],
-    ['Category','Parameter','Qty','Unit','Rate','Cost ('+cur+')']];
-
-  let subtotal=0;
-  currentParams.forEach(p=>{
-    if(p.group==='margin') return;
-    const c = p.qty * p.rate * fx;
-    subtotal += c;
-    rows.push([p.cat, p.name, p.qty, p.qtyUnit, p.rate*fx, +c.toFixed(4)]);
+const DASH_CATEGORIES = [
+  {cat:"Electronic Components",spend:5240,pct:21.1},{cat:"Packaging",spend:3920,pct:15.8},
+  {cat:"Raw Chemicals",spend:3480,pct:14.0},{cat:"Textiles & Yarn",spend:2710,pct:10.9},
+  {cat:"Metals & Castings",spend:2210,pct:8.9},{cat:"Logistics & Freight",spend:1880,pct:7.6},
+  {cat:"MRO & Indirect",spend:1530,pct:6.2},{cat:"Capital Equipment",spend:1240,pct:5.0},
+  {cat:"IT & Software",spend:980,pct:4.0},{cat:"Professional Services",spend:760,pct:3.1},
+  {cat:"Other",spend:850,pct:3.4}
+];
+const DASH_REGIONS = [
+  {region:"China",spend:8420},{region:"India",spend:5640},{region:"Vietnam",spend:3210},
+  {region:"USA",spend:2840},{region:"Mexico",spend:2120},{region:"EU",spend:1560},{region:"Other",spend:1010}
+];
+const DASH_SAVINGS = [
+  {q:"Q1",actual:420,target:380},{q:"Q2",actual:540,target:450},
+  {q:"Q3",actual:610,target:520},{q:"Q4",actual:570,target:580}
+];
+const DASH_TREND = [
+  {m:"Jan",steel:108,plastic:96,cotton:102},{m:"Feb",steel:112,plastic:99,cotton:104},
+  {m:"Mar",steel:115,plastic:101,cotton:107},{m:"Apr",steel:118,plastic:103,cotton:110},
+  {m:"May",steel:122,plastic:106,cotton:108},{m:"Jun",steel:120,plastic:108,cotton:111},
+  {m:"Jul",steel:125,plastic:111,cotton:113},{m:"Aug",steel:128,plastic:113,cotton:115},
+  {m:"Sep",steel:131,plastic:115,cotton:117},{m:"Oct",steel:129,plastic:117,cotton:119},
+  {m:"Nov",steel:133,plastic:118,cotton:121},{m:"Dec",steel:136,plastic:120,cotton:124}
+];
+const SUPPLIERS = [
+  {name:"Acme Electronics",cat:"Electronics",region:"China",spend:1240,otif:96,ppm:120,score:91,tier:"Strategic"},
+  {name:"Globex Packaging",cat:"Packaging",region:"India",spend:980,otif:93,ppm:85,score:88,tier:"Leverage"},
+  {name:"Sterling Yarns",cat:"Textiles",region:"India",spend:720,otif:97,ppm:60,score:93,tier:"Strategic"},
+  {name:"NorthMetal Co",cat:"Metals",region:"Vietnam",spend:540,otif:88,ppm:220,score:74,tier:"Bottleneck"},
+  {name:"Polymer Plus",cat:"Chemicals",region:"China",spend:680,otif:91,ppm:140,score:82,tier:"Strategic"},
+  {name:"BluePort Logistics",cat:"Logistics",region:"Global",spend:1180,otif:94,ppm:0,score:87,tier:"Leverage"},
+  {name:"FastFix MRO",cat:"MRO",region:"USA",spend:280,otif:99,ppm:30,score:95,tier:"Routine"},
+  {name:"Quanta Tools",cat:"Capital Eq",region:"Mexico",spend:420,otif:85,ppm:180,score:76,tier:"Bottleneck"},
+  {name:"Vertex Cartons",cat:"Packaging",region:"India",spend:340,otif:96,ppm:75,score:90,tier:"Leverage"},
+  {name:"OmegaChem",cat:"Chemicals",region:"EU",spend:520,otif:92,ppm:110,score:84,tier:"Strategic"}
+];
+function initDashboard(){ drawDashCatChart(); drawDashRegionChart(); drawDashSavingsChart();
+  drawDashTrendChart(); drawDashBubble(); drawScorecard(); drawRiskHeatmap(); }
+function drawDashCatChart(){
+  const ctx=document.getElementById('dashCatChart'); if(!ctx) return;
+  if(charts.cat) charts.cat.destroy();
+  let cum=0; const totalSpend=DASH_CATEGORIES.reduce((s,c)=>s+c.spend,0);
+  const cumLine=DASH_CATEGORIES.map(c=>{ cum+=c.spend; return +(cum/totalSpend*100).toFixed(1); });
+  charts.cat=new Chart(ctx,{type:'bar',data:{labels:DASH_CATEGORIES.map(c=>c.cat),
+    datasets:[{type:'bar',label:'Spend ($K)',data:DASH_CATEGORIES.map(c=>c.spend),backgroundColor:'#0F766E',yAxisID:'y'},
+      {type:'line',label:'Cumulative %',data:cumLine,borderColor:'#F59E0B',backgroundColor:'#F59E0B',tension:0.3,yAxisID:'y1'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},
+      scales:{y:{title:{display:true,text:'$K'}},y1:{position:'right',min:0,max:100,grid:{drawOnChartArea:false},title:{display:true,text:'%'}}}}});
+}
+function drawDashRegionChart(){
+  const ctx=document.getElementById('dashRegionChart'); if(!ctx) return;
+  if(charts.region) charts.region.destroy();
+  charts.region=new Chart(ctx,{type:'doughnut',data:{labels:DASH_REGIONS.map(r=>r.region),
+    datasets:[{data:DASH_REGIONS.map(r=>r.spend),backgroundColor:['#DC2626','#0F766E','#F59E0B','#3B82F6','#8B5CF6','#10B981','#94A3B8']}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}}}});
+}
+function drawDashSavingsChart(){
+  const ctx=document.getElementById('dashSavingsChart'); if(!ctx) return;
+  if(charts.sav) charts.sav.destroy();
+  charts.sav=new Chart(ctx,{type:'bar',data:{labels:DASH_SAVINGS.map(s=>s.q),
+    datasets:[{label:'Actual ($K)',data:DASH_SAVINGS.map(s=>s.actual),backgroundColor:'#10B981'},
+      {label:'Target ($K)',data:DASH_SAVINGS.map(s=>s.target),backgroundColor:'#94A3B8'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+}
+function drawDashTrendChart(){
+  const ctx=document.getElementById('dashTrendChart'); if(!ctx) return;
+  if(charts.trend) charts.trend.destroy();
+  charts.trend=new Chart(ctx,{type:'line',data:{labels:DASH_TREND.map(t=>t.m),
+    datasets:[{label:'Steel',data:DASH_TREND.map(t=>t.steel),borderColor:'#DC2626',tension:0.3,fill:false},
+      {label:'Plastic',data:DASH_TREND.map(t=>t.plastic),borderColor:'#3B82F6',tension:0.3,fill:false},
+      {label:'Cotton',data:DASH_TREND.map(t=>t.cotton),borderColor:'#F59E0B',tension:0.3,fill:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+}
+function drawDashBubble(){
+  const ctx=document.getElementById('dashBubbleChart'); if(!ctx) return;
+  if(charts.bub) charts.bub.destroy();
+  charts.bub=new Chart(ctx,{type:'bubble',data:{datasets:SUPPLIERS.map((s,i)=>(
+    {label:s.name,data:[{x:8+Math.random()*40,y:s.score,r:Math.sqrt(s.spend)/2}],
+    backgroundColor:`hsl(${i*36},70%,55%)`}))},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>`${c.dataset.label}: lead ${c.raw.x.toFixed(0)}d, score ${c.raw.y}, spend $${(c.raw.r*c.raw.r*4).toFixed(0)}K`}}},
+      scales:{x:{title:{display:true,text:'Lead Time (days)'}},y:{title:{display:true,text:'Score'},min:60,max:100}}}});
+}
+function drawScorecard(){
+  const tbody=document.querySelector('#scorecardTable tbody'); if(!tbody) return;
+  tbody.innerHTML=SUPPLIERS.sort((a,b)=>b.score-a.score).map(s=>{
+    const color=s.score>=90?'bg-emerald-100 text-emerald-800':s.score>=80?'bg-blue-100 text-blue-800':'bg-amber-100 text-amber-800';
+    return `<tr class="border-t border-slate-100 hover:bg-slate-50"><td class="p-2 font-medium">${s.name}</td>
+      <td class="p-2 text-slate-600">${s.cat}</td><td class="p-2 text-slate-600">${s.region}</td>
+      <td class="p-2 text-right font-mono">$${s.spend}</td><td class="p-2 text-right">${s.otif}%</td>
+      <td class="p-2 text-right">${s.ppm}</td>
+      <td class="p-2 text-right"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${color}">${s.score}</span></td>
+      <td class="p-2 text-right text-xs">${s.tier}</td></tr>`;
+  }).join('');
+}
+function drawRiskHeatmap(){
+  const labels=["Supplier insolvency","Tariff hike","Single-source","Quality drift","Cyber/IT","Logistics delay","Currency FX","Geopolitical","Regulatory","ESG/sustainability","Demand spike","Capacity gap"];
+  const probs=[2,4,5,3,2,4,3,4,2,3,5,4]; const imps=[5,4,5,4,3,3,3,5,4,3,4,5];
+  const grid=document.getElementById('riskHeatmap'); if(!grid) return;
+  let html=`<div class="heat-cell bg-slate-200 text-slate-700">Risk \\ I→</div>`;
+  for(let i=1;i<=5;i++) html+=`<div class="heat-cell bg-slate-200 text-slate-700">I=${i}</div>`;
+  labels.forEach((l,idx)=>{
+    html+=`<div class="text-[10px] text-slate-700 p-1 truncate text-left bg-slate-50" title="${l}">${l}</div>`;
+    for(let i=1;i<=5;i++){
+      const score=probs[idx]*i; const sel=(i===imps[idx]);
+      const bg=score>=20?'#DC2626':score>=15?'#F97316':score>=10?'#F59E0B':score>=6?'#84CC16':'#10B981';
+      html+=`<div class="heat-cell ${sel?'ring-2 ring-slate-900':''}" style="background:${bg}">${sel?score:''}</div>`;
+    }
   });
-  const m = currentParams.find(p=>p.group==='margin'); const mr=m?m.rate:0;
-  const margin = subtotal*mr;
-  rows.push([],['Subtotal','','','','',+subtotal.toFixed(4)]);
-  rows.push(['Margin','','','',(mr*100).toFixed(1)+'%',+margin.toFixed(4)]);
-  rows.push(['UNIT COST','','','','',+(subtotal+margin).toFixed(4)]);
-  rows.push(['ORDER TOTAL','','','','',+((subtotal+margin)*qty).toFixed(2)]);
-
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [{wch:22},{wch:38},{wch:10},{wch:8},{wch:12},{wch:14}];
-  XLSX.utils.book_append_sheet(wb, ws, 'Should Cost');
-  XLSX.writeFile(wb, `should-cost-${product.replace(/\W+/g,'_').slice(0,30)}.xlsx`);
+  grid.innerHTML=html;
+}
+function exportDashboard(){
+  const rows=[['Executive Procurement Dashboard — Built by Mohammed Zumar Ali Hassan'],[],['Spend by Category'],
+    ['Category','Spend ($K)','% of total']];
+  DASH_CATEGORIES.forEach(c=>rows.push([c.cat,c.spend,c.pct]));
+  rows.push([],['Supplier Scorecard']);
+  rows.push(['Supplier','Category','Region','Spend','OTIF','PPM','Score','Tier']);
+  SUPPLIERS.forEach(s=>rows.push([s.name,s.cat,s.region,s.spend,s.otif,s.ppm,s.score,s.tier]));
+  const wb=XLSX.utils.book_new(); const ws=XLSX.utils.aoa_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb,ws,'Dashboard'); XLSX.writeFile(wb,'executive-dashboard.xlsx');
 }
 
-// =====================================================================
-// MISC
-// =====================================================================
-function loadExample(key){
-  const map = {
-    brick:{name:'Red sand brick 230×110×75 mm', cat:'construction', spec:'compressive strength ≥ 7.5 MPa, made with crusher dust + cement + red river sand'},
-    perfume:{name:'Perfume EdT 50 ml', cat:'cosmetics', spec:'10% concentrate, glass bottle + atomizer + outer carton'},
-    tshirt:{name:'Cotton crew-neck T-shirt 180 gsm', cat:'garments', spec:'combed cotton, single jersey, basic dye, plain packaging'},
-    pcb:{name:'4-layer PCBA with MCU + 120 SMD', cat:'electronics', spec:'mid complexity, mixed SMD and through-hole'},
-    plastic:{name:'PET water bottle 500 ml', cat:'plastics', spec:'food grade PET, HDPE cap, BOPP label'}
-  };
-  const e = map[key];
-  document.getElementById('productName').value = e.name;
-  document.getElementById('productCategory').value = e.cat;
-  document.getElementById('productSpec').value = e.spec;
+const KRALJIC = {
+  strategic:["Custom IC chips","Lithium battery cells","Specialty resins","API pharma actives"],
+  bottleneck:["Rare earth magnets","Premium leather hides","Aerospace fasteners","Specialty pigments"],
+  leverage:["Standard fasteners","Stretch film","Corrugated cartons","Office paper"],
+  routine:["Stationery","Cleaning supplies","Uniforms","Pantry items"]
+};
+const ABC_DATA = { A:[12,68],B:[28,22],C:[60,10] };
+const GEO_DATA = [{c:"China",pct:33.9},{c:"India",pct:22.7},{c:"Vietnam",pct:13.0},{c:"USA",pct:11.5},{c:"Mexico",pct:8.5},{c:"EU",pct:6.3},{c:"Other",pct:4.1}];
+const LEAD_DATA = [
+  {sup:"Acme",mean:24,std:4},{sup:"Globex",mean:18,std:3},{sup:"Sterling",mean:14,std:2},
+  {sup:"NorthMetal",mean:42,std:9},{sup:"Polymer Plus",mean:30,std:6},{sup:"BluePort",mean:21,std:5},
+  {sup:"FastFix",mean:6,std:1},{sup:"Quanta",mean:38,std:11}
+];
+function initSCA(){ fillKraljic(); drawABC(); drawGeo(); drawLeadTime(); recalcEOQ(); recalcTariff(); }
+function fillKraljic(){
+  const map={strategic:'kraljic-strategic',bottleneck:'kraljic-bottleneck',leverage:'kraljic-leverage',routine:'kraljic-routine'};
+  Object.entries(KRALJIC).forEach(([k,arr])=>{
+    const el=document.getElementById(map[k]); if(!el) return;
+    el.innerHTML=arr.map(i=>`<span class="bg-white/80 text-[10px] px-2 py-0.5 rounded-full font-medium">${i}</span>`).join('');
+  });
+}
+function drawABC(){
+  const ctx=document.getElementById('scaAbcChart'); if(!ctx) return;
+  if(charts.abc) charts.abc.destroy();
+  charts.abc=new Chart(ctx,{type:'bar',data:{labels:['A items','B items','C items'],
+    datasets:[{label:'% of SKUs',data:[ABC_DATA.A[0],ABC_DATA.B[0],ABC_DATA.C[0]],backgroundColor:'#94A3B8'},
+      {label:'% of Spend',data:[ABC_DATA.A[1],ABC_DATA.B[1],ABC_DATA.C[1]],backgroundColor:'#0F766E'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{max:100}}}});
+}
+function drawGeo(){
+  const ctx=document.getElementById('scaGeoChart'); if(!ctx) return;
+  if(charts.geo) charts.geo.destroy();
+  charts.geo=new Chart(ctx,{type:'bar',data:{labels:GEO_DATA.map(g=>g.c),
+    datasets:[{label:'% Spend',data:GEO_DATA.map(g=>g.pct),
+      backgroundColor:GEO_DATA.map(g=>g.pct>30?'#DC2626':g.pct>20?'#F59E0B':'#0F766E')}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+}
+function drawLeadTime(){
+  const ctx=document.getElementById('scaLeadChart'); if(!ctx) return;
+  if(charts.lead) charts.lead.destroy();
+  charts.lead=new Chart(ctx,{type:'bar',data:{labels:LEAD_DATA.map(l=>l.sup),
+    datasets:[{label:'Mean lead time (days)',data:LEAD_DATA.map(l=>l.mean),backgroundColor:'#0F766E'},
+      {label:'σ (variability)',data:LEAD_DATA.map(l=>l.std),backgroundColor:'#F59E0B'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+}
+function recalcEOQ(){
+  const D=parseFloat(document.getElementById('eoqD').value)||1;
+  const S=parseFloat(document.getElementById('eoqS').value)||1;
+  const H=parseFloat(document.getElementById('eoqH').value)||1;
+  const LT=parseFloat(document.getElementById('eoqLT').value)||1;
+  const SL=parseFloat(document.getElementById('eoqSL').value)||95;
+  const sig=parseFloat(document.getElementById('eoqSig').value)||1;
+  const EOQ=Math.sqrt((2*D*S)/H);
+  const z=SL>=99?2.33:SL>=97.5?1.96:SL>=95?1.645:SL>=90?1.28:1.0;
+  const SS=z*sig*Math.sqrt(LT); const avgDaily=D/365; const ROP=avgDaily*LT+SS;
+  document.getElementById('eoqOut').textContent=Math.round(EOQ);
+  document.getElementById('ssOut').textContent=Math.round(SS);
+  document.getElementById('ropOut').textContent=Math.round(ROP);
+}
+function recalcTariff(){
+  const rate=parseFloat(document.getElementById('tarRate').value)||0;
+  const value=parseFloat(document.getElementById('tarValue').value)||0;
+  const elast=parseFloat(document.getElementById('tarElast').value)||-1;
+  const directCost=value*(rate/100);
+  const volDecline=Math.min(85,Math.max(0,Math.abs(elast)*rate));
+  const margin=directCost*0.85;
+  document.getElementById('tarCost').textContent='$'+directCost.toFixed(2)+'M';
+  document.getElementById('tarVol').textContent='-'+volDecline.toFixed(1)+'%';
+  document.getElementById('tarMargin').textContent='-$'+margin.toFixed(2)+'M';
 }
 
-function showHelp(){ document.getElementById('helpModal').classList.remove('hidden'); }
+const KB = [
+  {k:["kraljic","portfolio matrix","segment supplier","spend categorization"],title:"Kraljic Matrix",
+    body:`The <b>Kraljic Matrix</b> segments purchases on two axes — <b>Profit Impact</b> and <b>Supply Risk</b> — into 4 quadrants:<br>
+    <ul class="list-disc pl-5 mt-2 text-xs space-y-1">
+    <li><b>Strategic</b> (high/high): long-term partnerships, dual sourcing, joint cost-down workshops.</li>
+    <li><b>Bottleneck</b> (low/high): buffer stock, qualify alternates, design-out where possible.</li>
+    <li><b>Leverage</b> (high/low): competitive bidding, e-auctions, exploit buying power.</li>
+    <li><b>Routine</b> (low/low): automate, P-card, catalog, consolidate suppliers.</li></ul>
+    <p class="mt-2 text-xs italic">I used this framework at Nykaa to deliver $300K+ in savings across 4 categories.</p>`,
+    strategy:"Map every category, then assign a sourcing playbook per quadrant — never use one strategy for all spend."},
+  {k:["eoq","economic order quantity","reorder qty","lot size"],title:"Economic Order Quantity (EOQ)",
+    body:`<b>EOQ = √(2DS / H)</b> where D = annual demand, S = order cost, H = holding cost per unit per year.<br>
+    Example: D=50,000, S=$120, H=$2.5 → EOQ ≈ <b>2,191 units/order</b>.<br>
+    EOQ minimizes the sum of ordering + holding cost. Pair it with <b>Safety Stock = Z × σ × √LT</b> and a <b>Reorder Point = avg daily demand × LT + SS</b>.`,
+    strategy:"Use EOQ for routine/leverage SKUs with stable demand. For volatile SKUs, switch to demand-driven replenishment.",
+    chart:"line"},
+  {k:["safety stock","buffer inventory","service level"],title:"Safety Stock",
+    body:`<b>SS = Z × σ × √LT</b>. The Z-score comes from your target service level: 90% → 1.28, 95% → 1.645, 97.5% → 1.96, 99% → 2.33.`,
+    strategy:"Set differentiated service levels by ABC class (e.g. 98% for A, 95% for B, 90% for C)."},
+  {k:["rfq","rfp","rfi","request for quote","request for proposal"],title:"RFQ vs RFP vs RFI",
+    body:`<b>RFI</b> — early-stage market discovery; capabilities, financials, references.<br>
+    <b>RFQ</b> — known spec, price-driven, commodity-like buys.<br>
+    <b>RFP</b> — complex, solution-driven, weighted scoring across cost + technical + service + sustainability.`,
+    strategy:"Use RFP for Strategic/Bottleneck quadrants. Use RFQ for Leverage. Skip RFx for Routine — catalogs are faster."},
+  {k:["tco","total cost of ownership","landed cost"],title:"Total Cost of Ownership (TCO)",
+    body:`TCO = Acquisition + Operating + Quality + Risk + End-of-life. Pure unit price typically represents only <b>30–60%</b> of true cost.`,
+    strategy:"Build a TCO model for every Strategic supplier — usually exposes 8–15% hidden cost the unit-price-only view misses."},
+  {k:["should cost","clean sheet","cost teardown"],title:"Should-Cost Analysis",
+    body:`Should-cost builds the cost from first principles — materials, labor, energy, equipment, facility, overhead, margin — instead of accepting a supplier quote.<br>
+    Powerful for items where engineering hasn't given you full specs. <b>This entire tool is a should-cost engine.</b>`,
+    strategy:"Run should-cost before every major negotiation. Even a rough model gives you a defendable counter-anchor."},
+  {k:["negotiat","bargain","supplier negotiation","price negotiation"],title:"Supplier Negotiation Tactics",
+    body:`Top tactics: <ol class="list-decimal pl-5 text-xs space-y-1 mt-2">
+    <li><b>Anchor with should-cost</b> — open with your built-up cost, not their quote.</li>
+    <li><b>Bundle &amp; unbundle</b> — combine volume across BUs, or separate line items.</li>
+    <li><b>Index-linked pricing</b> — tie raw material to LME/PIX/commodity indices.</li>
+    <li><b>Term &amp; volume commitments</b> — trade longer contract for lower unit price.</li>
+    <li><b>BATNA</b> — always know your walk-away alternative.</li></ol>`,
+    strategy:"Never negotiate price alone — negotiate TCO levers (lead time, MOQ, payment terms, FX, scrap rate)."},
+  {k:["risk","supplier risk","disruption","resilience"],title:"Supplier Risk Management",
+    body:`Risk = Probability × Impact. Track six dimensions: Financial, Operational, Geopolitical, Cyber, ESG, Single-source.<br>
+    Build a risk register, monitor with KPIs, and have a BCP per Strategic supplier.`,
+    strategy:"At Cristal I built a risk framework across 10+ vendors that prevented disruptions and delivered $720K in savings."},
+  {k:["spend analysis","spend cube","procurement analytics"],title:"Spend Analysis",
+    body:`A spend cube slices total spend by <b>Category × Supplier × BU × Region × Cost Center</b>. Finds tail spend, maverick spend, single-source risk.`,
+    strategy:"Refresh quarterly. The cube is only useful if you act on the top-3 anomalies before next quarter.",
+    chart:"pareto"},
+  {k:["abc","pareto","80 20"],title:"ABC Analysis (Pareto 80/20)",
+    body:`Rank SKUs by spend. <b>A</b> items (~10% / 70% of spend) get daily attention; <b>B</b> (~20% / 20%) weekly; <b>C</b> (~70% / 10%) monthly.`,
+    strategy:"Differentiate inventory policy, cycle counting, supplier review frequency by ABC class.",
+    chart:"pareto"},
+  {k:["make","buy","insource","outsource","make vs buy"],title:"Make vs Buy",
+    body:`Buy when: vendor has scale/IP/lower TCO, non-core, volatile demand. Make when: core IP, vendor margins excessive, lead times unacceptable, quality cannot be controlled externally.`,
+    strategy:"Re-evaluate every 2–3 years — market conditions change."},
+  {k:["multi-sourcing","dual source","single source"],title:"Multi-sourcing vs Single Source",
+    body:`<b>Single source</b> → max leverage but max risk. <b>Dual (60/40 or 70/30)</b> → standard for Strategic. <b>Multi (3+)</b> → Bottleneck items during geopolitical instability.`,
+    strategy:"Always have a qualified Plan B even if you only buy from Plan A — qualification cycle is your insurance."},
+  {k:["forecast","arima","demand planning","exponential smoothing"],title:"Demand Forecasting (ARIMA / Exp Smoothing)",
+    body:`<b>Exp Smoothing</b> for stable seasonal SKUs. <b>ARIMA(p,d,q)</b> captures trend + seasonality + autocorrelation. Validate with <b>MAPE</b>.`,
+    strategy:"In my Toyota SKU forecasting project I combined ARIMA + Exp Smoothing + ChatGPT-assisted demand sensing and reduced forecast error by 15%.",
+    chart:"line"},
+  {k:["tariff","trade war","duty","geopolitical"],title:"Tariff Impact Mitigation",
+    body:`5 levers: shift origin (Vietnam/Mexico from China), tariff engineering (HTS code change), FTZ/bonded warehouses, share cost with supplier+customer, forward buy.`,
+    strategy:"From my tariff research: 25% China tariff with elasticity -1.3 produces ~32% volume decline if not mitigated."},
+  {k:["srm","supplier relationship","strategic supplier"],title:"Supplier Relationship Management (SRM)",
+    body:`Tiered engagement: Tactical (transactional), Preferred (commercial), Strategic (joint roadmaps, NPI, cost-down sprints).`,
+    strategy:"Invest SRM bandwidth in the top 20 suppliers (Pareto applies to relationships too)."},
+  {k:["scorecard","supplier kpi","performance"],title:"Supplier Scorecard",
+    body:`Standard weights: <b>Quality 40% · OTIF 30% · Cost 20% · Sustainability 10%</b>.`,
+    strategy:"Publish scorecards monthly with traffic lights — visibility alone improves performance ~15%."},
+  {k:["six sigma","lean","dmaic"],title:"Lean & Six Sigma in Procurement",
+    body:`DMAIC to procurement: reduce PO cycle, eliminate maverick spend, standardize part numbers. Value stream mapping exposes wait time (often 60%+ of cycle).`,
+    strategy:"Pair Lean PM tools with Six Sigma analytics — process improvement + statistical validation."},
+  {k:["sustainability","esg","scope 3","green procurement"],title:"ESG / Sustainable Procurement",
+    body:`Scope 3 = 70%+ of corporate carbon footprint and sits in your supply base. Use CDP/EcoVadis ratings, integrate into scorecards.`,
+    strategy:"Make sustainability a 10–15% weight in supplier selection."},
+  {k:["contract","sla","mfn","price index"],title:"Contract Management",
+    body:`Must-have clauses: Price formula (indexed), MFN, SLA, Liability cap, Termination for convenience, FX adjustment, Audit right, BCP requirement.`,
+    strategy:"Review/renegotiate top 20 contracts annually — most are signed once and forgotten."},
+  {k:["e-auction","reverse auction","ebidding"],title:"Reverse Auctions",
+    body:`Best for Leverage spend with 4+ qualified suppliers, well-defined specs, low switching cost. Typical savings: <b>8–25%</b>.`,
+    strategy:"Never use reverse auctions for Strategic suppliers — destroys relationship value."},
+  {k:["maverick","tail spend","off contract"],title:"Maverick & Tail Spend",
+    body:`Maverick = off-contract buying. Tail = bottom 80% of suppliers driving 20% of spend but most admin work. Fix: catalog/punchout, P-cards, BPO.`,
+    strategy:"Cap tail at <5% of total transactions through automation."},
+  {k:["category management","category plan","sourcing strategy"],title:"Category Management",
+    body:`Annual cycle: Understand demand → analyze supply market → assess current state → develop strategy → execute → measure.`,
+    strategy:"Treat each major category like a mini-business; assign one accountable category leader."},
+  {k:["vmi","vendor managed inventory","consignment"],title:"Vendor-Managed Inventory (VMI)",
+    body:`Supplier owns inventory at buyer's site until consumption. Reduces working capital and stock-outs simultaneously.`,
+    strategy:"Use VMI for high-velocity, predictable SKUs from Strategic suppliers — needs strong EDI/data sharing."},
+  {k:["jit","just in time","kanban"],title:"Just-In-Time (JIT)",
+    body:`JIT pulls material to point-of-use only when needed. Requires reliable lead times, short distances, trusted suppliers.`,
+    strategy:"In volatile geopolitical periods, hybrid JIT + buffer is safer than pure JIT."},
+  {k:["bullwhip"],title:"Bullwhip Effect",
+    body:`Small demand changes amplify upstream because each tier adds safety buffer. Cures: POS data sharing, VMI, smaller batches, everyday low pricing.`,
+    strategy:"Share end-customer demand data with Tier 1 suppliers — kills the bullwhip at source."},
+  {k:["lead time","cycle time","throughput"],title:"Lead Time Optimization",
+    body:`Lead time = order entry → cash receipt → production → ship → receive. Often 50%+ is queue/wait, not production.`,
+    strategy:"A 30% lead-time cut typically enables a 40% inventory cut at the same service level."},
+  {k:["help","what can you","topics"],title:"Topics I can help with",
+    body:`I cover 27 procurement frameworks: Kraljic, EOQ, Safety Stock, RFQ/RFP/RFI, TCO, Should-cost, Negotiation, Risk, Spend analysis, ABC/Pareto, Make-vs-Buy, Multi-sourcing, Forecasting (ARIMA, Exp Smoothing), Tariff mitigation, SRM, Scorecards, Lean/Six Sigma, ESG, Contracts, Reverse auctions, Maverick spend, Category management, VMI, JIT, Bullwhip, Lead time.<br>
+    I can also <b>render charts</b> — try "show spend by category as pie", "plot supplier scores", "geographical sourcing bar chart".`}
+];
+const VIZ_INTENT = [
+  {triggers:["pareto","80/20","abc analysis","cumulative chart"],type:"pareto"},
+  {triggers:["pie chart","as pie","as a pie"," pie","doughnut","donut","share of","pie of"],type:"pie"},
+  {triggers:["line chart","trend","over time","historical","time series","monthly trend","quarterly trend","plot ","timeline of"],type:"line"},
+  {triggers:["scatter chart","scatter plot","bubble chart","correlation chart"],type:"scatter"},
+  {triggers:["bar chart","ranking of","ranked by","compare ","by region","by country","by category","by supplier","geographic","geographical sourcing","map of","geo breakdown","visualize "],type:"bar"}
+];
+const KB_PREFIXES = ["what is","what's","what are","explain","describe","tell me about","how do","how to","how can","why ","define","difference between","compare and contrast"];
+const VIZ_DATASETS = {
+  "spend by category":{labels:DASH_CATEGORIES.map(c=>c.cat),values:DASH_CATEGORIES.map(c=>c.spend),unit:"$K"},
+  "spend by region":{labels:DASH_REGIONS.map(r=>r.region),values:DASH_REGIONS.map(r=>r.spend),unit:"$K"},
+  "supplier score":{labels:SUPPLIERS.map(s=>s.name),values:SUPPLIERS.map(s=>s.score),unit:"score"},
+  "supplier spend":{labels:SUPPLIERS.map(s=>s.name),values:SUPPLIERS.map(s=>s.spend),unit:"$K"},
+  "supplier otif":{labels:SUPPLIERS.map(s=>s.name),values:SUPPLIERS.map(s=>s.otif),unit:"%"},
+  "lead time":{labels:LEAD_DATA.map(l=>l.sup),values:LEAD_DATA.map(l=>l.mean),unit:"days"},
+  "savings":{labels:DASH_SAVINGS.map(s=>s.q),values:DASH_SAVINGS.map(s=>s.actual),unit:"$K"},
+  "steel price":{labels:DASH_TREND.map(t=>t.m),values:DASH_TREND.map(t=>t.steel),unit:"index"},
+  "cotton price":{labels:DASH_TREND.map(t=>t.m),values:DASH_TREND.map(t=>t.cotton),unit:"index"},
+  "plastic price":{labels:DASH_TREND.map(t=>t.m),values:DASH_TREND.map(t=>t.plastic),unit:"index"},
+  "geographic":{labels:GEO_DATA.map(g=>g.c),values:GEO_DATA.map(g=>g.pct),unit:"%"}
+};
+function findDataset(text){
+  text=text.toLowerCase(); const matches=[];
+  for(const key of Object.keys(VIZ_DATASETS))
+    if(key.split(' ').every(w=>text.includes(w))) matches.push({key,score:key.length});
+  matches.sort((a,b)=>b.score-a.score);
+  return matches.length?VIZ_DATASETS[matches[0].key]:null;
+}
+function findVizType(text){
+  text=text.toLowerCase();
+  for(const v of VIZ_INTENT) if(v.triggers.some(t=>text.includes(t))) return v.type;
+  return null;
+}
+function findKB(text){
+  text=text.toLowerCase(); let best=null, score=0;
+  for(const item of KB){
+    const hits=item.k.filter(k=>text.includes(k.toLowerCase())).length;
+    if(hits>score){ score=hits; best=item; }
+  }
+  return best;
+}
+const chatMessages = [];
+function initAI(){
+  if(chatMessages.length===0){
+    addBotMessage(`Hi, I'm your AI Procurement Strategist. Ask me about <b>Kraljic, EOQ, RFQ, TCO, negotiation, tariffs, ABC, supplier risk, forecasting</b> — or ask for a chart like "show spend by category as pie" or "plot steel price over time".`);
+  }
+  document.getElementById('chatInput').onkeydown=e=>{ if(e.key==='Enter') sendChat(); };
+  document.getElementById('quickPrompts').innerHTML=[
+    "Explain Kraljic Matrix",
+    "How to negotiate with a strategic supplier?",
+    "What's the difference between RFQ and RFP?",
+    "How do I mitigate tariff impact from China?",
+    "Why is TCO better than unit price?"
+  ].map(p=>`<button onclick="setInput(this.textContent)" class="block w-full text-left text-xs px-3 py-2 border border-slate-200 rounded-lg hover:border-teal-500 hover:bg-teal-50">${p}</button>`).join('');
+  document.getElementById('vizPrompts').innerHTML=[
+    "Show spend by category as pie",
+    "Plot steel price over time",
+    "Bar chart of supplier scores",
+    "Geographic sourcing breakdown",
+    "Pareto of spend by category"
+  ].map(p=>`<button onclick="setInput(this.textContent)" class="block w-full text-left text-xs px-3 py-2 border border-slate-200 rounded-lg hover:border-amber-500 hover:bg-amber-50">${p}</button>`).join('');
+}
+function setInput(text){ document.getElementById('chatInput').value=text; document.getElementById('chatInput').focus(); }
+function addUserMessage(t){ chatMessages.push({role:'user',content:t}); renderChat(); }
+function addBotMessage(html,chartSpec){ chatMessages.push({role:'bot',content:html,chart:chartSpec}); renderChat(); }
+function renderChat(){
+  const log=document.getElementById('chatLog'); if(!log) return;
+  log.innerHTML=chatMessages.map((m,i)=>{
+    if(m.role==='user') return `<div class="chat-bubble-user text-sm">${escape(m.content)}</div>`;
+    let html=`<div class="chat-bubble-bot text-sm"><div>${m.content}</div>`;
+    if(m.chart) html+=`<div class="mt-3 h-64 bg-slate-50 rounded p-2"><canvas id="botChart-${i}"></canvas></div>`;
+    html+=`</div>`; return html;
+  }).join('');
+  log.scrollTop=log.scrollHeight;
+  chatMessages.forEach((m,i)=>{ if(m.chart) renderBotChart('botChart-'+i,m.chart); });
+}
+function escape(t){ return t.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function renderBotChart(id,spec){
+  const ctx=document.getElementById(id); if(!ctx) return;
+  if(charts['bot_'+id]) charts['bot_'+id].destroy();
+  const colors=['#0F766E','#F59E0B','#3B82F6','#DC2626','#8B5CF6','#10B981','#EC4899','#0E7490','#84CC16','#F97316','#6366F1'];
+  let config;
+  if(spec.type==='pie'){
+    config={type:'doughnut',data:{labels:spec.labels,datasets:[{data:spec.values,backgroundColor:colors}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:9},boxWidth:10}}}}};
+  } else if(spec.type==='line'){
+    config={type:'line',data:{labels:spec.labels,datasets:[{label:spec.unit,data:spec.values,borderColor:'#0F766E',backgroundColor:'rgba(15,118,110,.1)',fill:true,tension:0.3}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}};
+  } else if(spec.type==='scatter'){
+    config={type:'scatter',data:{datasets:[{label:spec.unit,data:spec.values.map((v,i)=>({x:i,y:v})),backgroundColor:'#0F766E'}]},
+      options:{responsive:true,maintainAspectRatio:false}};
+  } else if(spec.type==='pareto'){
+    let cum=0; const tot=spec.values.reduce((a,b)=>a+b,0); const cumPct=spec.values.map(v=>{cum+=v; return +(cum/tot*100).toFixed(1);});
+    config={type:'bar',data:{labels:spec.labels,datasets:[{type:'bar',label:spec.unit,data:spec.values,backgroundColor:'#0F766E',yAxisID:'y'},
+      {type:'line',label:'Cumulative %',data:cumPct,borderColor:'#F59E0B',backgroundColor:'#F59E0B',yAxisID:'y1',tension:0.3}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y1:{position:'right',min:0,max:100,grid:{drawOnChartArea:false}}}}};
+  } else {
+    config={type:'bar',data:{labels:spec.labels,datasets:[{label:spec.unit,data:spec.values,backgroundColor:colors}]},
+      options:{indexAxis:spec.labels.length>6?'y':'x',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}};
+  }
+  charts['bot_'+id]=new Chart(ctx,config);
+}
+function sendChat(){
+  const inp=document.getElementById('chatInput'); const txt=inp.value.trim(); if(!txt) return;
+  addUserMessage(txt); inp.value='';
+  setTimeout(()=>respondTo(txt),300);
+}
+function respondTo(text){
+  const lower=text.toLowerCase();
+  const isQuestion = KB_PREFIXES.some(p=>lower.startsWith(p)||lower.includes(' '+p));
+  if(isQuestion){
+    const kb=findKB(text);
+    if(kb){
+      let html=`<div class="font-semibold text-teal-700 mb-1">${kb.title}</div>${kb.body}`;
+      if(kb.strategy) html+=`<div class="mt-2 bg-amber-50 border-l-4 border-amber-400 p-2 rounded text-xs"><b>Strategy:</b> ${kb.strategy}</div>`;
+      let chartSpec=null;
+      if(kb.chart==='pareto') chartSpec={type:'pareto',...VIZ_DATASETS["spend by category"]};
+      else if(kb.chart==='line') chartSpec={type:'line',...VIZ_DATASETS["steel price"]};
+      addBotMessage(html,chartSpec);
+      return;
+    }
+  }
+  const dataset=findDataset(text); const vizType=findVizType(text);
+  if(dataset && vizType){
+    addBotMessage(`Here's a <b>${vizType}</b> chart of <b>${Object.keys(VIZ_DATASETS).find(k=>VIZ_DATASETS[k]===dataset)}</b>:`,{type:vizType,...dataset});
+    return;
+  }
+  if(dataset && !vizType){
+    addBotMessage(`Showing <b>${Object.keys(VIZ_DATASETS).find(k=>VIZ_DATASETS[k]===dataset)}</b> as a bar chart (specify "pie", "line", "pareto" etc. to change):`,{type:'bar',...dataset});
+    return;
+  }
+  if(vizType && !dataset){
+    addBotMessage(`I can render a <b>${vizType}</b> chart — tell me which dataset. Try: spend by category · spend by region · supplier scores · lead time · savings · steel price · cotton price · plastic price · geographic.`);
+    return;
+  }
+  const kb=findKB(text);
+  if(kb){
+    let html=`<div class="font-semibold text-teal-700 mb-1">${kb.title}</div>${kb.body}`;
+    if(kb.strategy) html+=`<div class="mt-2 bg-amber-50 border-l-4 border-amber-400 p-2 rounded text-xs"><b>Strategy:</b> ${kb.strategy}</div>`;
+    let chartSpec=null;
+    if(kb.chart==='pareto') chartSpec={type:'pareto',...VIZ_DATASETS["spend by category"]};
+    else if(kb.chart==='line') chartSpec={type:'line',...VIZ_DATASETS["steel price"]};
+    addBotMessage(html,chartSpec);
+    return;
+  }
+  addBotMessage(`I'm not sure I have a direct answer for that one. Try asking about <b>Kraljic, EOQ, TCO, negotiation, RFQ, supplier risk, tariffs, ABC, forecasting, SRM</b> — or type "help" to see all topics. You can also ask for a chart like <i>"show spend by category as pie"</i>.`);
+}
+function clearChat(){ chatMessages.length=0; document.getElementById('chatLog').innerHTML=''; initAI(); }
 
-function resetAll(){
-  if(!confirm('Clear current analysis?')) return;
-  currentParams = [];
-  ['productName','productSpec'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('orderQty').value = 10000;
-  document.getElementById('step2').classList.add('hidden');
-  window.scrollTo({top:0,behavior:'smooth'});
+function initInsights(){
+  const empty=document.getElementById('insightsEmpty'); const content=document.getElementById('insightsContent');
+  if(currentParams.length===0){ empty.classList.remove('hidden'); content.classList.add('hidden'); return; }
+  empty.classList.add('hidden'); content.classList.remove('hidden');
+  const catTotals={};
+  currentParams.forEach(p=>{ if(p.group==='margin') return; catTotals[p.cat]=(catTotals[p.cat]||0)+p.qty*p.rate; });
+  const sub=Object.values(catTotals).reduce((a,b)=>a+b,0);
+  const m=currentParams.find(p=>p.group==='margin'); const mr=m?m.rate:0;
+  const unit=sub*(1+mr); const qty=parseFloat(document.getElementById('orderQty').value)||1;
+  const total=unit*qty;
+  const product=document.getElementById('productName').value||'this product';
+  const cur=document.getElementById('currency').value; const sym=SYM[cur]; const fx=FX[cur];
+  const sorted=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]);
+  const topCat=sorted[0]; const topPct=(topCat[1]/sub*100).toFixed(1);
+  const matPct=Object.entries(catTotals).filter(([k])=>/Material|Packaging/.test(k)).reduce((s,[,v])=>s+v,0)/sub*100;
+  const labPct=(catTotals['Direct Labor']||0)/sub*100;
+  const logPct=(catTotals['Logistics & Warehousing']||0)/sub*100;
+  const ovhPct=((catTotals['Facility & Overhead']||0)+(catTotals['Equipment & Tooling']||0))/sub*100;
+  const recs=[];
+  let kraljic='Leverage'; let kStrategy='Run a 3-supplier RFQ with index-linked pricing. Reverse auction is appropriate if you have 4+ qualified bidders.';
+  if(matPct>55 && /electronics|pharma|chemical|specialty/i.test(product)){ kraljic='Strategic'; kStrategy='Build a 2-supplier strategic partnership with joint cost-down workshops, open-book costing, and a 3-year price formula tied to raw material indices.'; }
+  else if(matPct<35 && labPct>30){ kraljic='Bottleneck'; kStrategy='Skill-based labor is your constraint. Qualify a backup supplier in a lower-cost region; consider local + offshore dual-sourcing.'; }
+  else if(sub<5){ kraljic='Routine'; kStrategy='Move to a catalog / P-card buying model. Consolidate suppliers, automate the PO, and free buyer bandwidth for higher-value categories.'; }
+  recs.push({icon:"🎯",title:"Kraljic Positioning: "+kraljic,body:kStrategy});
+  recs.push({icon:"📊",title:`Focus negotiation on "${topCat[0]}" (${topPct}% of cost)`,
+    body:`This single category drives <b>${topPct}%</b> of unit cost. Every 5% reduction here yields ${sym}${(topCat[1]*0.05*fx*qty).toLocaleString(undefined,{maximumFractionDigits:0})} on the full ${qty.toLocaleString()}-unit order.`});
+  if(mr>0.13){
+    recs.push({icon:"💰",title:`Supplier margin (${(mr*100).toFixed(1)}%) is above market`,
+      body:`Standard contract-manufacturer margin is 8–12%. Negotiating <b>${(mr*100).toFixed(1)}% → 11%</b> would save ${sym}${(sub*(mr-0.11)*fx*qty).toLocaleString(undefined,{maximumFractionDigits:0})} on this order.`});
+  }
+  if(logPct>12){
+    recs.push({icon:"🚚",title:"Logistics is a high share of cost",
+      body:`Logistics &amp; warehousing = <b>${logPct.toFixed(1)}%</b>. Test (a) nearshoring, (b) FCL vs LCL consolidation, (c) FOB→DDP renegotiation, (d) 3PL re-bid. Typical save: 10–20%.`});
+  }
+  const isHighCost=['us','eu'].includes(document.getElementById('region').value);
+  if(isHighCost && labPct>20){
+    recs.push({icon:"🌍",title:"Consider low-cost-country sourcing",
+      body:`Direct labor is <b>${labPct.toFixed(1)}%</b> in a high-wage region. Shifting to India, Vietnam or Mexico could cut labor cost 50–70%. Pilot with 20% volume first.`});
+  }
+  if(ovhPct>22){
+    recs.push({icon:"🏭",title:"Overhead is heavy — explore VMI or consignment",
+      body:`Facility + equipment = <b>${ovhPct.toFixed(1)}%</b>. Ask supplier to absorb tooling in unit price, or move to consignment stock to reduce working capital.`});
+  }
+  recs.push({icon:"🧮",title:"Move from Unit Price to TCO",
+    body:`Should-cost gives you the <b>built-up</b> cost. To negotiate the <i>final landed</i> cost, layer on duty, freight, FX hedge cost, defect allowance, payment-term financing, EOL cost. TCO typically adds 6–12%.`});
+  recs.push({icon:"⚠️",title:"De-risk the supply",
+    body:`For any item where this single supplier represents >70% of your spend in this category, qualify a backup within 6 months. Maintain a 2-week buffer for Strategic items.`});
+  document.getElementById('insightsContent').innerHTML=`
+    <div class="bg-white rounded-2xl card-shadow p-5">
+      <div class="grid md:grid-cols-4 gap-4">
+        <div><div class="text-xs text-slate-500">Should Cost / Unit</div><div class="text-2xl font-bold text-teal-700">${sym}${(unit*fx).toFixed(2)}</div></div>
+        <div><div class="text-xs text-slate-500">Order Total (${qty.toLocaleString()} units)</div><div class="text-2xl font-bold">${sym}${(total*fx).toLocaleString(undefined,{maximumFractionDigits:0})}</div></div>
+        <div><div class="text-xs text-slate-500">Margin Applied</div><div class="text-2xl font-bold">${(mr*100).toFixed(1)}%</div></div>
+        <div><div class="text-xs text-slate-500">Kraljic Quadrant</div><div class="text-2xl font-bold text-amber-600">${kraljic}</div></div>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-2 gap-4">
+      ${recs.map(r=>`<div class="bg-white rounded-2xl card-shadow p-5">
+        <div class="text-3xl mb-2">${r.icon}</div>
+        <div class="font-bold text-slate-800 mb-2">${r.title}</div>
+        <div class="text-sm text-slate-600">${r.body}</div></div>`).join('')}
+    </div>
+    <div class="bg-gradient-to-r from-teal-600 to-indigo-700 text-white rounded-2xl p-6">
+      <h3 class="text-lg font-bold mb-2">📋 Negotiation Playbook for "${product}"</h3>
+      <ol class="list-decimal pl-5 text-sm space-y-1.5">
+        <li><b>Open with the should-cost</b> (${sym}${(unit*fx).toFixed(2)}/unit) as your anchor — never with their quote.</li>
+        <li><b>Target a ${(mr*100*0.7).toFixed(1)}% margin</b> (instead of ${(mr*100).toFixed(1)}%) using market-benchmark data.</li>
+        <li><b>Tie raw materials to an index</b> (LME, PIX, cotton futures) so supplier can't speculate on volatility.</li>
+        <li><b>Commit volume in exchange for price</b> — 12-month commit typically unlocks 4–7%.</li>
+        <li><b>Include MFN, audit right, BCP requirement</b> in the contract.</li>
+        <li><b>Walk-away point: ${sym}${(unit*fx*1.08).toFixed(2)}</b> (should-cost + 8%). Above that, requalify alternates.</li>
+      </ol>
+    </div>
+    <div class="bg-slate-50 rounded-2xl p-4 text-xs text-slate-500 text-center">
+      Recommendations generated by the Should Cost AI insights engine · Built by Mohammed Zumar Ali Hassan · Calibrated on real-world sourcing playbooks from Amazon, Cristal Constructions and Nykaa
+    </div>`;
 }
 
-// Init
 renderScenarios();
 if(scenarios.length>0) document.getElementById('scenariosSection').classList.remove('hidden');
-
-// Allow Enter key in name input to trigger analysis
-document.getElementById('productName').addEventListener('keydown',(e)=>{ if(e.key==='Enter') analyzeProduct(); });
+document.getElementById('productName').addEventListener('keydown',e=>{ if(e.key==='Enter') analyzeProduct(); });
 </script>
 </body>
 </html>
