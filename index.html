@@ -843,6 +843,267 @@ const TEMPLATES = {
     {cat:"Logistics & Warehousing",name:"Outbound freight (bulky)",qty:1,qtyUnit:"pc",rate:0.85,rateUnit:"/pc",group:"logistics"},
     {cat:"Supplier Margin",name:"Converter margin",qty:1,qtyUnit:"unit",rate:0.10,rateUnit:"× cost",group:"margin"}
   ]},
+  conductor:{label:"Copper Conductor / Cable (1 m, per kg basis)", description:"Insulated copper conductor — bare or stranded core with PVC/XLPE insulation, used in power distribution.", params:[
+    {cat:"Raw Materials",name:"Copper rod (electrolytic, 99.95%)",qty:0.85,qtyUnit:"kg",rate:840,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"PVC / XLPE insulation compound",qty:0.18,qtyUnit:"kg",rate:180,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Filler / binder",qty:0.05,qtyUnit:"kg",rate:80,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Drum / spool packaging (per m)",qty:1,qtyUnit:"m",rate:0.5,rateUnit:"/m",group:"material"},
+    {cat:"Direct Labor",name:"Wire drawing operator",qty:0.002,qtyUnit:"hr",rate:160,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Stranding / bunching",qty:0.0025,qtyUnit:"hr",rate:170,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Extrusion / insulation",qty:0.003,qtyUnit:"hr",rate:180,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Spooling & packing",qty:0.0015,qtyUnit:"hr",rate:130,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity (drawing+extrusion)",qty:0.6,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Energy & Utilities",name:"Cooling water",qty:1,qtyUnit:"m",rate:0.3,rateUnit:"/m",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Extrusion line depreciation",qty:1,qtyUnit:"m",rate:1.5,rateUnit:"/m",group:"equipment"},
+    {cat:"Equipment & Tooling",name:"Drawing dies wear",qty:1,qtyUnit:"m",rate:0.4,rateUnit:"/m",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Plant cost allocation",qty:1,qtyUnit:"m",rate:2.5,rateUnit:"/m",group:"facility"},
+    {cat:"Facility & Overhead",name:"Overhead",qty:1,qtyUnit:"m",rate:3,rateUnit:"/m",group:"overhead"},
+    {cat:"Quality & Compliance",name:"Continuity + spark + voltage test",qty:1,qtyUnit:"m",rate:1.2,rateUnit:"/m",group:"quality"},
+    {cat:"Quality & Compliance",name:"IS / IEC certification amort.",qty:1,qtyUnit:"m",rate:0.8,rateUnit:"/m",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG warehousing",qty:1,qtyUnit:"m",rate:1.5,rateUnit:"/m",group:"logistics"},
+    {cat:"Logistics & Warehousing",name:"Outbound freight (heavy, reel)",qty:1,qtyUnit:"m",rate:2.5,rateUnit:"/m",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.10,rateUnit:"× cost",group:"margin"}
+  ]},
+  busbar:{label:"Copper Busbar (1 m, 50x10 mm)", description:"Flat or shaped copper busbar for power distribution panels.", params:[
+    {cat:"Raw Materials",name:"Copper flat strip (electrolytic)",qty:4.5,qtyUnit:"kg",rate:850,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Tin plating (electroless)",qty:0.05,qtyUnit:"kg",rate:2400,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Insulation sleeve / heat-shrink",qty:1,qtyUnit:"m",rate:25,rateUnit:"/m",group:"material"},
+    {cat:"Direct Labor",name:"Cutting & punching",qty:0.02,qtyUnit:"hr",rate:200,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Bending / forming",qty:0.025,qtyUnit:"hr",rate:220,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Plating + inspection",qty:0.03,qtyUnit:"hr",rate:180,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity (press, plating bath)",qty:0.4,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"CNC press depreciation",qty:1,qtyUnit:"m",rate:18,rateUnit:"/m",group:"equipment"},
+    {cat:"Equipment & Tooling",name:"Tooling / punches wear",qty:1,qtyUnit:"m",rate:6,rateUnit:"/m",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Plant cost",qty:1,qtyUnit:"m",rate:12,rateUnit:"/m",group:"facility"},
+    {cat:"Facility & Overhead",name:"Overhead",qty:1,qtyUnit:"m",rate:14,rateUnit:"/m",group:"overhead"},
+    {cat:"Quality & Compliance",name:"Resistivity + dimensional QC",qty:1,qtyUnit:"m",rate:8,rateUnit:"/m",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG warehousing",qty:1,qtyUnit:"m",rate:6,rateUnit:"/m",group:"logistics"},
+    {cat:"Logistics & Warehousing",name:"Outbound freight",qty:1,qtyUnit:"m",rate:10,rateUnit:"/m",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.11,rateUnit:"× cost",group:"margin"}
+  ]},
+  contactor:{label:"Electrical Contactor (3-pole, 32A)", description:"Electromagnetic contactor for power distribution and motor control circuits.", params:[
+    {cat:"Raw Materials",name:"Silver-cadmium contact tips",qty:6,qtyUnit:"pc",rate:18,rateUnit:"/pc",group:"material"},
+    {cat:"Raw Materials",name:"Copper coil winding",qty:0.08,qtyUnit:"kg",rate:850,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Steel armature + core",qty:0.25,qtyUnit:"kg",rate:90,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Plastic housing (PA66 / PBT)",qty:0.12,qtyUnit:"kg",rate:280,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Return spring + mechanical parts",qty:1,qtyUnit:"set",rate:35,rateUnit:"/set",group:"material"},
+    {cat:"Raw Materials",name:"Auxiliary wiring + terminals",qty:1,qtyUnit:"set",rate:42,rateUnit:"/set",group:"material"},
+    {cat:"Direct Labor",name:"Coil winding",qty:0.04,qtyUnit:"hr",rate:180,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Sub-assembly",qty:0.08,qtyUnit:"hr",rate:170,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Final assembly + calibration",qty:0.06,qtyUnit:"hr",rate:220,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity",qty:0.08,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Assembly line depreciation",qty:1,qtyUnit:"pc",rate:25,rateUnit:"/pc",group:"equipment"},
+    {cat:"Equipment & Tooling",name:"Test rig amortization",qty:1,qtyUnit:"pc",rate:8,rateUnit:"/pc",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Plant cost",qty:1,qtyUnit:"pc",rate:18,rateUnit:"/pc",group:"facility"},
+    {cat:"Facility & Overhead",name:"Overhead",qty:1,qtyUnit:"pc",rate:22,rateUnit:"/pc",group:"overhead"},
+    {cat:"Quality & Compliance",name:"Endurance + dielectric test",qty:1,qtyUnit:"pc",rate:14,rateUnit:"/pc",group:"quality"},
+    {cat:"Quality & Compliance",name:"IEC 60947 certification amort.",qty:1,qtyUnit:"pc",rate:6,rateUnit:"/pc",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG warehousing",qty:1,qtyUnit:"pc",rate:8,rateUnit:"/pc",group:"logistics"},
+    {cat:"Logistics & Warehousing",name:"Outbound freight",qty:1,qtyUnit:"pc",rate:12,rateUnit:"/pc",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.14,rateUnit:"× cost",group:"margin"}
+  ]},
+  harness:{label:"Wire Harness / Cable Assembly (mid-complexity)", description:"Automotive or EV wire harness with connectors, lugs, and protective sleeving.", params:[
+    {cat:"Raw Materials",name:"Wire (mixed gauges, copper)",qty:2.5,qtyUnit:"m",rate:24,rateUnit:"/m",group:"material"},
+    {cat:"Raw Materials",name:"Connectors (housing + terminals)",qty:8,qtyUnit:"pc",rate:18,rateUnit:"/pc",group:"material"},
+    {cat:"Raw Materials",name:"Lugs / crimp terminals",qty:24,qtyUnit:"pc",rate:1.5,rateUnit:"/pc",group:"material"},
+    {cat:"Raw Materials",name:"Heat shrink / protective sleeving",qty:1.5,qtyUnit:"m",rate:8,rateUnit:"/m",group:"material"},
+    {cat:"Raw Materials",name:"Labels + cable ties",qty:1,qtyUnit:"set",rate:12,rateUnit:"/set",group:"material"},
+    {cat:"Direct Labor",name:"Wire cutting + stripping",qty:0.05,qtyUnit:"hr",rate:140,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Crimping (semi-automatic)",qty:0.08,qtyUnit:"hr",rate:150,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Assembly on jig board",qty:0.18,qtyUnit:"hr",rate:160,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Continuity test + labeling",qty:0.06,qtyUnit:"hr",rate:180,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity",qty:0.15,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Assembly jig amortization",qty:1,qtyUnit:"pc",rate:18,rateUnit:"/pc",group:"equipment"},
+    {cat:"Equipment & Tooling",name:"Crimper / tester depreciation",qty:1,qtyUnit:"pc",rate:10,rateUnit:"/pc",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Plant cost",qty:1,qtyUnit:"pc",rate:22,rateUnit:"/pc",group:"facility"},
+    {cat:"Facility & Overhead",name:"Overhead",qty:1,qtyUnit:"pc",rate:28,rateUnit:"/pc",group:"overhead"},
+    {cat:"Quality & Compliance",name:"100% continuity test",qty:1,qtyUnit:"pc",rate:14,rateUnit:"/pc",group:"quality"},
+    {cat:"Quality & Compliance",name:"IATF / TS-16949 amort.",qty:1,qtyUnit:"pc",rate:8,rateUnit:"/pc",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG warehousing",qty:1,qtyUnit:"pc",rate:10,rateUnit:"/pc",group:"logistics"},
+    {cat:"Logistics & Warehousing",name:"Outbound freight",qty:1,qtyUnit:"pc",rate:14,rateUnit:"/pc",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.13,rateUnit:"× cost",group:"margin"}
+  ]},
+  fuse:{label:"Automotive / EV Fuse (32V, 30A)", description:"Blade or cartridge fuse for vehicle power-distribution boxes.", params:[
+    {cat:"Raw Materials",name:"Fusible alloy element (Zn/Sn)",qty:1,qtyUnit:"pc",rate:1.2,rateUnit:"/pc",group:"material"},
+    {cat:"Raw Materials",name:"Copper blade contacts",qty:0.005,qtyUnit:"kg",rate:850,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Plastic body (PA66 high-temp)",qty:0.004,qtyUnit:"kg",rate:320,rateUnit:"/kg",group:"material"},
+    {cat:"Direct Labor",name:"Stamping operator",qty:0.0008,qtyUnit:"hr",rate:160,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Assembly + sealing",qty:0.0012,qtyUnit:"hr",rate:170,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Test + packing",qty:0.0006,qtyUnit:"hr",rate:140,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity",qty:0.02,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Stamping die amortization",qty:1,qtyUnit:"pc",rate:0.4,rateUnit:"/pc",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Plant cost",qty:1,qtyUnit:"pc",rate:0.4,rateUnit:"/pc",group:"facility"},
+    {cat:"Facility & Overhead",name:"Overhead",qty:1,qtyUnit:"pc",rate:0.5,rateUnit:"/pc",group:"overhead"},
+    {cat:"Quality & Compliance",name:"100% blow / I-curve test",qty:1,qtyUnit:"pc",rate:0.3,rateUnit:"/pc",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG + outbound",qty:1,qtyUnit:"pc",rate:0.5,rateUnit:"/pc",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.12,rateUnit:"× cost",group:"margin"}
+  ]},
+  battery:{label:"Lithium-ion Battery Cell (21700)", description:"Cylindrical Li-ion cell, NMC/NCA chemistry, ~4500 mAh.", params:[
+    {cat:"Raw Materials",name:"Cathode active material (NMC)",qty:0.025,qtyUnit:"kg",rate:1800,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Anode (graphite + binder)",qty:0.012,qtyUnit:"kg",rate:480,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Electrolyte (LiPF6 + solvent)",qty:0.008,qtyUnit:"kg",rate:1200,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Separator (polyolefin)",qty:0.002,qtyUnit:"kg",rate:3500,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Aluminum + copper foils",qty:0.018,qtyUnit:"kg",rate:520,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Steel can + cap assembly",qty:1,qtyUnit:"pc",rate:32,rateUnit:"/pc",group:"material"},
+    {cat:"Direct Labor",name:"Electrode coating",qty:0.004,qtyUnit:"hr",rate:240,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Cell assembly (winding, filling)",qty:0.006,qtyUnit:"hr",rate:260,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Formation + aging",qty:0.008,qtyUnit:"hr",rate:200,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity (formation cycles)",qty:0.45,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Energy & Utilities",name:"Dry-room HVAC",qty:1,qtyUnit:"pc",rate:8,rateUnit:"/pc",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Coating + winding line depreciation",qty:1,qtyUnit:"pc",rate:18,rateUnit:"/pc",group:"equipment"},
+    {cat:"Equipment & Tooling",name:"Formation rack amortization",qty:1,qtyUnit:"pc",rate:12,rateUnit:"/pc",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Dry room facility cost",qty:1,qtyUnit:"pc",rate:22,rateUnit:"/pc",group:"facility"},
+    {cat:"Facility & Overhead",name:"Plant overhead",qty:1,qtyUnit:"pc",rate:28,rateUnit:"/pc",group:"overhead"},
+    {cat:"Quality & Compliance",name:"Capacity + IR + cycle test",qty:1,qtyUnit:"pc",rate:18,rateUnit:"/pc",group:"quality"},
+    {cat:"Quality & Compliance",name:"UN 38.3 / IEC certification",qty:1,qtyUnit:"pc",rate:9,rateUnit:"/pc",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG + DG packaging",qty:1,qtyUnit:"pc",rate:15,rateUnit:"/pc",group:"logistics"},
+    {cat:"Logistics & Warehousing",name:"Outbound (DG class 9)",qty:1,qtyUnit:"pc",rate:22,rateUnit:"/pc",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.14,rateUnit:"× cost",group:"margin"}
+  ]},
+  steel:{label:"Sheet Metal Stamping (mid-complexity)", description:"Stamped & formed steel part — bracket, chassis component, enclosure panel.", params:[
+    {cat:"Raw Materials",name:"Cold-rolled steel sheet (CRCA)",qty:1.6,qtyUnit:"kg",rate:75,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Scrap allowance (~12%)",qty:0.2,qtyUnit:"kg",rate:30,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Lubricant / cutting oil",qty:1,qtyUnit:"pc",rate:1.2,rateUnit:"/pc",group:"material"},
+    {cat:"Direct Labor",name:"Press operator",qty:0.006,qtyUnit:"hr",rate:170,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Trimming + deburring",qty:0.004,qtyUnit:"hr",rate:140,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Powder coating / passivation",qty:0.008,qtyUnit:"hr",rate:160,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity (press + oven)",qty:0.4,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Stamping die amortization",qty:1,qtyUnit:"pc",rate:4,rateUnit:"/pc",group:"equipment"},
+    {cat:"Equipment & Tooling",name:"Press depreciation",qty:1,qtyUnit:"pc",rate:2.5,rateUnit:"/pc",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Plant cost",qty:1,qtyUnit:"pc",rate:5,rateUnit:"/pc",group:"facility"},
+    {cat:"Facility & Overhead",name:"Overhead",qty:1,qtyUnit:"pc",rate:6,rateUnit:"/pc",group:"overhead"},
+    {cat:"Quality & Compliance",name:"Dimensional + surface QC",qty:1,qtyUnit:"pc",rate:3,rateUnit:"/pc",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG + outbound",qty:1,qtyUnit:"pc",rate:6,rateUnit:"/pc",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.10,rateUnit:"× cost",group:"margin"}
+  ]},
+  aluminum:{label:"Aluminum Extrusion (1 m profile)", description:"Standard 6063-T5 aluminum extrusion profile, mill-finish or anodized.", params:[
+    {cat:"Raw Materials",name:"Aluminum billet (6063 alloy)",qty:0.85,qtyUnit:"kg",rate:240,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Anodizing chemicals",qty:1,qtyUnit:"m",rate:35,rateUnit:"/m",group:"material"},
+    {cat:"Direct Labor",name:"Extrusion press operator",qty:0.004,qtyUnit:"hr",rate:200,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Stretching + cutting",qty:0.003,qtyUnit:"hr",rate:170,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Anodizing line operator",qty:0.005,qtyUnit:"hr",rate:160,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity (press + anodize)",qty:1.2,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Energy & Utilities",name:"Natural gas (billet heating)",qty:1,qtyUnit:"m",rate:8,rateUnit:"/m",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Extrusion die amortization",qty:1,qtyUnit:"m",rate:6,rateUnit:"/m",group:"equipment"},
+    {cat:"Equipment & Tooling",name:"Press depreciation",qty:1,qtyUnit:"m",rate:4,rateUnit:"/m",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Plant cost",qty:1,qtyUnit:"m",rate:8,rateUnit:"/m",group:"facility"},
+    {cat:"Facility & Overhead",name:"Overhead",qty:1,qtyUnit:"m",rate:10,rateUnit:"/m",group:"overhead"},
+    {cat:"Quality & Compliance",name:"Dimension + finish QC",qty:1,qtyUnit:"m",rate:4,rateUnit:"/m",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG warehousing",qty:1,qtyUnit:"m",rate:5,rateUnit:"/m",group:"logistics"},
+    {cat:"Logistics & Warehousing",name:"Outbound freight",qty:1,qtyUnit:"m",rate:8,rateUnit:"/m",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.11,rateUnit:"× cost",group:"margin"}
+  ]},
+  casting:{label:"Metal Casting (iron / aluminum, 1 kg basis)", description:"Sand or pressure die-cast component for industrial/auto use.", params:[
+    {cat:"Raw Materials",name:"Metal (Fe / Al alloy)",qty:1.15,qtyUnit:"kg",rate:120,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Sand + binder (for sand cast)",qty:1,qtyUnit:"kg",rate:8,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Coating / release agent",qty:1,qtyUnit:"kg",rate:3,rateUnit:"/kg",group:"material"},
+    {cat:"Direct Labor",name:"Furnace operator",qty:0.008,qtyUnit:"hr",rate:200,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Pouring + shakeout",qty:0.012,qtyUnit:"hr",rate:170,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Fettling / grinding",qty:0.015,qtyUnit:"hr",rate:160,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Heat treatment / machining",qty:0.02,qtyUnit:"hr",rate:220,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Furnace energy (gas/coke)",qty:1,qtyUnit:"kg",rate:32,rateUnit:"/kg",group:"energy"},
+    {cat:"Energy & Utilities",name:"Electricity",qty:0.4,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Pattern / die amortization",qty:1,qtyUnit:"kg",rate:18,rateUnit:"/kg",group:"equipment"},
+    {cat:"Equipment & Tooling",name:"Furnace + cell depreciation",qty:1,qtyUnit:"kg",rate:8,rateUnit:"/kg",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Plant cost",qty:1,qtyUnit:"kg",rate:12,rateUnit:"/kg",group:"facility"},
+    {cat:"Facility & Overhead",name:"Overhead",qty:1,qtyUnit:"kg",rate:15,rateUnit:"/kg",group:"overhead"},
+    {cat:"Quality & Compliance",name:"Hardness + dimension + NDT",qty:1,qtyUnit:"kg",rate:8,rateUnit:"/kg",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG + outbound (heavy)",qty:1,qtyUnit:"kg",rate:12,rateUnit:"/kg",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.10,rateUnit:"× cost",group:"margin"}
+  ]},
+  cardboard:{label:"Corrugated Carton (5-ply)", description:"Standard 5-ply corrugated shipper box, typical e-commerce/retail.", params:[
+    {cat:"Raw Materials",name:"Kraft + medium paper",qty:1.2,qtyUnit:"kg",rate:55,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Starch adhesive",qty:0.05,qtyUnit:"kg",rate:65,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Flexo ink (water-based)",qty:0.01,qtyUnit:"kg",rate:280,rateUnit:"/kg",group:"material"},
+    {cat:"Direct Labor",name:"Corrugator operator",qty:0.0008,qtyUnit:"hr",rate:160,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Die-cut + slotting",qty:0.001,qtyUnit:"hr",rate:150,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Printing + bundling",qty:0.0008,qtyUnit:"hr",rate:140,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity",qty:0.05,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Energy & Utilities",name:"Steam (corrugator)",qty:1,qtyUnit:"pc",rate:1.2,rateUnit:"/pc",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Die-cutter depreciation",qty:1,qtyUnit:"pc",rate:0.8,rateUnit:"/pc",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Plant cost",qty:1,qtyUnit:"pc",rate:1.5,rateUnit:"/pc",group:"facility"},
+    {cat:"Facility & Overhead",name:"Overhead",qty:1,qtyUnit:"pc",rate:2,rateUnit:"/pc",group:"overhead"},
+    {cat:"Quality & Compliance",name:"ECT + dimensional QC",qty:1,qtyUnit:"pc",rate:0.5,rateUnit:"/pc",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG + outbound (bulky)",qty:1,qtyUnit:"pc",rate:2.5,rateUnit:"/pc",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.09,rateUnit:"× cost",group:"margin"}
+  ]},
+  tablet:{label:"Pharmaceutical Tablet (500 mg, generic)", description:"Coated immediate-release tablet, per unit in blister pack.", params:[
+    {cat:"Raw Materials",name:"Active pharmaceutical ingredient (API)",qty:0.5,qtyUnit:"g",rate:8,rateUnit:"/g",group:"material"},
+    {cat:"Raw Materials",name:"Excipients (lactose, MCC, starch)",qty:0.3,qtyUnit:"g",rate:0.4,rateUnit:"/g",group:"material"},
+    {cat:"Raw Materials",name:"Coating polymer + colorant",qty:0.02,qtyUnit:"g",rate:5,rateUnit:"/g",group:"material"},
+    {cat:"Packaging (Primary)",name:"Blister foil (PVC + Alu)",qty:1,qtyUnit:"pc",rate:0.4,rateUnit:"/pc",group:"material"},
+    {cat:"Packaging (Secondary)",name:"Carton + leaflet",qty:0.1,qtyUnit:"pc",rate:8,rateUnit:"/pc",group:"material"},
+    {cat:"Direct Labor",name:"Granulation + compression op.",qty:0.0008,qtyUnit:"hr",rate:280,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Coating + packing",qty:0.001,qtyUnit:"hr",rate:240,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity + HVAC (cleanroom)",qty:0.03,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Press + coater depreciation",qty:1,qtyUnit:"pc",rate:0.6,rateUnit:"/pc",group:"equipment"},
+    {cat:"Facility & Overhead",name:"GMP cleanroom cost",qty:1,qtyUnit:"pc",rate:0.8,rateUnit:"/pc",group:"facility"},
+    {cat:"Facility & Overhead",name:"Overhead",qty:1,qtyUnit:"pc",rate:1.0,rateUnit:"/pc",group:"overhead"},
+    {cat:"Quality & Compliance",name:"Assay + dissolution + stability",qty:1,qtyUnit:"pc",rate:0.5,rateUnit:"/pc",group:"quality"},
+    {cat:"Quality & Compliance",name:"WHO-GMP / USFDA amort.",qty:1,qtyUnit:"pc",rate:0.4,rateUnit:"/pc",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG warehousing (climate-ctrl)",qty:1,qtyUnit:"pc",rate:0.3,rateUnit:"/pc",group:"logistics"},
+    {cat:"Logistics & Warehousing",name:"Outbound + cold chain",qty:1,qtyUnit:"pc",rate:0.5,rateUnit:"/pc",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.12,rateUnit:"× cost",group:"margin"}
+  ]},
+  spring:{label:"Coil Compression Spring (steel, mid-size)", description:"Helical spring, oil-tempered carbon steel wire, ~10 mm OD.", params:[
+    {cat:"Raw Materials",name:"Oil-tempered spring wire",qty:0.08,qtyUnit:"kg",rate:180,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Zinc plating chemicals",qty:1,qtyUnit:"pc",rate:0.8,rateUnit:"/pc",group:"material"},
+    {cat:"Direct Labor",name:"CNC coiler operator",qty:0.0015,qtyUnit:"hr",rate:180,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Stress relief + grinding",qty:0.0008,qtyUnit:"hr",rate:160,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Plating + QC",qty:0.001,qtyUnit:"hr",rate:140,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity + oven heat",qty:0.04,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Coiler tooling",qty:1,qtyUnit:"pc",rate:0.4,rateUnit:"/pc",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Plant cost",qty:1,qtyUnit:"pc",rate:0.6,rateUnit:"/pc",group:"facility"},
+    {cat:"Facility & Overhead",name:"Overhead",qty:1,qtyUnit:"pc",rate:0.7,rateUnit:"/pc",group:"overhead"},
+    {cat:"Quality & Compliance",name:"Load + fatigue test sampling",qty:1,qtyUnit:"pc",rate:0.3,rateUnit:"/pc",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG + outbound",qty:1,qtyUnit:"pc",rate:0.5,rateUnit:"/pc",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.11,rateUnit:"× cost",group:"margin"}
+  ]},
+  bearing:{label:"Ball Bearing (6204-2RS, deep-groove)", description:"Sealed single-row deep-groove ball bearing, common in motors and pumps.", params:[
+    {cat:"Raw Materials",name:"Bearing steel rings (100Cr6)",qty:0.12,qtyUnit:"kg",rate:140,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Steel balls (precision)",qty:8,qtyUnit:"pc",rate:1.2,rateUnit:"/pc",group:"material"},
+    {cat:"Raw Materials",name:"Steel cage",qty:1,qtyUnit:"pc",rate:6,rateUnit:"/pc",group:"material"},
+    {cat:"Raw Materials",name:"Nitrile rubber seal",qty:2,qtyUnit:"pc",rate:1.8,rateUnit:"/pc",group:"material"},
+    {cat:"Raw Materials",name:"Lithium grease",qty:1,qtyUnit:"pc",rate:0.8,rateUnit:"/pc",group:"material"},
+    {cat:"Direct Labor",name:"Ring turning + grinding",qty:0.004,qtyUnit:"hr",rate:220,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Heat treatment",qty:0.003,qtyUnit:"hr",rate:200,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Assembly + sealing",qty:0.005,qtyUnit:"hr",rate:180,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Test + packing",qty:0.002,qtyUnit:"hr",rate:160,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity + furnace",qty:0.2,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Grinder + assembly line",qty:1,qtyUnit:"pc",rate:5,rateUnit:"/pc",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Plant cost",qty:1,qtyUnit:"pc",rate:8,rateUnit:"/pc",group:"facility"},
+    {cat:"Facility & Overhead",name:"Overhead",qty:1,qtyUnit:"pc",rate:10,rateUnit:"/pc",group:"overhead"},
+    {cat:"Quality & Compliance",name:"Vibration + noise test",qty:1,qtyUnit:"pc",rate:4,rateUnit:"/pc",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG + outbound",qty:1,qtyUnit:"pc",rate:5,rateUnit:"/pc",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.12,rateUnit:"× cost",group:"margin"}
+  ]},
+  gasket:{label:"Rubber Gasket / O-ring (NBR)", description:"Molded nitrile rubber O-ring or flat gasket, sealing application.", params:[
+    {cat:"Raw Materials",name:"NBR compound (mixed)",qty:0.012,qtyUnit:"kg",rate:380,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Mould release agent",qty:1,qtyUnit:"pc",rate:0.3,rateUnit:"/pc",group:"material"},
+    {cat:"Direct Labor",name:"Compression mould operator",qty:0.001,qtyUnit:"hr",rate:160,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Deflashing + inspection",qty:0.0015,qtyUnit:"hr",rate:140,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Electricity (press heat)",qty:0.03,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Mould amortization",qty:1,qtyUnit:"pc",rate:0.5,rateUnit:"/pc",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Plant cost",qty:1,qtyUnit:"pc",rate:0.6,rateUnit:"/pc",group:"facility"},
+    {cat:"Facility & Overhead",name:"Overhead",qty:1,qtyUnit:"pc",rate:0.7,rateUnit:"/pc",group:"overhead"},
+    {cat:"Quality & Compliance",name:"Hardness + dim + compression set",qty:1,qtyUnit:"pc",rate:0.3,rateUnit:"/pc",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG + outbound",qty:1,qtyUnit:"pc",rate:0.5,rateUnit:"/pc",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.10,rateUnit:"× cost",group:"margin"}
+  ]},
+  glass:{label:"Glass Bottle (clear, ~250 ml)", description:"Soda-lime glass bottle, narrow neck, beverage / pharma use.", params:[
+    {cat:"Raw Materials",name:"Soda-lime glass batch",qty:0.18,qtyUnit:"kg",rate:32,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Cullet (recycled)",qty:0.06,qtyUnit:"kg",rate:12,rateUnit:"/kg",group:"material"},
+    {cat:"Direct Labor",name:"Furnace + IS-machine operator",qty:0.001,qtyUnit:"hr",rate:200,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Annealing + inspection",qty:0.0008,qtyUnit:"hr",rate:160,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Furnace gas (high)",qty:1,qtyUnit:"pc",rate:2.5,rateUnit:"/pc",group:"energy"},
+    {cat:"Energy & Utilities",name:"Electricity",qty:0.15,qtyUnit:"kWh",rate:9,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"IS-machine moulds",qty:1,qtyUnit:"pc",rate:0.8,rateUnit:"/pc",group:"equipment"},
+    {cat:"Facility & Overhead",name:"Plant cost",qty:1,qtyUnit:"pc",rate:1.2,rateUnit:"/pc",group:"facility"},
+    {cat:"Facility & Overhead",name:"Overhead",qty:1,qtyUnit:"pc",rate:1.4,rateUnit:"/pc",group:"overhead"},
+    {cat:"Quality & Compliance",name:"Thickness + visual + drop test",qty:1,qtyUnit:"pc",rate:0.4,rateUnit:"/pc",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"FG + outbound (fragile)",qty:1,qtyUnit:"pc",rate:1.6,rateUnit:"/pc",group:"logistics"},
+    {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.11,rateUnit:"× cost",group:"margin"}
+  ]},
   generic:{label:"Generic manufactured product", description:"Fallback skeleton — edit each line.", params:[
     {cat:"Raw Materials",name:"Primary raw material",qty:1,qtyUnit:"kg",rate:120,rateUnit:"/kg",group:"material"},
     {cat:"Raw Materials",name:"Secondary raw material",qty:0.3,qtyUnit:"kg",rate:80,rateUnit:"/kg",group:"material"},
@@ -865,9 +1126,29 @@ const TEMPLATES = {
 const KEYWORD_MAP = [
   {keys:["brick","block","paver","masonry"],template:"brick"},
   {keys:["perfume","fragrance","cologne","edt","edp","attar","scent","deodorant"],template:"perfume"},
-  {keys:["tshirt","t-shirt","shirt","garment","apparel","jersey","polo","hoodie","fabric"],template:"tshirt"},
-  {keys:["pcb","pcba","circuit","smt","electronic assembly"],template:"pcb"},
-  {keys:["bottle","pet","jar","cap","container","preform","blow mould"],template:"plastic"}
+  {keys:["tshirt","t-shirt","shirt","garment","apparel","jersey","polo","hoodie","fabric","yarn"],template:"tshirt"},
+  {keys:["pcb","pcba","circuit board","smt","electronic assembly"],template:"pcb"},
+  // Power-distribution / electrical
+  {keys:["conductor","cable","wire","insulated wire","power cable","cu cable"],template:"conductor"},
+  {keys:["busbar","bus bar","bus-bar","copper bar","copper strip"],template:"busbar"},
+  {keys:["contactor","relay","motor starter"],template:"contactor"},
+  {keys:["harness","cable assembly","wiring harness","loom"],template:"harness"},
+  {keys:["fuse","fusible link","blade fuse"],template:"fuse"},
+  {keys:["battery","li-ion","lithium","cell ","18650","21700","battery pack","battery cell"],template:"battery"},
+  // Metal / fabrication
+  {keys:["sheet metal","stamping","steel part","steel bracket","chassis","enclosure","sheet steel","crca"],template:"steel"},
+  {keys:["aluminum","aluminium","extrusion","alu profile","alloy profile"],template:"aluminum"},
+  {keys:["casting","cast iron","die cast","sand cast","gravity cast"],template:"casting"},
+  {keys:["spring","coil spring","compression spring","helical spring"],template:"spring"},
+  {keys:["bearing","ball bearing","roller bearing","6204","6205","6206"],template:"bearing"},
+  // Soft goods / chemicals
+  {keys:["gasket","o-ring","o ring","seal","rubber ring","oring"],template:"gasket"},
+  // Packaging
+  {keys:["bottle","pet bottle","jar","preform","blow mould"],template:"plastic"},
+  {keys:["glass bottle","glass vial","glass jar","amber glass"],template:"glass"},
+  {keys:["carton","corrugated","shipper","cardboard","outer box","master carton"],template:"cardboard"},
+  // Pharma
+  {keys:["tablet","capsule","pill","medicine","pharmaceutical","drug"],template:"tablet"}
 ];
 function detectTemplate(name,cat){
   const n=(name||"").toLowerCase();
@@ -881,12 +1162,27 @@ function detectTemplate(name,cat){
 // Each template's "base" reference values — used to scale material quantities
 // when the user specifies a different size (e.g. "bottle 1 litre" vs the 500ml default).
 const TEMPLATE_BASE = {
-  plastic: { value: 500, unit: 'ml' },   // 500 ml PET bottle
-  perfume: { value: 50, unit: 'ml' },    // 50 ml EdT
-  brick:   { value: 1, unit: 'pc' },     // per brick
-  tshirt:  { value: 180, unit: 'gsm' },  // 180 gsm fabric
-  pcb:     { value: 100, unit: 'mm' },   // 100 mm board edge
-  generic: { value: 1, unit: 'unit' }
+  plastic:   { value: 500, unit: 'ml' },   // 500 ml PET bottle
+  perfume:   { value: 50, unit: 'ml' },    // 50 ml EdT
+  brick:     { value: 1, unit: 'pc' },     // per brick
+  tshirt:    { value: 180, unit: 'gsm' },  // 180 gsm fabric
+  pcb:       { value: 100, unit: 'mm' },   // 100 mm board edge
+  conductor: { value: 1, unit: 'm' },      // per metre
+  busbar:    { value: 1, unit: 'm' },      // per metre
+  contactor: { value: 1, unit: 'pc' },
+  harness:   { value: 1, unit: 'pc' },
+  fuse:      { value: 1, unit: 'pc' },
+  battery:   { value: 1, unit: 'pc' },
+  steel:     { value: 1, unit: 'kg' },     // per kg of part
+  aluminum:  { value: 1, unit: 'm' },
+  casting:   { value: 1, unit: 'kg' },
+  cardboard: { value: 1, unit: 'pc' },
+  tablet:    { value: 500, unit: 'mg' },   // 500 mg API
+  spring:    { value: 1, unit: 'pc' },
+  bearing:   { value: 1, unit: 'pc' },
+  gasket:    { value: 1, unit: 'pc' },
+  glass:     { value: 250, unit: 'ml' },
+  generic:   { value: 1, unit: 'unit' }
 };
 
 // Parse numeric size from a product description.
