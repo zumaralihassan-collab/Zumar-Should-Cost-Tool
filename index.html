@@ -65,6 +65,10 @@
           <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center font-bold text-[10px]">ZA</span>
           About the Creator
         </button>
+        <button id="aiStatusBtn" onclick="openAISettings()" class="px-3 py-1.5 bg-white/15 hover:bg-white/25 backdrop-blur rounded-lg text-xs font-medium transition flex items-center gap-2">
+          <span id="aiStatusDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+          <span id="aiStatusLabel">Connect Live AI</span>
+        </button>
         <button onclick="showHelp()" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur rounded-lg text-xs font-medium">How it works</button>
       </div>
     </div>
@@ -574,6 +578,27 @@
   © Mohammed Zumar Ali Hassan
 </div>
 
+<!-- LIVE AI WATCHER PANEL -->
+<div id="aiWatcher" class="hidden fixed bottom-16 right-4 z-30 max-w-sm bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-700 text-white rounded-2xl shadow-2xl p-4 no-print" style="width: 340px;">
+  <div class="flex items-start justify-between mb-2">
+    <div class="flex items-center gap-2">
+      <div class="relative w-2.5 h-2.5">
+        <span class="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping"></span>
+        <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-300"></span>
+      </div>
+      <span class="text-xs font-bold uppercase tracking-wider">Live AI Watcher</span>
+    </div>
+    <button onclick="document.getElementById('aiWatcher').classList.add('hidden')" class="text-white/70 hover:text-white text-lg leading-none">×</button>
+  </div>
+  <div id="aiWatcherContent" class="text-sm leading-relaxed">
+    <span class="italic opacity-80">Waiting for activity…</span>
+  </div>
+  <div class="mt-3 flex gap-2">
+    <button onclick="askLiveAI()" class="px-3 py-1 bg-white/15 hover:bg-white/25 rounded-md text-xs font-medium">Ask deeper</button>
+    <button onclick="suggestCostDrivers()" class="px-3 py-1 bg-white/15 hover:bg-white/25 rounded-md text-xs font-medium">Suggest missing drivers</button>
+  </div>
+</div>
+
 <div id="modal-root">
   <div id="aboutModal" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto">
@@ -677,6 +702,73 @@
       <div id="compareContent"></div>
     </div>
   </div>
+
+  <!-- AI SETTINGS MODAL -->
+  <div id="aiModal" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-auto">
+      <div class="bg-gradient-to-r from-indigo-700 to-purple-700 text-white p-5 rounded-t-2xl flex justify-between items-start">
+        <div>
+          <h2 class="text-xl font-bold">Live AI Configuration</h2>
+          <p class="text-indigo-100 text-xs mt-1">Connect to Claude or OpenAI for real-time intelligence</p>
+        </div>
+        <button onclick="document.getElementById('aiModal').classList.add('hidden')" class="text-white/70 hover:text-white text-2xl leading-none">&times;</button>
+      </div>
+      <div class="p-5 space-y-4 text-sm">
+
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs">
+          <p class="font-semibold text-amber-900 mb-1">🔒 How this works (please read)</p>
+          <ul class="list-disc pl-5 text-amber-900 space-y-0.5">
+            <li>Your API key is stored only in <b>your browser's localStorage</b> — never transmitted to GitHub, me, or any third party.</li>
+            <li>Each AI call goes directly from your browser to Anthropic / OpenAI servers.</li>
+            <li>Charges are billed to your own account.</li>
+            <li>Claude Haiku costs ~<b>$0.001 per chat message</b> (very affordable).</li>
+            <li>If you don't connect, all deterministic features still work normally.</li>
+          </ul>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1">AI Provider</label>
+          <select id="aiProvider" class="w-full border border-slate-300 rounded-lg px-3 py-2" onchange="updateAIModel()">
+            <option value="claude">Anthropic Claude (recommended)</option>
+            <option value="openai">OpenAI</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1">Model</label>
+          <select id="aiModel" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+            <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (fast + cheap, $0.001/msg)</option>
+            <option value="claude-sonnet-4-6">Claude Sonnet 4.6 (smarter, $0.01/msg)</option>
+            <option value="claude-opus-4-6">Claude Opus 4.6 (best reasoning, $0.05/msg)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1">API Key</label>
+          <input id="aiKeyInput" type="password" placeholder="sk-ant-... (Claude) or sk-... (OpenAI)" class="w-full border border-slate-300 rounded-lg px-3 py-2 font-mono text-xs"/>
+          <p class="text-xs text-slate-500 mt-1">Get a key:
+            <a href="https://console.anthropic.com/settings/keys" target="_blank" class="text-teal-600 underline">Anthropic Console</a> ·
+            <a href="https://platform.openai.com/api-keys" target="_blank" class="text-teal-600 underline">OpenAI Platform</a>
+          </p>
+        </div>
+
+        <div>
+          <label class="flex items-center gap-2 text-xs">
+            <input id="aiWatcherToggle" type="checkbox" checked class="rounded"/>
+            <span>Enable <b>Live AI Watcher</b> — AI observes your actions and provides commentary as you work</span>
+          </label>
+        </div>
+
+        <div id="aiTestResult" class="hidden text-xs p-2 rounded"></div>
+
+        <div class="flex gap-2 pt-2 border-t">
+          <button onclick="testAIConnection()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm">Test &amp; Save</button>
+          <button onclick="clearAIKey()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium text-sm">Clear Key</button>
+          <button onclick="document.getElementById('aiModal').classList.add('hidden')" class="ml-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium text-sm">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <footer class="border-t mt-10 py-6 text-center text-xs text-slate-500 bg-white">
@@ -710,6 +802,153 @@ let currentParams=[], scenarios=JSON.parse(localStorage.getItem('shouldCostScena
 const charts = {};
 function openAbout(){ document.getElementById('aboutModal').classList.remove('hidden'); }
 function showHelp(){ document.getElementById('helpModal').classList.remove('hidden'); }
+
+/* ============== LIVE AI ENGINE ============== */
+const AI_CONFIG_KEY = 'shouldCostAI_config';
+let AI = { enabled:false, provider:'claude', model:'claude-haiku-4-5-20251001', apiKey:'', watcher:true };
+try { Object.assign(AI, JSON.parse(localStorage.getItem(AI_CONFIG_KEY)||'{}')); AI.enabled = !!AI.apiKey; } catch(e){}
+
+function openAISettings(){
+  document.getElementById('aiProvider').value = AI.provider;
+  updateAIModel();
+  document.getElementById('aiModel').value = AI.model;
+  document.getElementById('aiKeyInput').value = AI.apiKey;
+  document.getElementById('aiWatcherToggle').checked = AI.watcher;
+  document.getElementById('aiModal').classList.remove('hidden');
+}
+function updateAIModel(){
+  const provider = document.getElementById('aiProvider').value;
+  const select = document.getElementById('aiModel');
+  if(provider==='claude'){
+    select.innerHTML = '<option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (fast + cheap, ~$0.001/msg)</option>'+
+      '<option value="claude-sonnet-4-6">Claude Sonnet 4.6 (smarter, ~$0.01/msg)</option>'+
+      '<option value="claude-opus-4-6">Claude Opus 4.6 (best reasoning, ~$0.05/msg)</option>';
+  } else {
+    select.innerHTML = '<option value="gpt-4o-mini">GPT-4o mini (fast + cheap, ~$0.001/msg)</option>'+
+      '<option value="gpt-4o">GPT-4o (smarter, ~$0.01/msg)</option>';
+  }
+}
+function setAIStatus(connected){
+  const dot = document.getElementById('aiStatusDot');
+  const lbl = document.getElementById('aiStatusLabel');
+  const btn = document.getElementById('aiStatusBtn');
+  if(connected){
+    dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+    lbl.textContent = 'AI Live';
+    btn.classList.remove('bg-white/15'); btn.classList.add('bg-emerald-500/30');
+    if(AI.watcher) document.getElementById('aiWatcher').classList.remove('hidden');
+  } else {
+    dot.className = 'w-2 h-2 rounded-full bg-slate-400';
+    lbl.textContent = 'Connect Live AI';
+    btn.classList.add('bg-white/15'); btn.classList.remove('bg-emerald-500/30');
+    document.getElementById('aiWatcher').classList.add('hidden');
+  }
+}
+async function aiCall(prompt, opts={}){
+  if(!AI.enabled || !AI.apiKey) throw new Error('AI not configured');
+  const maxTokens = opts.maxTokens || 400;
+  const system = opts.system || 'You are a senior procurement and supply chain strategist embedded in the Should Cost AI tool built by Mohammed Zumar Ali Hassan. Give concise, expert, immediately-actionable advice for sourcing managers. Use real procurement frameworks (Kraljic, EOQ, TCO, BATNA, supplier risk, ABC, tariff mitigation). Format with HTML (<b>, <ul>, <li>, <br>). Keep under 150 words unless asked otherwise.';
+  if(AI.provider==='claude'){
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':AI.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model:AI.model,max_tokens:maxTokens,system,messages:[{role:'user',content:prompt}]})
+    });
+    if(!res.ok){ const e=await res.json().catch(()=>({error:{message:res.statusText}})); throw new Error(e.error?.message||('HTTP '+res.status)); }
+    return (await res.json()).content?.[0]?.text || '';
+  } else {
+    const res = await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AI.apiKey},
+      body: JSON.stringify({model:AI.model,max_tokens:maxTokens,messages:[{role:'system',content:system},{role:'user',content:prompt}]})
+    });
+    if(!res.ok){ const e=await res.json().catch(()=>({error:{message:res.statusText}})); throw new Error(e.error?.message||('HTTP '+res.status)); }
+    return (await res.json()).choices?.[0]?.message?.content || '';
+  }
+}
+async function testAIConnection(){
+  AI.provider = document.getElementById('aiProvider').value;
+  AI.model = document.getElementById('aiModel').value;
+  AI.apiKey = document.getElementById('aiKeyInput').value.trim();
+  AI.watcher = document.getElementById('aiWatcherToggle').checked;
+  const r = document.getElementById('aiTestResult');
+  r.className = 'text-xs p-2 rounded bg-slate-100 text-slate-700';
+  r.textContent = 'Testing connection…';
+  if(!AI.apiKey){ r.className='text-xs p-2 rounded bg-red-100 text-red-800'; r.textContent='❌ Please enter an API key'; return; }
+  AI.enabled = true;
+  try {
+    const reply = await aiCall('Reply with exactly: OK', {maxTokens:20});
+    localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(AI));
+    r.className='text-xs p-2 rounded bg-emerald-100 text-emerald-800';
+    r.textContent='✅ Connected! AI is live. Reply: '+reply.slice(0,60);
+    setAIStatus(true);
+    setTimeout(()=>aiObserve('User just connected live AI. Welcome them in 1 sentence and suggest trying a product analysis or asking a strategy question.'), 500);
+  } catch(err){
+    AI.enabled = false;
+    r.className='text-xs p-2 rounded bg-red-100 text-red-800';
+    r.textContent='❌ '+err.message;
+  }
+}
+function clearAIKey(){
+  AI.apiKey=''; AI.enabled=false;
+  localStorage.removeItem(AI_CONFIG_KEY);
+  document.getElementById('aiKeyInput').value='';
+  setAIStatus(false);
+  const r = document.getElementById('aiTestResult');
+  r.className='text-xs p-2 rounded bg-slate-100 text-slate-700';
+  r.textContent='Key cleared.';
+}
+function getCurrentContext(){
+  const product = document.getElementById('productName').value;
+  if(currentParams.length===0) return {product:product||'(none yet)'};
+  const cur = document.getElementById('currency').value, fx=FX[cur], sym=SYM[cur];
+  const sub = currentParams.filter(p=>p.group!=='margin').reduce((t,p)=>t+p.qty*p.rate,0);
+  const m = currentParams.find(p=>p.group==='margin'); const mr=m?m.rate:0;
+  const unit = sub*(1+mr);
+  const qty = parseFloat(document.getElementById('orderQty').value)||1;
+  const catTotals={};
+  currentParams.forEach(p=>{ if(p.group!=='margin') catTotals[p.cat]=(catTotals[p.cat]||0)+p.qty*p.rate; });
+  const topCat = Object.entries(catTotals).sort((a,b)=>b[1]-a[1])[0];
+  return {
+    product, region:document.getElementById('region').value, qty, currency:cur,
+    unitCost:sym+(unit*fx).toFixed(2), totalCost:sym+(unit*fx*qty).toFixed(0),
+    margin:(mr*100).toFixed(1)+'%',
+    topDriverCategory:topCat?topCat[0]:'-',
+    topDriverPct:topCat?(topCat[1]/sub*100).toFixed(1)+'%':'-',
+    numDrivers:currentParams.length
+  };
+}
+let aiObserveTimer = null;
+function scheduleAIObserve(reason){
+  if(!AI.enabled || !AI.watcher) return;
+  clearTimeout(aiObserveTimer);
+  aiObserveTimer = setTimeout(()=>{
+    const ctx = getCurrentContext();
+    const prompt = 'Context: '+JSON.stringify(ctx)+'\nReason: '+reason+'\n\nIn ONE concise sentence (under 30 words), point out the most important thing the buyer should notice or do next. Be specific to the numbers.';
+    aiObserve(prompt);
+  }, 1500);
+}
+async function aiObserve(prompt){
+  if(!AI.enabled) return;
+  document.getElementById('aiWatcher').classList.remove('hidden');
+  const content = document.getElementById('aiWatcherContent');
+  content.innerHTML='<span class="opacity-80 italic">AI is analyzing…</span>';
+  try { content.innerHTML = await aiCall(prompt,{maxTokens:200}); }
+  catch(err){ content.innerHTML='<span class="text-amber-200 text-xs">⚠️ '+err.message+'</span>'; }
+}
+async function askLiveAI(){
+  const q = prompt('Ask Live AI about your current analysis:');
+  if(!q) return;
+  const ctx = getCurrentContext();
+  await aiObserve('Current context: '+JSON.stringify(ctx)+'\n\nUser question: '+q+'\n\nAnswer concisely with HTML formatting, citing specific numbers.');
+}
+async function suggestCostDrivers(){
+  const ctx = getCurrentContext();
+  if(!ctx.product || ctx.product==='(none yet)'){ alert('Analyze a product first.'); return; }
+  const driverNames = currentParams.map(p=>p.name).join(', ');
+  await aiObserve('Current product: "'+ctx.product+'" in region '+ctx.region+'.\nCurrent cost drivers: '+driverNames+'\n\nIn 3-5 bullets (HTML <ul><li>), suggest cost drivers that may be MISSING. Each bullet: <b>name</b>, then brief reason.');
+}
+
 function switchTab(name){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
   const target = document.getElementById('tab-'+name+'-content');
@@ -1263,6 +1502,7 @@ function analyzeProduct(){
     document.getElementById('step2').scrollIntoView({behavior:'smooth',block:'start'});
     recalc();
     btn.disabled=false; btn.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Re-analyze';
+    scheduleAIObserve('User just analyzed a new product: '+name);
   },800);
 }
 function applyContextMultipliers(){
@@ -1335,7 +1575,11 @@ function renderParameters(){
       </div></details>`;
   }).join('');
 }
-function updateParam(idx,field,val){ currentParams[idx][field]=parseFloat(val)||0; recalc(); }
+function updateParam(idx,field,val){
+  currentParams[idx][field]=parseFloat(val)||0;
+  recalc();
+  scheduleAIObserve('User edited parameter "'+currentParams[idx].name+'" — '+field+' changed to '+val);
+}
 function addCustomParam(){
   const cat=document.getElementById('newParamCat').value||'Custom';
   const name=document.getElementById('newParamName').value;
@@ -1869,7 +2113,37 @@ function renderBotChart(id,spec){
 function sendChat(){
   const inp=document.getElementById('chatInput'); const txt=inp.value.trim(); if(!txt) return;
   addUserMessage(txt); inp.value='';
-  setTimeout(()=>respondTo(txt),300);
+  if(AI.enabled){
+    // Live AI mode — send to real LLM
+    setTimeout(()=>respondToWithAI(txt),100);
+  } else {
+    setTimeout(()=>respondTo(txt),300);
+  }
+}
+async function respondToWithAI(text){
+  // Check first if user wants a chart — fall back to deterministic chart engine
+  const ds = findDataset(text), vt = findVizType(text);
+  if(ds && vt){
+    addBotMessage('Here\'s a <b>'+vt+'</b> chart:',{type:vt,...ds});
+    return;
+  }
+  // Build context-rich prompt
+  const ctx = getCurrentContext();
+  // Add placeholder
+  chatMessages.push({role:'bot', content:'<span class="opacity-60 italic">🤖 Live AI thinking…</span>'});
+  renderChat();
+  try {
+    const reply = await aiCall(
+      'Current procurement context: '+JSON.stringify(ctx)+'\n\nUser question: '+text+'\n\nAnswer as a senior procurement strategist. Use procurement vocabulary (Kraljic, EOQ, TCO, BATNA). Format with HTML. If the user asks for a chart, end with a note "[chart available — try asking with phrases like \'show as pie\' or \'plot trend\']".',
+      {maxTokens: 600}
+    );
+    chatMessages.pop(); // remove placeholder
+    addBotMessage(reply);
+  } catch(err){
+    chatMessages.pop();
+    addBotMessage('<span class="text-red-600">⚠️ Live AI error: '+err.message+'</span><br><br>Falling back to built-in knowledge base…');
+    setTimeout(()=>respondTo(text), 500);
+  }
 }
 function respondTo(text){
   const lower=text.toLowerCase();
@@ -1994,6 +2268,9 @@ function initInsights(){
 renderScenarios();
 if(scenarios.length>0) document.getElementById('scenariosSection').classList.remove('hidden');
 document.getElementById('productName').addEventListener('keydown',e=>{ if(e.key==='Enter') analyzeProduct(); });
+// Init AI status from saved config
+setAIStatus(AI.enabled);
+if(AI.enabled) updateAIModel();
 
 /* ============== RFQ / RFP MANAGER ============== */
 let rfqQuotes = JSON.parse(localStorage.getItem('rfqQuotesV1')||'[]');
