@@ -10,11 +10,95 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-  :root{ --brand:#0F766E; --brand-dark:#134E4A; --brand-light:#CCFBF1; --accent:#F59E0B; }
-  body{ font-family:'Inter',system-ui,-apple-system,sans-serif; background:#F8FAFC; }
+  /* ========== DESIGN TOKENS ========== */
+  :root{
+    --brand:#0F766E; --brand-dark:#134E4A; --brand-light:#CCFBF1; --accent:#F59E0B;
+    --radius-sm:.5rem; --radius-md:.75rem; --radius-lg:1rem; --radius-xl:1.5rem;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.06);
+    --shadow-md:0 1px 3px rgba(15,23,42,.06),0 4px 12px rgba(15,23,42,.04);
+    --shadow-lg:0 4px 14px rgba(15,23,42,.08),0 10px 30px rgba(15,23,42,.06);
+    --shadow-xl:0 20px 50px rgba(15,23,42,.15);
+    --transition:all .2s cubic-bezier(.4,0,.2,1);
+    --transition-slow:all .35s cubic-bezier(.4,0,.2,1);
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ font-family:'Inter',system-ui,-apple-system,sans-serif; background:#F8FAFC; -webkit-font-smoothing:antialiased; }
+
+  /* ========== TYPOGRAPHY SYSTEM ========== */
+  .text-display{ font-size:clamp(2rem,5vw,3.5rem); font-weight:800; letter-spacing:-.02em; line-height:1.1; }
+  .text-headline{ font-size:1.5rem; font-weight:700; letter-spacing:-.01em; line-height:1.2; }
+  .text-title{ font-size:1.125rem; font-weight:600; letter-spacing:-.005em; }
+  .text-body{ font-size:.875rem; line-height:1.5; }
+  .text-caption{ font-size:.75rem; color:#64748B; }
+  .text-micro{ font-size:.625rem; letter-spacing:.05em; text-transform:uppercase; font-weight:700; color:#64748B; }
+
+  /* ========== GRADIENTS ========== */
   .gradient-header{ background:linear-gradient(135deg,#0F766E 0%,#134E4A 60%,#1E3A8A 100%); }
-  .card-shadow{ box-shadow:0 1px 3px rgba(15,23,42,.06),0 4px 12px rgba(15,23,42,.04); }
+  .gradient-hero{ background:radial-gradient(ellipse at top,#CCFBF1 0%,transparent 50%),
+                  radial-gradient(ellipse at bottom right,#FEF3C7 0%,transparent 50%),
+                  linear-gradient(135deg,#F8FAFC 0%,#FFFFFF 100%); }
+  .gradient-mesh{ background:
+    radial-gradient(at 20% 30%,hsla(174,72%,42%,.15) 0,transparent 50%),
+    radial-gradient(at 80% 70%,hsla(38,92%,55%,.12) 0,transparent 50%),
+    radial-gradient(at 50% 50%,hsla(220,90%,50%,.08) 0,transparent 60%); }
+
+  /* ========== CARDS ========== */
+  .card{ background:white; border-radius:var(--radius-lg); box-shadow:var(--shadow-md);
+         border:1px solid rgba(226,232,240,.6); transition:var(--transition); }
+  .card-shadow{ box-shadow:var(--shadow-md); }
+  .card-hover{ transition:var(--transition); }
+  .card-hover:hover{ transform:translateY(-2px); box-shadow:var(--shadow-lg); }
+  .card-interactive{ cursor:pointer; transition:var(--transition); }
+  .card-interactive:hover{ transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:#0F766E40; }
+
+  /* ========== BUTTONS ========== */
+  .btn{ display:inline-flex; align-items:center; gap:.5rem; padding:.625rem 1.125rem;
+        border-radius:var(--radius-md); font-weight:600; font-size:.875rem; cursor:pointer;
+        transition:var(--transition); border:none; white-space:nowrap; }
+  .btn:focus-visible{ outline:2px solid #0F766E; outline-offset:2px; }
+  .btn-primary{ background:#0F766E; color:white; box-shadow:0 1px 2px rgba(15,118,110,.2); }
+  .btn-primary:hover{ background:#134E4A; box-shadow:0 4px 12px rgba(15,118,110,.3); transform:translateY(-1px); }
+  .btn-secondary{ background:#F1F5F9; color:#1E293B; }
+  .btn-secondary:hover{ background:#E2E8F0; }
+  .btn-ghost{ background:transparent; color:#475569; }
+  .btn-ghost:hover{ background:#F1F5F9; }
+
+  /* ========== INPUTS ========== */
+  input, select, textarea{ transition:var(--transition); }
+  input:focus, select:focus, textarea:focus{ outline:none; border-color:#0F766E; box-shadow:0 0 0 3px rgba(15,118,110,.12); }
+
+  /* ========== INTERACTIONS ========== */
+  .parameter-row{ transition:background .15s; }
   .parameter-row:hover{ background:#F0FDFA; }
+  .chip{ display:inline-flex; align-items:center; gap:.25rem; padding:.25rem .625rem; border-radius:999px;
+         font-size:.75rem; font-weight:500; transition:var(--transition); }
+  .chip-interactive{ cursor:pointer; }
+  .chip-interactive:hover{ transform:scale(1.05); }
+
+  /* ========== TAB SYSTEM ========== */
+  .tab-btn{ padding:.65rem 1.1rem; border-radius:.625rem; font-weight:600; font-size:.875rem;
+            transition:var(--transition); cursor:pointer; border:none; position:relative; }
+  .tab-active{ background:white; color:#0F766E; box-shadow:0 2px 8px rgba(15,118,110,.25); transform:translateY(-1px); }
+  .tab-inactive{ background:transparent; color:white; opacity:.85; }
+  .tab-inactive:hover{ background:rgba(255,255,255,.15); opacity:1; transform:translateY(-1px); }
+
+  /* ========== TAB CONTENT FADE-IN ========== */
+  .tab-content{ animation:fadeInUp .35s cubic-bezier(.4,0,.2,1); }
+  @keyframes fadeInUp{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ========== KEYFRAMES ========== */
+  .ai-thinking{ background:linear-gradient(90deg,#14B8A6,#6366F1,#14B8A6); background-size:200% 100%;
+    animation:shimmer 2s linear infinite; -webkit-background-clip:text; background-clip:text; color:transparent; }
+  @keyframes shimmer{ 0%{background-position:0 0}100%{background-position:200% 0} }
+  .skeleton{ background:linear-gradient(90deg,#F1F5F9 25%,#E2E8F0 50%,#F1F5F9 75%); background-size:200% 100%;
+             animation:skeletonLoad 1.5s infinite; border-radius:.5rem; }
+  @keyframes skeletonLoad{ 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  @keyframes float{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .float-anim{ animation:float 3s ease-in-out infinite; }
+  @keyframes pulseDot{ 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:.5} }
+  .pulse-dot::after{ content:''; display:inline-block; width:6px; height:6px; border-radius:50%;
+    background:currentColor; margin-left:6px; animation:pulseDot 1.4s infinite; }
   details > summary { list-style:none; cursor:pointer; }
   details > summary::-webkit-details-marker { display:none; }
   .chevron{ transition:transform .2s; }
@@ -85,7 +169,8 @@
     </div>
 
     <nav class="mt-5 flex flex-wrap gap-1">
-      <button class="tab-btn tab-active" data-tab="calc" onclick="switchTab('calc')">Should Cost Calculator</button>
+      <button class="tab-btn tab-active" data-tab="welcome" onclick="switchTab('welcome')">✨ Welcome &amp; Tour</button>
+      <button class="tab-btn tab-inactive" data-tab="calc" onclick="switchTab('calc')">Should Cost Calculator</button>
       <button class="tab-btn tab-inactive" data-tab="dash" onclick="switchTab('dash')">Executive Dashboard</button>
       <button class="tab-btn tab-inactive" data-tab="sca" onclick="switchTab('sca')">Supply Chain Analytics</button>
       <button class="tab-btn tab-inactive" data-tab="ai" onclick="switchTab('ai')">AI Procurement Strategist</button>
@@ -104,7 +189,236 @@
 
 <main class="max-w-7xl mx-auto px-6 py-6">
 
-<section id="tab-calc-content" class="tab-content">
+<!-- ============= WELCOME & GUIDED TOUR ============= -->
+<section id="tab-welcome-content" class="tab-content">
+
+  <!-- HERO -->
+  <div class="gradient-mesh rounded-2xl p-8 md:p-12 mb-6 text-center relative overflow-hidden">
+    <div class="absolute top-4 right-4 chip bg-amber-100 text-amber-900 text-xs">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> v3.0 · 10 modules
+    </div>
+    <div class="inline-flex items-center gap-2 chip bg-white border border-slate-200 mb-4 shadow-sm">
+      <span class="text-xl">👋</span>
+      <span class="text-xs font-semibold text-slate-700">Welcome — designed for first-time visitors</span>
+    </div>
+    <h1 class="text-display text-slate-900 mb-3">The procurement intelligence suite,<br>made interactive.</h1>
+    <p class="text-base md:text-lg text-slate-600 max-w-2xl mx-auto mb-8">
+      <b>Should Cost AI</b> shows you what a product <i>should</i> cost — built from the materials, labor, energy and overhead up — so you can negotiate from evidence instead of guesswork.
+    </p>
+    <div class="flex justify-center gap-2 flex-wrap">
+      <button onclick="switchTab('calc')" class="btn btn-primary">▶ Try the Calculator</button>
+      <button onclick="document.getElementById('audienceSection').scrollIntoView({behavior:'smooth'})" class="btn btn-secondary">Pick a tour for me</button>
+      <button onclick="openAbout()" class="btn btn-ghost">About the creator</button>
+    </div>
+    <p class="text-xs text-slate-500 mt-6">
+      Built by <a onclick="openAbout()" class="text-teal-700 font-semibold cursor-pointer hover:underline">Mohammed Zumar Ali Hassan</a> · MS Supply Chain Management (STEM), UT Dallas · Ex-Amazon · Cristal · Nykaa
+    </p>
+  </div>
+
+  <!-- 30-SECOND PITCH -->
+  <div class="grid md:grid-cols-3 gap-4 mb-8">
+    <div class="card p-5 card-hover">
+      <div class="text-3xl mb-2">📦</div>
+      <h3 class="text-title mb-1">Tell it what you're sourcing</h3>
+      <p class="text-body text-slate-600">Just a name and a region. The AI fills in every cost driver — even when engineering hasn't given you the specs.</p>
+    </div>
+    <div class="card p-5 card-hover">
+      <div class="text-3xl mb-2">🤖</div>
+      <h3 class="text-title mb-1">AI builds the cost model</h3>
+      <p class="text-body text-slate-600">20+ industry templates, live commodity prices, regional labor rates, sensitivity sliders. All instant.</p>
+    </div>
+    <div class="card p-5 card-hover">
+      <div class="text-3xl mb-2">🎯</div>
+      <h3 class="text-title mb-1">Negotiate with evidence</h3>
+      <p class="text-body text-slate-600">Get a defensible should-cost, a 6-step negotiation playbook, and a walk-away ceiling. Beat your quote.</p>
+    </div>
+  </div>
+
+  <!-- AUDIENCE SELECTOR -->
+  <div id="audienceSection" class="mb-8">
+    <div class="text-center mb-6">
+      <p class="text-micro mb-2">Pick your tour</p>
+      <h2 class="text-headline text-slate-900">Who's exploring today?</h2>
+      <p class="text-body text-slate-600 mt-1">Choose your background — I'll tailor the walkthrough below.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-4">
+      <button onclick="setAudience('beginner')" class="card card-interactive p-6 text-left audience-card" data-audience="beginner">
+        <div class="text-4xl mb-3">🌱</div>
+        <h3 class="text-title mb-1">I'm new to procurement</h3>
+        <p class="text-body text-slate-600">Plain-English walkthrough. Each term explained. Step-by-step demo with the brick example.</p>
+        <div class="mt-3 text-xs text-teal-700 font-semibold">8-minute tour →</div>
+      </button>
+      <button onclick="setAudience('professional')" class="card card-interactive p-6 text-left audience-card" data-audience="professional">
+        <div class="text-4xl mb-3">💼</div>
+        <h3 class="text-title mb-1">I'm a procurement pro</h3>
+        <p class="text-body text-slate-600">Power-user view. Frameworks (Kraljic, EOQ, TCO), advanced workflows, RFQ + negotiation patterns.</p>
+        <div class="mt-3 text-xs text-teal-700 font-semibold">5-minute walkthrough →</div>
+      </button>
+      <button onclick="setAudience('interviewer')" class="card card-interactive p-6 text-left audience-card" data-audience="interviewer">
+        <div class="text-4xl mb-3">👔</div>
+        <h3 class="text-title mb-1">I'm evaluating Zumar</h3>
+        <p class="text-body text-slate-600">Recruiter / hiring manager view. Tech stack, architecture, what was built vs AI-assisted. Sample questions to ask.</p>
+        <div class="mt-3 text-xs text-teal-700 font-semibold">3-minute briefing →</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- DYNAMIC TOUR CONTENT -->
+  <div id="tourContent" class="hidden mb-8"></div>
+
+  <!-- USE-CASE SCENARIOS -->
+  <div class="card p-6 mb-6">
+    <h2 class="text-headline mb-2">Real procurement scenarios — try them now</h2>
+    <p class="text-body text-slate-600 mb-5">Each scenario pre-loads the calculator with a different product so you can see how the tool behaves across categories.</p>
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
+      <button onclick="runScenario('brick')" class="card card-interactive p-4 text-left">
+        <div class="text-2xl mb-2">🧱</div>
+        <div class="text-sm font-bold text-slate-800">Red sand brick</div>
+        <p class="text-xs text-slate-500 mt-1">Indian construction · 10,000 units · ₹</p>
+      </button>
+      <button onclick="runScenario('perfume')" class="card card-interactive p-4 text-left">
+        <div class="text-2xl mb-2">🧴</div>
+        <div class="text-sm font-bold text-slate-800">Perfume EdT 50ml</div>
+        <p class="text-xs text-slate-500 mt-1">EU cosmetics · 50,000 units · €</p>
+      </button>
+      <button onclick="runScenario('conductor')" class="card card-interactive p-4 text-left">
+        <div class="text-2xl mb-2">⚡</div>
+        <div class="text-sm font-bold text-slate-800">Copper conductor</div>
+        <p class="text-xs text-slate-500 mt-1">Tesla power dist. · 100,000 m · $</p>
+      </button>
+      <button onclick="runScenario('battery')" class="card card-interactive p-4 text-left">
+        <div class="text-2xl mb-2">🔋</div>
+        <div class="text-sm font-bold text-slate-800">Li-ion battery cell</div>
+        <p class="text-xs text-slate-500 mt-1">EV manufacturing · 25,000 cells · $</p>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODULE EXPLORER -->
+  <div class="card p-6 mb-6">
+    <h2 class="text-headline mb-1">What's inside</h2>
+    <p class="text-body text-slate-600 mb-5">10 integrated modules. Each does one job extremely well, all share the same product context.</p>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div class="card card-interactive p-4" onclick="switchTab('calc')">
+        <div class="flex items-center gap-3 mb-1">
+          <div class="w-8 h-8 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center text-base">📊</div>
+          <div class="font-semibold text-sm">Should Cost Calculator</div>
+        </div>
+        <p class="text-xs text-slate-600">AI builds 20+ cost drivers from a product name. Edit anything.</p>
+      </div>
+      <div class="card card-interactive p-4" onclick="switchTab('dash')">
+        <div class="flex items-center gap-3 mb-1">
+          <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center text-base">📈</div>
+          <div class="font-semibold text-sm">Executive Dashboard</div>
+        </div>
+        <p class="text-xs text-slate-600">$24.8M sample portfolio · KPIs · supplier scorecards · risk heatmap.</p>
+      </div>
+      <div class="card card-interactive p-4" onclick="switchTab('sca')">
+        <div class="flex items-center gap-3 mb-1">
+          <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-base">🎯</div>
+          <div class="font-semibold text-sm">Supply Chain Analytics</div>
+        </div>
+        <p class="text-xs text-slate-600">Kraljic Matrix · ABC analysis · EOQ optimizer · tariff sim.</p>
+      </div>
+      <div class="card card-interactive p-4" onclick="switchTab('ai')">
+        <div class="flex items-center gap-3 mb-1">
+          <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-base">💬</div>
+          <div class="font-semibold text-sm">AI Procurement Strategist</div>
+        </div>
+        <p class="text-xs text-slate-600">27 procurement frameworks · live Claude/OpenAI integration.</p>
+      </div>
+      <div class="card card-interactive p-4" onclick="switchTab('insights')">
+        <div class="flex items-center gap-3 mb-1">
+          <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-base">💡</div>
+          <div class="font-semibold text-sm">Insights &amp; Recommendations</div>
+        </div>
+        <p class="text-xs text-slate-600">Auto-generated playbook + 6-step negotiation strategy.</p>
+      </div>
+      <div class="card card-interactive p-4" onclick="switchTab('rfq')">
+        <div class="flex items-center gap-3 mb-1">
+          <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-base">📋</div>
+          <div class="font-semibold text-sm">RFQ / RFP Manager</div>
+        </div>
+        <p class="text-xs text-slate-600">Excel upload of supplier quotes · weighted scoring · award.</p>
+      </div>
+      <div class="card card-interactive p-4" onclick="switchTab('commodity')">
+        <div class="flex items-center gap-3 mb-1">
+          <div class="w-8 h-8 rounded-lg bg-orange-100 text-orange-700 flex items-center justify-center text-base">📊</div>
+          <div class="font-semibold text-sm">Live Commodities</div>
+        </div>
+        <p class="text-xs text-slate-600">LME copper, steel HRC, PET resin, lithium · 9 commodities · sync to calculator.</p>
+      </div>
+      <div class="card card-interactive p-4" onclick="switchTab('forecast')">
+        <div class="flex items-center gap-3 mb-1">
+          <div class="w-8 h-8 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center text-base">🔮</div>
+          <div class="font-semibold text-sm">Demand Forecasting</div>
+        </div>
+        <p class="text-xs text-slate-600">SES · Holt · Holt-Winters · ARIMA(1,1,0) · MAPE/RMSE metrics.</p>
+      </div>
+      <div class="card card-interactive p-4" onclick="switchTab('tariff')">
+        <div class="flex items-center gap-3 mb-1">
+          <div class="w-8 h-8 rounded-lg bg-red-100 text-red-700 flex items-center justify-center text-base">🌐</div>
+          <div class="font-semibold text-sm">Tariff Optimizer</div>
+        </div>
+        <p class="text-xs text-slate-600">HTS codes · 12 origins · 6 destinations · FTA eligibility (USMCA, EVFTA…).</p>
+      </div>
+      <div class="card card-interactive p-4" onclick="switchTab('negotiate')">
+        <div class="flex items-center gap-3 mb-1">
+          <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center text-base">🤝</div>
+          <div class="font-semibold text-sm">Negotiation Simulator</div>
+        </div>
+        <p class="text-xs text-slate-600">Live AI plays the supplier · 5 personas · coach feedback.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- GLOSSARY -->
+  <div class="card p-6 mb-6">
+    <div class="flex justify-between items-center flex-wrap gap-3 mb-4">
+      <div>
+        <h2 class="text-headline mb-1">Procurement Glossary</h2>
+        <p class="text-body text-slate-600">50+ terms used in this tool — search, click to expand.</p>
+      </div>
+      <input id="glossarySearch" type="text" placeholder="Search a term…" class="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full md:w-64" oninput="filterGlossary()"/>
+    </div>
+    <div id="glossaryList" class="grid md:grid-cols-2 gap-2"></div>
+  </div>
+
+  <!-- KEYBOARD SHORTCUTS -->
+  <div class="card p-6">
+    <h2 class="text-headline mb-1">Keyboard Shortcuts</h2>
+    <p class="text-body text-slate-600 mb-4">Power-user shortcuts that work anywhere in the tool.</p>
+    <div class="grid md:grid-cols-2 gap-2 text-sm">
+      <div class="flex justify-between items-center p-2 bg-slate-50 rounded">
+        <span>Open command palette</span>
+        <kbd class="px-2 py-0.5 bg-white border border-slate-300 rounded text-xs font-mono">⌘K</kbd>
+      </div>
+      <div class="flex justify-between items-center p-2 bg-slate-50 rounded">
+        <span>Open this tour</span>
+        <kbd class="px-2 py-0.5 bg-white border border-slate-300 rounded text-xs font-mono">⌘?</kbd>
+      </div>
+      <div class="flex justify-between items-center p-2 bg-slate-50 rounded">
+        <span>Connect Live AI</span>
+        <kbd class="px-2 py-0.5 bg-white border border-slate-300 rounded text-xs font-mono">⌘L</kbd>
+      </div>
+      <div class="flex justify-between items-center p-2 bg-slate-50 rounded">
+        <span>About creator</span>
+        <kbd class="px-2 py-0.5 bg-white border border-slate-300 rounded text-xs font-mono">⌘.</kbd>
+      </div>
+      <div class="flex justify-between items-center p-2 bg-slate-50 rounded">
+        <span>Run analyze (in calculator)</span>
+        <kbd class="px-2 py-0.5 bg-white border border-slate-300 rounded text-xs font-mono">Enter</kbd>
+      </div>
+      <div class="flex justify-between items-center p-2 bg-slate-50 rounded">
+        <span>Close any modal</span>
+        <kbd class="px-2 py-0.5 bg-white border border-slate-300 rounded text-xs font-mono">Esc</kbd>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<section id="tab-calc-content" class="tab-content hidden">
   <section class="bg-white rounded-2xl card-shadow p-6 mb-6">
     <div class="flex items-center gap-3 mb-4">
       <div class="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-semibold text-sm">1</div>
@@ -768,6 +1082,18 @@
 <div class="watermark-fixed no-print" onclick="openAbout()">
   <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center font-bold text-[9px]">ZA</span>
   © Mohammed Zumar Ali Hassan
+</div>
+
+<!-- COMMAND PALETTE -->
+<div id="cmdPalette" class="hidden fixed inset-0 bg-slate-900/50 z-50 flex items-start justify-center p-4 pt-24 backdrop-blur-sm" onclick="if(event.target===this) closeCmdPalette()">
+  <div class="bg-white rounded-2xl max-w-2xl w-full shadow-xl overflow-hidden" style="max-height:70vh;">
+    <div class="flex items-center gap-3 p-4 border-b border-slate-200">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      <input id="cmdInput" type="text" placeholder="Search tabs, glossary, actions, frameworks…" class="flex-1 text-base focus:outline-none" oninput="renderCmdResults(this.value)" autocomplete="off"/>
+      <kbd class="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-xs font-mono text-slate-600">Esc</kbd>
+    </div>
+    <div id="cmdResults" class="overflow-y-auto" style="max-height:calc(70vh - 70px);"></div>
+  </div>
 </div>
 
 <!-- LIVE AI WATCHER PANEL -->
@@ -2467,6 +2793,301 @@ document.getElementById('productName').addEventListener('keydown',e=>{ if(e.key=
 // Init AI status from saved config
 setAIStatus(AI.enabled);
 if(AI.enabled) updateAIModel();
+
+/* =================================================================
+   WELCOME / GUIDED TOUR · GLOSSARY · COMMAND PALETTE · SHORTCUTS
+================================================================= */
+
+// ---------- AUDIENCE-BASED TOUR ----------
+const TOURS = {
+  beginner: {
+    title: "🌱 Tour for someone new to procurement",
+    intro: "Let's start from zero. Procurement is the function inside a company that buys everything — raw materials, packaging, equipment, services. The procurement team's job is to get the best value, not the lowest price.",
+    steps: [
+      { icon:"📦", title:"Step 1 · What's a should-cost?",
+        body:"It's an estimate of what a product <i>should</i> cost the supplier to make. You build it from the bottom up — raw materials + labor + electricity + machine + factory + profit. The supplier never shares this; you reverse-engineer it.",
+        cta:{label:"Why does this matter?", action:"alert(\"Without should-cost, you're negotiating blind. The supplier names a price and you try to push 5% off. With should-cost, you walk in with evidence: 'I know your copper cost is $7.20 per kg. I know your labor is 0.05 hours per unit. So your unit cost is ~$10.20. You're quoting me $14.20 — that's a 40% margin. Let's talk about why.' Suddenly you have leverage.\")"} },
+      { icon:"🎯", title:"Step 2 · Let's analyze a brick together",
+        body:"Click the button below. The Should Cost Calculator opens, and we'll work through a red sand brick example.",
+        cta:{label:"Open the Calculator →", action:"switchTab('calc'); setTimeout(()=>loadExample('brick'),300);"} },
+      { icon:"🤖", title:"Step 3 · Let the AI fill it in",
+        body:"In the calculator, click 'Analyze with AI'. The tool detects 'brick' as a product type and loads ~20 cost drivers automatically — sand, cement, fly ash, labor, electricity, transport, supplier margin. Everything an engineering team would have to give you, but they didn't.",
+        cta:{label:"Got it →", action:""} },
+      { icon:"💸", title:"Step 4 · See the unit cost",
+        body:"On the right side of the calculator, you'll see a big teal box with the unit cost. That's the should-cost. For a red sand brick in India at medium volume, expect around ₹11.50–₹13.00. If your supplier is quoting ₹16, you have a clear case for a discussion.",
+        cta:{label:"Cool →", action:""} },
+      { icon:"📊", title:"Step 5 · Learn Kraljic Matrix",
+        body:"The most important procurement framework — divides what you buy into 4 quadrants based on importance and supply risk. Each quadrant needs a different strategy. Click below to see it visually.",
+        cta:{label:"Show me Kraljic →", action:"switchTab('sca');"} },
+      { icon:"💡", title:"Step 6 · Get strategic advice",
+        body:"The Insights tab takes your should-cost analysis and gives you 6 concrete recommendations: which suppliers to use, how to negotiate, what walk-away price, what contract clauses. Run a should-cost first, then click below.",
+        cta:{label:"View Insights →", action:"switchTab('insights');"} },
+      { icon:"🎓", title:"You're ready",
+        body:"You now know more than most non-procurement people. To go deeper, the glossary below has 50+ terms, and the AI Procurement Strategist chatbot can answer any procurement question. Welcome to the field.",
+        cta:{label:"Talk to the AI Strategist →", action:"switchTab('ai');"} }
+    ]
+  },
+  professional: {
+    title: "💼 Tour for procurement professionals",
+    intro: "You know procurement. So I'll skip the basics and show you what's different here — what's actually useful in your day-to-day, and what might be new.",
+    steps: [
+      { icon:"⚡", title:"60-second pitch",
+        body:"Should Cost AI is a single-page web app that does what Akoya/aPriori/Frontier do — should-cost modeling — but free, open, AI-augmented, and integrated with downstream RFQ + negotiation flow. No backend, runs in your browser.",
+        cta:{label:"Try the brick scenario", action:"runScenario('brick');"} },
+      { icon:"🧮", title:"What's actually new",
+        body:"Three things I haven't seen elsewhere: (1) <b>AI keyword classifier</b> picks the right template from a free-text name; (2) <b>size-aware scaling</b> — type '1 litre bottle' vs '500ml bottle' and materials scale linearly; (3) <b>live AI watcher</b> that observes your edits and comments in real-time.",
+        cta:{label:"Show me size scaling", action:"document.getElementById('productName').value='bottle 1 litre'; switchTab('calc'); setTimeout(analyzeProduct, 600);"} },
+      { icon:"🎯", title:"Use Kraljic as your entry point",
+        body:"The Supply Chain Analytics tab has an interactive Kraljic Matrix. The Insights engine automatically positions your current analysis in a quadrant and applies the right sourcing strategy (RFP for Strategic, e-auction for Leverage, catalog for Routine).",
+        cta:{label:"Open Kraljic", action:"switchTab('sca');"} },
+      { icon:"📋", title:"RFQ flow is end-to-end",
+        body:"Download the Excel template, send to your supplier base, upload their filled-in files. Tool scores them on 50% price · 20% lead time · 15% payment terms · 15% MOQ flexibility, then generates an award recommendation with variance vs your should-cost.",
+        cta:{label:"Open RFQ Manager", action:"switchTab('rfq');"} },
+      { icon:"🌐", title:"Tariff optimizer for global sourcing",
+        body:"Type any product, pick a destination, see all 12 candidate origin countries with FTA-aware effective tariffs. Click any FTA badge to learn the rule. For China-USA on most goods, the move is Mexico via USMCA — 0% vs 25%.",
+        cta:{label:"Try lithium battery", action:"switchTab('tariff'); setTimeout(()=>{document.getElementById('tariffProduct').value='lithium battery'; findTariffOptimal();},300);"} },
+      { icon:"🤝", title:"Practice negotiating",
+        body:"Live AI plays the supplier with 5 personas (aggressive, collaborative, desperate, premium, distracted). Each behaves differently. Requires your own Claude/OpenAI API key (~$0.001/message). Includes post-deal coach feedback.",
+        cta:{label:"Set up Live AI", action:"openAISettings();"} },
+      { icon:"🚀", title:"Power tip: command palette",
+        body:"Press <kbd class='px-2 py-0.5 bg-slate-100 border border-slate-300 rounded text-xs font-mono'>⌘K</kbd> anywhere to jump tabs, search the glossary, or trigger actions. Standard Linear/Notion-style UX.",
+        cta:{label:"Try ⌘K", action:"openCmdPalette();"} }
+    ]
+  },
+  interviewer: {
+    title: "👔 Briefing for recruiters / hiring managers",
+    intro: "You're evaluating <b>Mohammed Zumar Ali Hassan</b> — MS Supply Chain Management (STEM) at UT Dallas, with prior procurement experience at Amazon, Cristal Constructions and Nykaa. This tool is his portfolio piece.",
+    steps: [
+      { icon:"📐", title:"What he designed (intellectual contribution)",
+        body:"The 5-stage architecture, the 20-template cost-driver library, all 27 procurement frameworks in the chatbot, the Kraljic auto-positioning logic, EOQ/Safety Stock/Tariff formulas, the 6-step negotiation playbook, the UX flow, and the AI integration design.",
+        cta:{label:"See architecture diagram", action:"window.open('https://github.com/zumaralihassan-collab/Zumar-Should-Cost-Tool/blob/main/BUILD_DOCUMENTATION.md','_blank');"} },
+      { icon:"🤖", title:"What AI did (implementation)",
+        body:"He used Claude as a coding pair-programmer to translate his design spec into working JavaScript / HTML / CSS. The procurement domain knowledge, framework choices, and product decisions are entirely his. This is how modern engineering teams actually work in 2026.",
+        cta:{label:"Read the disclosure", action:"window.open('https://github.com/zumaralihassan-collab/Zumar-Should-Cost-Tool/blob/main/BUILD_DOCUMENTATION.md#4-development-approach--ai-assisted-software-engineering','_blank');"} },
+      { icon:"💼", title:"How it ties to his resume",
+        body:"<b>Nykaa</b>: $300K saved using Kraljic — that's the Kraljic auto-classifier here. <b>Cristal</b>: $720K saved via supplier risk framework — that's the risk heatmap. <b>Amazon</b>: KPI dashboards — that's the Executive Dashboard. <b>UT Dallas Toyota forecasting</b>: 15% MAPE reduction — that's the forecasting tab.",
+        cta:{label:"View About modal", action:"openAbout();"} },
+      { icon:"🎯", title:"5 things to ask him",
+        body:"<ol class='list-decimal pl-5 text-xs space-y-1 mt-2'><li>Walk me through the 5-stage architecture.</li><li>What's the difference between should-cost and TCO?</li><li>Show me how the Kraljic classifier works programmatically.</li><li>How would you scale this to enterprise (Tesla scale)?</li><li>What would you do differently in v2?</li></ol>",
+        cta:{label:"His resume", action:"openAbout();"} },
+      { icon:"🏆", title:"Why this stands out",
+        body:"Most procurement portfolios are PowerPoints. This is a fully functional intelligence suite with live commodity feeds, ARIMA forecasting, FTA-aware tariff optimization, and AI-powered negotiation simulation. It demonstrates both procurement maturity and AI-fluent product thinking — the modern hire profile.",
+        cta:{label:"Live demo", action:"switchTab('calc');"} },
+      { icon:"📞", title:"Reach out",
+        body:"Mohammed Zumar Ali Hassan<br>📧 mohammedzumarali.hassan@utdallas.edu<br>📞 414-317-5496<br>🔗 linkedin.com/in/zumarali15<br><br>Open to procurement, sourcing, supply chain analyst, and category management roles.",
+        cta:{label:"LinkedIn profile", action:"window.open('https://linkedin.com/in/zumarali15','_blank');"} }
+    ]
+  }
+};
+let currentTour = null;
+function setAudience(audience){
+  currentTour = audience;
+  const tour = TOURS[audience];
+  // highlight selection
+  document.querySelectorAll('.audience-card').forEach(c=>{
+    c.style.borderColor = c.dataset.audience === audience ? '#0F766E' : '';
+    c.style.boxShadow = c.dataset.audience === audience ? '0 4px 14px rgba(15,118,110,.2)' : '';
+  });
+  const container = document.getElementById('tourContent');
+  container.classList.remove('hidden');
+  container.innerHTML = `
+    <div class="card p-6">
+      <h2 class="text-headline mb-2">${tour.title}</h2>
+      <p class="text-body text-slate-600 mb-5">${tour.intro}</p>
+      <div class="space-y-3">
+        ${tour.steps.map((s,i)=>`
+          <div class="card p-4 card-hover">
+            <div class="flex items-start gap-3">
+              <div class="text-3xl flex-shrink-0">${s.icon}</div>
+              <div class="flex-1">
+                <h3 class="text-title text-slate-800 mb-1">${s.title}</h3>
+                <p class="text-body text-slate-600 mb-3">${s.body}</p>
+                ${s.cta.label ? `<button onclick="${s.cta.action.replace(/"/g,'&quot;')}" class="btn btn-primary text-xs">${s.cta.label}</button>` : ''}
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  container.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ---------- USE-CASE SCENARIOS ----------
+function runScenario(key){
+  const scenarios = {
+    brick:    {name:'Red sand brick 230×110×75 mm', cat:'construction', region:'india_tier2', qty:10000, currency:'INR', spec:'compressive strength 7.5 MPa, supplier near Hyderabad'},
+    perfume:  {name:'Perfume EdT 50 ml', cat:'cosmetics', region:'eu', qty:50000, currency:'EUR', spec:'10% concentrate, glass bottle + atomizer + outer carton'},
+    conductor:{name:'Copper conductor 4mm² insulated', cat:'auto', region:'china', qty:100000, currency:'USD', spec:'PVC insulated, single core, for EV power distribution'},
+    battery:  {name:'Lithium battery cell 21700', cat:'electronics', region:'china', qty:25000, currency:'USD', spec:'NMC chemistry, ~4500 mAh, for EV battery pack'},
+    tshirt:   {name:'Cotton T-shirt 180 gsm', cat:'garments', region:'bangladesh', qty:25000, currency:'USD', spec:'combed cotton, single jersey, basic dye'},
+    pcb:      {name:'4-layer PCBA with MCU', cat:'electronics', region:'china', qty:5000, currency:'USD', spec:'120 SMD components + 4 through-hole, mid complexity'}
+  };
+  const s = scenarios[key]; if(!s) return;
+  document.getElementById('productName').value = s.name;
+  document.getElementById('productCategory').value = s.cat;
+  document.getElementById('productSpec').value = s.spec;
+  document.getElementById('region').value = s.region;
+  document.getElementById('orderQty').value = s.qty;
+  document.getElementById('currency').value = s.currency;
+  switchTab('calc');
+  setTimeout(analyzeProduct, 400);
+}
+
+// ---------- PROCUREMENT GLOSSARY (50+ terms) ----------
+const GLOSSARY = [
+  {term:"Should-cost", def:"An estimate of what a product <i>should</i> cost to make, built from raw materials + labor + energy + overhead + margin. Used as a negotiation anchor."},
+  {term:"TCO (Total Cost of Ownership)", def:"All costs over a product's lifetime — acquisition, freight, financing, defects, warranty, end-of-life. Unit price typically = 30–60% of TCO."},
+  {term:"Kraljic Matrix", def:"Procurement framework that segments purchases on Profit Impact × Supply Risk into 4 quadrants: Strategic, Bottleneck, Leverage, Routine. Each gets a different sourcing strategy."},
+  {term:"EOQ (Economic Order Quantity)", def:"The order size that minimizes total ordering + holding cost. EOQ = √(2·D·S/H)."},
+  {term:"Safety Stock", def:"Buffer inventory to absorb demand/supply variability. SS = Z × σ × √LT."},
+  {term:"Reorder Point", def:"Inventory level that triggers a new order. ROP = avg daily demand × lead time + safety stock."},
+  {term:"RFQ (Request for Quotation)", def:"Formal price request to suppliers when specs are well-defined. Used for Leverage spend."},
+  {term:"RFP (Request for Proposal)", def:"Complex solicitation including technical, service, ESG criteria — not just price. Used for Strategic spend."},
+  {term:"RFI (Request for Information)", def:"Early-stage market discovery — capabilities, financials, references — before issuing RFQ/RFP."},
+  {term:"BATNA", def:"Best Alternative To a Negotiated Agreement. Your walk-away option. The supplier knowing you have one shifts power to you."},
+  {term:"MOQ", def:"Minimum Order Quantity — smallest order a supplier accepts."},
+  {term:"OTIF", def:"On-Time, In-Full delivery rate. Industry-standard supplier KPI. World-class is 95%+."},
+  {term:"Lead Time", def:"Time from order placement to delivery. Includes production + shipping + receiving + putaway."},
+  {term:"PPM Defects", def:"Parts Per Million defective. World-class manufacturing is <100 PPM."},
+  {term:"Spend Cube", def:"3-D slice of total spend by category × supplier × business unit. Foundation of all procurement analytics."},
+  {term:"Maverick Spend", def:"Off-contract purchases. Typically 10–30% of total — biggest near-term savings opportunity."},
+  {term:"Tail Spend", def:"Bottom 80% of suppliers driving 20% of spend. Consolidate or automate via catalog/P-card."},
+  {term:"Pareto Analysis", def:"The 80/20 rule — 80% of value comes from 20% of items. ABC analysis is the procurement application."},
+  {term:"ABC Analysis", def:"Categorize SKUs as A (top spend, daily attention), B (middle, weekly), C (bottom, monthly auto-replenish)."},
+  {term:"SRM (Supplier Relationship Management)", def:"Tiered engagement with suppliers: Tactical (transactional), Preferred (commercial), Strategic (joint roadmaps)."},
+  {term:"VMI (Vendor Managed Inventory)", def:"Supplier owns inventory at your site until consumption. Reduces working capital and stock-outs."},
+  {term:"JIT (Just In Time)", def:"Pull-based replenishment — material arrives when needed. Requires reliable lead times and trusted suppliers."},
+  {term:"Bullwhip Effect", def:"Small demand changes at the customer end amplify into massive swings upstream. Fix via POS data sharing."},
+  {term:"Should-Pay", def:"Should-cost evolved — includes lifecycle costs, not just acquisition. Better negotiation anchor for capex."},
+  {term:"Make vs Buy", def:"Decision whether to produce in-house or outsource. Re-evaluate every 2–3 years."},
+  {term:"Single-source vs Multi-source", def:"Single = max leverage but max risk. Dual (60/40) = standard for Strategic. Multi (3+) = Bottleneck items in volatile periods."},
+  {term:"ARIMA", def:"AutoRegressive Integrated Moving Average. Statistical forecasting model. ARIMA(p,d,q) — autoregressive order, differencing, moving average."},
+  {term:"MAPE", def:"Mean Absolute Percentage Error — forecast accuracy metric. Lower = better."},
+  {term:"RMSE", def:"Root Mean Square Error — penalizes large forecast errors more than small ones."},
+  {term:"Bias", def:"Persistent over- or under-forecasting. Positive bias = over-forecasting (excess inventory)."},
+  {term:"HTS Code", def:"Harmonized Tariff Schedule code — international product classification used to determine import duties."},
+  {term:"FTA (Free Trade Agreement)", def:"Bilateral or multilateral agreement that reduces or eliminates tariffs. Examples: USMCA, EVFTA, India-UK FTA."},
+  {term:"USMCA", def:"US-Mexico-Canada Agreement (2020). Replaced NAFTA. Most goods between members move duty-free if rules of origin are met."},
+  {term:"CBAM", def:"Carbon Border Adjustment Mechanism — EU's tariff on embodied emissions in imports. Live from 2026."},
+  {term:"FOB / DDP / CIF", def:"Incoterms — define who pays freight + insurance + duty + risk at each stage. FOB = buyer takes over at port of origin; DDP = supplier delivers to your door."},
+  {term:"Tariff Engineering", def:"Tweaking product design to fit a lower-duty HTS code. Legal optimization."},
+  {term:"FTZ (Foreign Trade Zone)", def:"Bonded area where imports avoid duty until they enter the domestic market. Used to defer or eliminate duty on re-exports."},
+  {term:"NPV (Net Present Value)", def:"Sum of future cash flows discounted to today. Used for multi-year sourcing decisions."},
+  {term:"Index-linked pricing", def:"Contract clause that ties material price to a public commodity index (LME, PIX) — eliminates supplier speculation premium."},
+  {term:"MFN (Most Favored Nation)", def:"Contract clause guaranteeing you the supplier's best price offered to any customer in their category."},
+  {term:"Scope 3 Emissions", def:"Indirect emissions from your value chain — typically 70%+ of corporate footprint. Most sit in your supply base."},
+  {term:"ESG", def:"Environmental, Social, Governance — non-financial supplier evaluation criteria. Increasingly weighted in scorecards."},
+  {term:"DMAIC", def:"Define-Measure-Analyze-Improve-Control. Six Sigma improvement cycle. Applied to procurement: reduce PO cycle time, eliminate maverick spend."},
+  {term:"Force Majeure", def:"Contract clause excusing performance during 'acts of God' — war, pandemic, natural disaster. Define narrowly to protect yourself."},
+  {term:"Open-book costing", def:"Supplier shares their P&L; buyer + supplier co-engineer cost down. Used for Strategic-quadrant partners."},
+  {term:"Cost-down workshop", def:"Joint buyer-supplier session targeting specific cost drivers. Typical outcome: 3–8% reduction in 90 days."},
+  {term:"Should-cost teardown", def:"Step-by-step disassembly of a product to identify and price every component. Often combined with should-cost analysis."},
+  {term:"PPV (Purchase Price Variance)", def:"Actual price - standard price × quantity. Tracks individual buyer/category performance."},
+  {term:"Cost avoidance", def:"Savings that prevent future cost increases (vs cost reduction which actually lowers spend). Both count toward procurement KPIs."},
+  {term:"Demand-based replenishment", def:"Inventory pulled by actual consumption signals rather than forecasts. Reduces bullwhip."},
+  {term:"Category management", def:"Treating each spend category as a mini-business with its own strategy, supplier base, and accountable leader."},
+  {term:"Total Landed Cost", def:"Unit price + freight + duty + insurance + handling + FX. The true cost of an imported good at your dock."},
+  {term:"Tier 1/2/3 supplier", def:"Tier 1 sells to you directly. Tier 2 sells to your Tier 1. Tier 3 sells to Tier 2. Most disruptions originate in Tier 2/3."}
+];
+function renderGlossary(filter=''){
+  const list = document.getElementById('glossaryList');
+  if(!list) return;
+  const f = filter.toLowerCase();
+  const filtered = filter ? GLOSSARY.filter(g => g.term.toLowerCase().includes(f) || g.def.toLowerCase().includes(f)) : GLOSSARY;
+  list.innerHTML = filtered.length === 0
+    ? '<p class="text-sm text-slate-400 col-span-2 text-center py-4">No matching terms.</p>'
+    : filtered.map((g,i)=>`<details class="card p-3"><summary class="font-semibold text-sm cursor-pointer text-slate-800">${g.term}</summary><p class="text-xs text-slate-600 mt-2">${g.def}</p></details>`).join('');
+}
+function filterGlossary(){ renderGlossary(document.getElementById('glossarySearch').value); }
+
+// ---------- COMMAND PALETTE ----------
+const CMD_ITEMS = [
+  // Tabs
+  {label:"Welcome & Tour", icon:"✨", cat:"Tab", action:()=>switchTab('welcome')},
+  {label:"Should Cost Calculator", icon:"📊", cat:"Tab", action:()=>switchTab('calc')},
+  {label:"Executive Dashboard", icon:"📈", cat:"Tab", action:()=>switchTab('dash')},
+  {label:"Supply Chain Analytics", icon:"🎯", cat:"Tab", action:()=>switchTab('sca')},
+  {label:"AI Procurement Strategist", icon:"💬", cat:"Tab", action:()=>switchTab('ai')},
+  {label:"Insights & Recommendations", icon:"💡", cat:"Tab", action:()=>switchTab('insights')},
+  {label:"RFQ / RFP Manager", icon:"📋", cat:"Tab", action:()=>switchTab('rfq')},
+  {label:"Live Commodities", icon:"💰", cat:"Tab", action:()=>switchTab('commodity')},
+  {label:"Demand Forecasting", icon:"🔮", cat:"Tab", action:()=>switchTab('forecast')},
+  {label:"Tariff Optimizer", icon:"🌐", cat:"Tab", action:()=>switchTab('tariff')},
+  {label:"Negotiation Simulator", icon:"🤝", cat:"Tab", action:()=>switchTab('negotiate')},
+  // Actions
+  {label:"Connect Live AI (Claude/OpenAI)", icon:"🔌", cat:"Action", action:()=>openAISettings()},
+  {label:"About the Creator (Zumar Ali Hassan)", icon:"👤", cat:"Action", action:()=>openAbout()},
+  {label:"How it works (help)", icon:"❓", cat:"Action", action:()=>showHelp()},
+  {label:"Run brick scenario", icon:"🧱", cat:"Scenario", action:()=>runScenario('brick')},
+  {label:"Run perfume scenario", icon:"🧴", cat:"Scenario", action:()=>runScenario('perfume')},
+  {label:"Run copper conductor scenario", icon:"⚡", cat:"Scenario", action:()=>runScenario('conductor')},
+  {label:"Run battery cell scenario", icon:"🔋", cat:"Scenario", action:()=>runScenario('battery')},
+  {label:"Run T-shirt scenario", icon:"👕", cat:"Scenario", action:()=>runScenario('tshirt')},
+  {label:"Run PCBA scenario", icon:"🔌", cat:"Scenario", action:()=>runScenario('pcb')},
+];
+// Glossary items get added too
+function buildCmdList(){
+  return [...CMD_ITEMS, ...GLOSSARY.map(g=>({label:g.term, icon:"📖", cat:"Glossary", action:()=>{
+    switchTab('welcome');
+    setTimeout(()=>{
+      document.getElementById('glossarySearch').value = g.term;
+      filterGlossary();
+      document.getElementById('glossaryList').scrollIntoView({behavior:'smooth', block:'center'});
+    }, 300);
+  }}))];
+}
+function openCmdPalette(){
+  document.getElementById('cmdPalette').classList.remove('hidden');
+  setTimeout(()=>{ document.getElementById('cmdInput').focus(); renderCmdResults(''); }, 50);
+}
+function closeCmdPalette(){ document.getElementById('cmdPalette').classList.add('hidden'); }
+function renderCmdResults(query){
+  const results = document.getElementById('cmdResults');
+  const all = buildCmdList();
+  const q = query.toLowerCase().trim();
+  const filtered = q ? all.filter(i => i.label.toLowerCase().includes(q) || i.cat.toLowerCase().includes(q)) : all.slice(0,12);
+  if(filtered.length === 0){
+    results.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm">No results — try "calculator", "tariff", "kraljic", "AI"…</div>';
+    return;
+  }
+  results.innerHTML = filtered.slice(0,20).map((it,i)=>`
+    <div class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-100" onclick="executeCmd(${i})">
+      <div class="text-xl">${it.icon}</div>
+      <div class="flex-1">
+        <div class="text-sm font-medium text-slate-800">${it.label}</div>
+        <div class="text-xs text-slate-400">${it.cat}</div>
+      </div>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+    </div>`).join('');
+  window._cmdFiltered = filtered;
+}
+function executeCmd(i){
+  const item = window._cmdFiltered[i];
+  if(!item) return;
+  closeCmdPalette();
+  setTimeout(()=>item.action(), 50);
+}
+
+// ---------- KEYBOARD SHORTCUTS ----------
+document.addEventListener('keydown', (e) => {
+  // Ignore if typing in input/textarea (unless cmd palette)
+  const isInput = ['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName);
+  const cmdOpen = !document.getElementById('cmdPalette')?.classList.contains('hidden');
+  if (cmdOpen && e.key === 'Escape') { closeCmdPalette(); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openCmdPalette(); return; }
+  if (isInput) return;
+  if ((e.metaKey || e.ctrlKey) && e.key === '/') { e.preventDefault(); switchTab('welcome'); }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'l') { e.preventDefault(); openAISettings(); }
+  if ((e.metaKey || e.ctrlKey) && e.key === '.') { e.preventDefault(); openAbout(); }
+  if (e.key === 'Escape') {
+    ['aboutModal','helpModal','aiModal','compareModal','cmdPalette'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.classList.add('hidden');
+    });
+  }
+});
+
+// Initial render of glossary
+renderGlossary();
 
 /* ============== LIVE COMMODITY PRICES ============== */
 // 2026 baseline prices — refreshable via API if user provides one
