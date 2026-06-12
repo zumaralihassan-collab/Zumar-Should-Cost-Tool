@@ -877,15 +877,75 @@ function detectTemplate(name,cat){
   if(cat==="plastics"||cat==="packaging") return "plastic";
   return "generic";
 }
+
+// Each template's "base" reference values — used to scale material quantities
+// when the user specifies a different size (e.g. "bottle 1 litre" vs the 500ml default).
+const TEMPLATE_BASE = {
+  plastic: { value: 500, unit: 'ml' },   // 500 ml PET bottle
+  perfume: { value: 50, unit: 'ml' },    // 50 ml EdT
+  brick:   { value: 1, unit: 'pc' },     // per brick
+  tshirt:  { value: 180, unit: 'gsm' },  // 180 gsm fabric
+  pcb:     { value: 100, unit: 'mm' },   // 100 mm board edge
+  generic: { value: 1, unit: 'unit' }
+};
+
+// Parse numeric size from a product description.
+// Returns {value, unit} or null. Handles "1 litre", "1L", "1000ml", "250 g", "0.5 kg", "230x110x75 mm".
+function parseSize(text){
+  const t = (text||'').toLowerCase();
+  // 1 litre / 2 litres / 1L / 1.5 L
+  let m = t.match(/(\d+(?:\.\d+)?)\s*(litres?|l)\b/);
+  if(m) return { value: parseFloat(m[1])*1000, unit:'ml' };
+  // 500 ml / 500ml
+  m = t.match(/(\d+(?:\.\d+)?)\s*ml\b/);
+  if(m) return { value: parseFloat(m[1]), unit:'ml' };
+  // 100 g / 100g
+  m = t.match(/(\d+(?:\.\d+)?)\s*g\b/);
+  if(m) return { value: parseFloat(m[1]), unit:'g' };
+  // 1 kg / 0.5 kg
+  m = t.match(/(\d+(?:\.\d+)?)\s*kg\b/);
+  if(m) return { value: parseFloat(m[1])*1000, unit:'g' };
+  // gsm (fabric weight)
+  m = t.match(/(\d+(?:\.\d+)?)\s*gsm\b/);
+  if(m) return { value: parseFloat(m[1]), unit:'gsm' };
+  return null;
+}
+
+// Compute scaling factor (detected_size / base_size). Caps at 0.25× to 10× for safety.
+function sizeScaleFactor(tplKey, name, spec){
+  const base = TEMPLATE_BASE[tplKey]; if(!base) return null;
+  const detected = parseSize(name + ' ' + (spec||''));
+  if(!detected) return null;
+  // unit-compatible only
+  if(detected.unit !== base.unit) return null;
+  const factor = detected.value / base.value;
+  if(!isFinite(factor) || factor<=0) return null;
+  return { factor: Math.max(0.25, Math.min(10, factor)), detected, base };
+}
+let currentScaling = null; // {factor, detected, base} or null
+
 function analyzeProduct(){
   const name=document.getElementById('productName').value.trim();
   if(!name){ alert('Please enter a product name'); return; }
   const cat=document.getElementById('productCategory').value;
+  const spec=document.getElementById('productSpec').value;
   const btn=document.getElementById('analyzeBtn');
   btn.disabled=true; btn.innerHTML='<span class="ai-thinking font-semibold">AI analyzing…</span>';
   setTimeout(()=>{
     const tplKey=detectTemplate(name,cat); const tpl=TEMPLATES[tplKey];
     currentParams=JSON.parse(JSON.stringify(tpl.params));
+    // Size-aware scaling
+    currentScaling = sizeScaleFactor(tplKey, name, spec);
+    if(currentScaling){
+      const f = currentScaling.factor;
+      currentParams.forEach(p=>{
+        if(p.group==='material') p.qty = +(p.qty * f).toFixed(4);
+        // labor and energy scale partially (cube-root rule of thumb for related work content)
+        else if(p.group==='labor') p.qty = +(p.qty * Math.pow(f, 0.6)).toFixed(4);
+        else if(p.group==='energy') p.qty = +(p.qty * Math.pow(f, 0.7)).toFixed(4);
+        // equipment, facility, overhead stay per-unit (no scaling)
+      });
+    }
     applyContextMultipliers();
     renderAISummary(tplKey,tpl); renderParameters();
     document.getElementById('step2').classList.remove('hidden');
@@ -913,6 +973,13 @@ function renderAISummary(tplKey,tpl){
   const vol=document.getElementById('volumeProfile').selectedOptions[0].textContent;
   const qual=document.getElementById('qualityTier').selectedOptions[0].textContent;
   const cats=[...new Set(currentParams.map(p=>p.cat))];
+  let scalingBanner = '';
+  if(currentScaling){
+    const f=currentScaling.factor.toFixed(2);
+    scalingBanner = `<div class="mt-2 inline-flex items-center gap-2 bg-amber-100 border border-amber-300 text-amber-900 px-3 py-1.5 rounded-lg text-xs">
+      <span>📏</span><b>Size-aware scaling applied:</b> detected <b>${currentScaling.detected.value}${currentScaling.detected.unit}</b> vs template base <b>${currentScaling.base.value}${currentScaling.base.unit}</b> → scaled materials by <b>${f}×</b>, labor by <b>${Math.pow(currentScaling.factor,0.6).toFixed(2)}×</b>, energy by <b>${Math.pow(currentScaling.factor,0.7).toFixed(2)}×</b>.
+    </div>`;
+  }
   document.getElementById('aiSummary').innerHTML=`
     <div class="flex items-start gap-3">
       <div class="w-10 h-10 rounded-full bg-teal-600 text-white flex items-center justify-center flex-shrink-0">
@@ -922,6 +989,7 @@ function renderAISummary(tplKey,tpl){
         <div class="text-sm font-semibold text-teal-900 mb-1">AI classified this as: <span class="bg-white px-2 py-0.5 rounded-full">${tpl.label}</span></div>
         <p class="text-sm text-slate-700">${tpl.description}</p>
         <p class="text-xs text-slate-600 mt-2">Detected <b>${currentParams.length}</b> cost drivers across <b>${cats.length}</b> categories. Context: ${region} · ${vol} · ${qual}.</p>
+        ${scalingBanner}
         <div class="mt-2 flex flex-wrap gap-1.5">
           ${cats.map(c=>`<span class="text-xs px-2 py-0.5 rounded-full" style="background:${CATEGORY_COLORS[c]||'#94A3B8'}20;color:${CATEGORY_COLORS[c]||'#475569'}">${c}</span>`).join('')}
         </div>
