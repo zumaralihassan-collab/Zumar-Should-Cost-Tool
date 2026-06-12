@@ -1123,32 +1123,47 @@ const TEMPLATES = {
     {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.12,rateUnit:"× cost",group:"margin"}
   ]}
 };
+// Order matters — most-specific multi-word patterns FIRST, generic single words LAST.
 const KEYWORD_MAP = [
+  // Multi-word power & electrical (specific)
+  {keys:["wire harness","wiring harness","cable assembly","loom"],template:"harness"},
+  {keys:["sheet metal","steel part","steel bracket","sheet steel"],template:"steel"},
+  {keys:["aluminum extrusion","aluminium extrusion","alu profile","alloy profile"],template:"aluminum"},
+  {keys:["battery cell","battery pack","li-ion","lithium ion","18650","21700"],template:"battery"},
+  {keys:["coil spring","compression spring","helical spring"],template:"spring"},
+  {keys:["ball bearing","roller bearing","6204","6205","6206"],template:"bearing"},
+  {keys:["glass bottle","glass vial","glass jar","amber glass"],template:"glass"},
+  {keys:["pet bottle","plastic bottle"],template:"plastic"},
+  {keys:["circuit board","pcba","smt assembly","electronic assembly"],template:"pcb"},
+  // Construction
   {keys:["brick","block","paver","masonry"],template:"brick"},
+  // Cosmetics
   {keys:["perfume","fragrance","cologne","edt","edp","attar","scent","deodorant"],template:"perfume"},
+  // Garments
   {keys:["tshirt","t-shirt","shirt","garment","apparel","jersey","polo","hoodie","fabric","yarn"],template:"tshirt"},
-  {keys:["pcb","pcba","circuit board","smt","electronic assembly"],template:"pcb"},
-  // Power-distribution / electrical
-  {keys:["conductor","cable","wire","insulated wire","power cable","cu cable"],template:"conductor"},
+  // Single-word electricals
+  {keys:["harness"],template:"harness"},
+  {keys:["pcb"],template:"pcb"},
   {keys:["busbar","bus bar","bus-bar","copper bar","copper strip"],template:"busbar"},
   {keys:["contactor","relay","motor starter"],template:"contactor"},
-  {keys:["harness","cable assembly","wiring harness","loom"],template:"harness"},
+  {keys:["conductor","cable","power cable","cu cable","insulated wire"],template:"conductor"},
   {keys:["fuse","fusible link","blade fuse"],template:"fuse"},
-  {keys:["battery","li-ion","lithium","cell ","18650","21700","battery pack","battery cell"],template:"battery"},
-  // Metal / fabrication
-  {keys:["sheet metal","stamping","steel part","steel bracket","chassis","enclosure","sheet steel","crca"],template:"steel"},
-  {keys:["aluminum","aluminium","extrusion","alu profile","alloy profile"],template:"aluminum"},
+  {keys:["battery","lithium"],template:"battery"},
+  // Metal fab
+  {keys:["stamping","chassis","enclosure","crca"],template:"steel"},
+  {keys:["aluminum","aluminium"],template:"aluminum"},
   {keys:["casting","cast iron","die cast","sand cast","gravity cast"],template:"casting"},
-  {keys:["spring","coil spring","compression spring","helical spring"],template:"spring"},
-  {keys:["bearing","ball bearing","roller bearing","6204","6205","6206"],template:"bearing"},
-  // Soft goods / chemicals
-  {keys:["gasket","o-ring","o ring","seal","rubber ring","oring"],template:"gasket"},
-  // Packaging
-  {keys:["bottle","pet bottle","jar","preform","blow mould"],template:"plastic"},
-  {keys:["glass bottle","glass vial","glass jar","amber glass"],template:"glass"},
+  {keys:["spring"],template:"spring"},
+  {keys:["bearing"],template:"bearing"},
+  // Soft goods
+  {keys:["gasket","o-ring","o ring","oring","rubber ring","seal"],template:"gasket"},
+  // Packaging — generic 'bottle' falls through to plastic LAST
   {keys:["carton","corrugated","shipper","cardboard","outer box","master carton"],template:"cardboard"},
+  {keys:["bottle","jar","preform","blow mould","container","pet "],template:"plastic"},
   // Pharma
-  {keys:["tablet","capsule","pill","medicine","pharmaceutical","drug"],template:"tablet"}
+  {keys:["tablet","capsule","pill","medicine","pharmaceutical","drug"],template:"tablet"},
+  // Last resort: just "wire" -> conductor (must be after harness)
+  {keys:["wire"],template:"conductor"}
 ];
 function detectTemplate(name,cat){
   const n=(name||"").toLowerCase();
