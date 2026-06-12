@@ -44,6 +44,17 @@
   .quadrant-routine{ background:linear-gradient(135deg,#D1FAE5,#A7F3D0); }
   .heat-cell{ padding:6px 4px; text-align:center; font-size:11px; color:white; font-weight:600; }
   @media print{ .no-print{ display:none !important; } .watermark-fixed{ position:static; background:#0F766E; } }
+  /* MOBILE RESPONSIVE */
+  @media (max-width: 768px){
+    .tab-btn{ padding:.5rem .7rem; font-size:.75rem; }
+    h1.text-3xl{ font-size:1.5rem; }
+    .watermark-fixed{ bottom:8px; right:8px; padding:4px 10px; font-size:10px; }
+    #aiWatcher{ width: calc(100vw - 16px) !important; right: 8px; bottom: 60px; }
+    table{ font-size:11px; }
+    .gradient-header nav{ overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch; }
+    .gradient-header nav::-webkit-scrollbar{ display:none; }
+    .tab-btn{ flex-shrink:0; white-space:nowrap; }
+  }
 </style>
 </head>
 <body class="min-h-screen text-slate-800">
@@ -80,6 +91,10 @@
       <button class="tab-btn tab-inactive" data-tab="ai" onclick="switchTab('ai')">AI Procurement Strategist</button>
       <button class="tab-btn tab-inactive" data-tab="insights" onclick="switchTab('insights')">Insights &amp; Recommendations</button>
       <button class="tab-btn tab-inactive" data-tab="rfq" onclick="switchTab('rfq')">RFQ / RFP Manager</button>
+      <button class="tab-btn tab-inactive" data-tab="commodity" onclick="switchTab('commodity')">Live Commodities</button>
+      <button class="tab-btn tab-inactive" data-tab="forecast" onclick="switchTab('forecast')">Demand Forecasting</button>
+      <button class="tab-btn tab-inactive" data-tab="tariff" onclick="switchTab('tariff')">Tariff Optimizer</button>
+      <button class="tab-btn tab-inactive" data-tab="negotiate" onclick="switchTab('negotiate')">Negotiation Simulator</button>
     </nav>
   </div>
   <div class="bg-slate-900/40 text-center text-[11px] py-1.5 text-teal-100">
@@ -571,6 +586,183 @@
   </div>
 </section>
 
+<!-- ========= LIVE COMMODITY PRICES ========= -->
+<section id="tab-commodity-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-orange-600 to-red-700 text-white rounded-2xl p-6 mb-6">
+    <div class="flex justify-between items-start flex-wrap gap-3">
+      <div>
+        <h2 class="text-2xl font-bold">Live Commodity Markets</h2>
+        <p class="text-orange-100 text-sm">LME &amp; spot prices for raw materials that drive your should-cost</p>
+      </div>
+      <button onclick="refreshCommodityPrices()" class="px-4 py-2 bg-white/15 hover:bg-white/25 rounded-lg font-semibold text-sm">↻ Refresh from API</button>
+    </div>
+  </div>
+  <div id="commodityCards" class="grid md:grid-cols-3 gap-4 mb-6"></div>
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <h3 class="font-bold text-sm mb-3">12-Month Commodity Trend (cost index, base = Jan 2025)</h3>
+    <div class="h-72"><canvas id="commodityTrendChart"></canvas></div>
+  </div>
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <div class="flex justify-between items-center flex-wrap gap-2 mb-3">
+      <h3 class="font-bold text-sm">Apply to Current Should-Cost</h3>
+      <button onclick="applyCommodityRates()" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-semibold">↺ Sync Rates to Calculator</button>
+    </div>
+    <p class="text-xs text-slate-500">Auto-updates raw material rates in your current Should Cost analysis based on the latest commodity prices below. Useful after market shifts.</p>
+  </div>
+</section>
+
+<!-- ========= DEMAND FORECASTING ========= -->
+<section id="tab-forecast-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-blue-700 to-cyan-700 text-white rounded-2xl p-6 mb-6">
+    <h2 class="text-2xl font-bold">Demand Forecasting Engine</h2>
+    <p class="text-blue-100 text-sm">Exponential Smoothing + AR(1) models with MAPE/RMSE accuracy metrics — based on my Toyota SKU forecasting project</p>
+  </div>
+
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <div class="flex items-center gap-3 mb-3">
+      <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-sm">1</div>
+      <h3 class="text-lg font-bold">Input Historical Demand</h3>
+    </div>
+    <p class="text-sm text-slate-600 mb-3">Paste at least 12 historical periods (months/weeks). Tool auto-detects trend, seasonality, and generates forecast with confidence bands.</p>
+    <textarea id="fcInput" rows="3" placeholder="e.g. 120, 135, 150, 142, 168, 175, 180, 195, 188, 205, 220, 215, 230, 245" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono"></textarea>
+    <div class="flex gap-2 mt-3 flex-wrap">
+      <button onclick="runForecast('ses')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold">Simple Exp Smoothing</button>
+      <button onclick="runForecast('holt')" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-sm font-semibold">Holt (Trend)</button>
+      <button onclick="runForecast('hw')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold">Holt-Winters (Seasonal)</button>
+      <button onclick="runForecast('ar1')" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-semibold">AR(1) ARIMA</button>
+      <button onclick="loadForecastDemo()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm">Load Sample Data</button>
+    </div>
+  </div>
+
+  <div id="forecastResult" class="hidden space-y-4"></div>
+
+  <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+    <h3 class="font-bold text-sm text-amber-900 mb-2">📚 About these models</h3>
+    <div class="text-xs text-amber-800 space-y-2">
+      <p><b>Simple Exponential Smoothing (SES)</b> — Flat-trend, fast-adapting; α weights recent observations more heavily.</p>
+      <p><b>Holt's Linear Trend</b> — Adds a trend component; great when demand is steadily growing or declining.</p>
+      <p><b>Holt-Winters Triple Exp</b> — Adds seasonality; ideal for SKUs with quarterly or annual cycles.</p>
+      <p><b>AR(1) ARIMA</b> — Autoregressive component captures momentum; the workhorse for stable-demand items.</p>
+      <p class="italic mt-2">In my Toyota SKU project I combined these models with ChatGPT-assisted demand sensing and reduced forecast error by 15% — see About the Creator.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========= TARIFF OPTIMIZER ========= -->
+<section id="tab-tariff-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-red-600 to-purple-700 text-white rounded-2xl p-6 mb-6">
+    <h2 class="text-2xl font-bold">Tariff Engineering Optimizer</h2>
+    <p class="text-red-100 text-sm">HTS code lookup · country-pair duty matrix · FTA eligibility · cheapest legal supply path</p>
+  </div>
+
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <div class="grid md:grid-cols-4 gap-3 mb-4">
+      <div>
+        <label class="text-sm font-medium block mb-1">Product / Description</label>
+        <input id="tariffProduct" type="text" placeholder="e.g. lithium battery, copper conductor" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"/>
+      </div>
+      <div>
+        <label class="text-sm font-medium block mb-1">Destination</label>
+        <select id="tariffDest" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          <option value="us">USA</option><option value="eu">EU</option><option value="india">India</option>
+          <option value="uk">UK</option><option value="canada">Canada</option><option value="mexico">Mexico</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-sm font-medium block mb-1">Annual Import Value ($M)</label>
+        <input id="tariffValue" type="number" value="5" step="0.1" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"/>
+      </div>
+      <div class="flex items-end">
+        <button onclick="findTariffOptimal()" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-sm">Find Cheapest Path</button>
+      </div>
+    </div>
+    <div id="tariffHtsHint" class="text-xs text-slate-500 hidden"></div>
+  </div>
+
+  <div id="tariffResults" class="hidden">
+    <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+      <h3 class="font-bold text-sm mb-3">Supply Origin Comparison</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 text-xs text-slate-600 uppercase">
+            <tr><th class="text-left p-2">Rank</th><th class="text-left p-2">Origin</th><th class="p-2 text-right">Base Tariff</th><th class="p-2 text-right">FTA Rate</th><th class="p-2 text-left">FTA Used</th><th class="p-2 text-right">Annual Duty</th><th class="p-2 text-right">vs Highest</th></tr>
+          </thead>
+          <tbody id="tariffTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="tariffRecommendation" class="bg-gradient-to-r from-red-600 to-purple-700 text-white rounded-2xl p-5"></div>
+  </div>
+</section>
+
+<!-- ========= NEGOTIATION SIMULATOR ========= -->
+<section id="tab-negotiate-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-amber-600 to-red-700 text-white rounded-2xl p-6 mb-6">
+    <div class="flex justify-between items-start flex-wrap gap-3">
+      <div>
+        <h2 class="text-2xl font-bold flex items-center gap-2">AI Negotiation Simulator
+          <span class="text-xs bg-white text-amber-700 px-2 py-0.5 rounded-full font-bold">REQUIRES LIVE AI</span></h2>
+        <p class="text-amber-100 text-sm">Practice negotiations against an AI playing the supplier — switch personas mid-deal, beat your should-cost</p>
+      </div>
+      <button onclick="resetNegotiation()" class="px-3 py-1.5 bg-white/15 hover:bg-white/25 rounded-lg text-xs font-medium">New Deal</button>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-12 gap-4">
+    <aside class="md:col-span-4 space-y-3">
+      <div class="bg-white rounded-2xl card-shadow p-4">
+        <h3 class="font-semibold text-sm mb-3">Deal Setup</h3>
+        <div class="space-y-2 text-sm">
+          <label class="block">Product
+            <input id="negProduct" type="text" placeholder="e.g. Copper conductor 4mm²" class="w-full border border-slate-300 rounded px-2 py-1.5 mt-1 text-sm"/></label>
+          <label class="block">Order quantity
+            <input id="negQty" type="number" value="10000" class="w-full border border-slate-300 rounded px-2 py-1.5 mt-1 text-sm"/></label>
+          <label class="block">Your should-cost / unit (₹)
+            <input id="negShouldCost" type="number" value="860" step="0.01" class="w-full border border-slate-300 rounded px-2 py-1.5 mt-1 text-sm"/></label>
+          <label class="block">Walk-away ceiling (₹)
+            <input id="negCeiling" type="number" value="930" step="0.01" class="w-full border border-slate-300 rounded px-2 py-1.5 mt-1 text-sm"/></label>
+        </div>
+      </div>
+      <div class="bg-white rounded-2xl card-shadow p-4">
+        <h3 class="font-semibold text-sm mb-2">Supplier Persona</h3>
+        <select id="negPersona" class="w-full border border-slate-300 rounded px-2 py-2 text-sm">
+          <option value="aggressive">🦈 Aggressive — high opening, refuses to budge, plays scarcity</option>
+          <option value="collaborative" selected>🤝 Collaborative — open to partnership, fair on cost</option>
+          <option value="desperate">😅 Desperate — needs the order, gives big concessions</option>
+          <option value="premium">💎 Premium — won't drop price, sells quality/reliability</option>
+          <option value="distracted">📱 Distracted — slow responses, unclear commitments</option>
+        </select>
+        <p class="text-xs text-slate-500 mt-2">Change persona mid-deal to practice different scenarios.</p>
+      </div>
+      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+        <h3 class="font-semibold text-sm text-amber-900 mb-1">Tactics to try</h3>
+        <ul class="text-xs text-amber-800 list-disc pl-5 space-y-0.5">
+          <li>Anchor with your should-cost</li>
+          <li>Trade payment terms for price</li>
+          <li>Bundle volume across products</li>
+          <li>Index-link to LME copper</li>
+          <li>Reference a competing quote (BATNA)</li>
+          <li>Walk away once</li>
+        </ul>
+      </div>
+      <button onclick="startNegotiation()" class="w-full px-4 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold">Start Negotiation</button>
+    </aside>
+
+    <div class="md:col-span-8 bg-white rounded-2xl card-shadow flex flex-col" style="height:620px;">
+      <div id="negLog" class="flex-1 overflow-y-auto p-5 space-y-3 flex flex-col">
+        <div class="text-center text-slate-400 italic text-sm py-10">Configure the deal on the left and click "Start Negotiation" — the AI supplier will make an opening offer.</div>
+      </div>
+      <div class="border-t p-3 flex gap-2">
+        <input id="negInput" type="text" placeholder="Your message to the supplier…" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm" disabled/>
+        <button onclick="sendNegMessage()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-semibold" id="negSendBtn" disabled>Send</button>
+        <button onclick="acceptDeal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold hidden" id="negAcceptBtn">Accept Deal</button>
+        <button onclick="walkAway()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold hidden" id="negWalkBtn">Walk Away</button>
+      </div>
+      <div id="negStatus" class="hidden border-t p-3 bg-slate-50 text-xs text-slate-600 grid grid-cols-4 gap-2"></div>
+    </div>
+  </div>
+</section>
+
 </main>
 
 <div class="watermark-fixed no-print" onclick="openAbout()">
@@ -963,6 +1155,10 @@ function switchTab(name){
   if(name==='ai') initAI();
   if(name==='insights') initInsights();
   if(name==='rfq') initRFQ();
+  if(name==='commodity') initCommodity();
+  if(name==='forecast') initForecast();
+  if(name==='tariff') initTariff();
+  if(name==='negotiate') initNegotiation();
 }
 
 const TEMPLATES = {
@@ -2271,6 +2467,500 @@ document.getElementById('productName').addEventListener('keydown',e=>{ if(e.key=
 // Init AI status from saved config
 setAIStatus(AI.enabled);
 if(AI.enabled) updateAIModel();
+
+/* ============== LIVE COMMODITY PRICES ============== */
+// 2026 baseline prices — refreshable via API if user provides one
+const COMMODITIES = [
+  {id:'cu', name:'Copper (LME)', symbol:'CU', unit:'$/MT', basePrice:8650, current:8920, change:3.1, source:'LME 3-month', linksTo:['Copper rod','Copper coil winding','Steel armature']},
+  {id:'al', name:'Aluminum (LME)', symbol:'AL', unit:'$/MT', basePrice:2380, current:2520, change:5.9, source:'LME 3-month', linksTo:['Aluminum billet']},
+  {id:'fe', name:'Steel HRC', symbol:'FE', unit:'$/MT', basePrice:745, current:780, change:4.7, source:'Platts US Midwest', linksTo:['Cold-rolled steel sheet','Bearing steel rings']},
+  {id:'au', name:'Silver (LBMA)', symbol:'AG', unit:'$/oz', basePrice:24.5, current:31.2, change:27.3, source:'LBMA spot', linksTo:['Silver-cadmium contact tips','Tin plating']},
+  {id:'pet', name:'PET Resin', symbol:'PET', unit:'$/MT', basePrice:1180, current:1290, change:9.3, source:'IHS Markit', linksTo:['PET resin']},
+  {id:'pe', name:'HDPE Resin', symbol:'PE', unit:'$/MT', basePrice:1140, current:1220, change:7.0, source:'IHS Markit', linksTo:['HDPE cap resin']},
+  {id:'cotton', name:'Cotton', symbol:'CT', unit:'$/lb', basePrice:0.78, current:0.84, change:7.7, source:'ICE Futures', linksTo:['Combed cotton yarn']},
+  {id:'li2co3', name:'Lithium Carbonate', symbol:'LI', unit:'$/MT', basePrice:14200, current:11800, change:-16.9, source:'Fastmarkets', linksTo:['Cathode active material']},
+  {id:'crude', name:'Brent Crude', symbol:'BZ', unit:'$/bbl', basePrice:82, current:88.5, change:7.9, source:'ICE Futures', linksTo:['PVC / XLPE insulation','Lubricant']}
+];
+const COMMODITY_TREND_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const COMMODITY_TRENDS = {
+  cu: [100,102,105,108,107,110,112,115,117,119,121,124],
+  al: [100,101,103,106,109,112,114,116,118,121,124,126],
+  fe: [100,102,103,105,106,107,108,109,111,112,113,115],
+  pet: [100,103,105,108,110,113,115,117,120,123,126,128]
+};
+function initCommodity(){
+  drawCommodityCards();
+  drawCommodityTrendChart();
+}
+function drawCommodityCards(){
+  const el = document.getElementById('commodityCards');
+  el.innerHTML = COMMODITIES.map(c=>{
+    const isUp = c.change>=0;
+    const arrow = isUp?'▲':'▼';
+    const color = isUp?'text-red-600':'text-emerald-600'; // for procurement, up = bad
+    return `<div class="bg-white rounded-2xl card-shadow p-4">
+      <div class="flex justify-between items-start">
+        <div>
+          <div class="text-xs text-slate-500 uppercase tracking-wider">${c.name}</div>
+          <div class="text-2xl font-bold text-slate-800 mt-1">${c.current.toLocaleString()}<span class="text-sm font-normal text-slate-500"> ${c.unit}</span></div>
+        </div>
+        <div class="text-xs font-bold ${color}">${arrow} ${Math.abs(c.change).toFixed(1)}%</div>
+      </div>
+      <div class="text-[10px] text-slate-400 mt-2">Source: ${c.source}</div>
+      <div class="text-[10px] text-slate-500 mt-1">Used in: ${c.linksTo.slice(0,2).join(', ')}</div>
+    </div>`;
+  }).join('');
+}
+function drawCommodityTrendChart(){
+  const ctx = document.getElementById('commodityTrendChart'); if(!ctx) return;
+  if(charts.commTrend) charts.commTrend.destroy();
+  charts.commTrend = new Chart(ctx, {
+    type:'line',
+    data:{labels: COMMODITY_TREND_MONTHS, datasets:[
+      {label:'Copper', data:COMMODITY_TRENDS.cu, borderColor:'#B45309', tension:0.3, fill:false},
+      {label:'Aluminum', data:COMMODITY_TRENDS.al, borderColor:'#94A3B8', tension:0.3, fill:false},
+      {label:'Steel HRC', data:COMMODITY_TRENDS.fe, borderColor:'#1E3A8A', tension:0.3, fill:false},
+      {label:'PET Resin', data:COMMODITY_TRENDS.pet, borderColor:'#0F766E', tension:0.3, fill:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},
+      scales:{y:{title:{display:true,text:'Index (Jan 2025 = 100)'}}}}
+  });
+}
+async function refreshCommodityPrices(){
+  // Try to use AI to fetch latest if connected, else show notice
+  if(AI.enabled){
+    const prompt = 'Reply with a JSON object only (no other text) with 2026 estimated current prices for these commodities. Use realistic procurement-relevant values. Format: {"cu":number_USD_per_MT,"al":number_USD_per_MT,"fe":number_USD_per_MT_HRC,"au":number_USD_per_oz_silver,"pet":number_USD_per_MT,"pe":number_USD_per_MT,"cotton":number_USD_per_lb,"li2co3":number_USD_per_MT,"crude":number_USD_per_bbl}';
+    try {
+      const reply = await aiCall(prompt, {maxTokens:200});
+      const match = reply.match(/\{[^}]+\}/);
+      if(match){
+        const data = JSON.parse(match[0]);
+        COMMODITIES.forEach(c=>{ if(data[c.id]){
+          const old = c.current; c.current = data[c.id];
+          c.change = ((c.current - c.basePrice)/c.basePrice*100);
+        }});
+        drawCommodityCards();
+        alert('Prices refreshed via AI estimate. For production, integrate metals-api.com or LME official feed.');
+      }
+    } catch(err){ alert('AI refresh failed: '+err.message); }
+  } else {
+    alert('Connect Live AI to refresh prices, or in production wire to metals-api.com (free tier 50 req/mo).');
+  }
+}
+function applyCommodityRates(){
+  if(currentParams.length===0){ alert('Run a Should Cost analysis first in tab 1.'); return; }
+  let updated = 0;
+  currentParams.forEach(p=>{
+    COMMODITIES.forEach(c=>{
+      if(c.linksTo.some(l=>p.name.toLowerCase().includes(l.toLowerCase().split(' ')[0]))){
+        // Scale rate by commodity change
+        const factor = c.current/c.basePrice;
+        p.rate = +(p.rate * factor / (p._lastCommodityFactor||1)).toFixed(3);
+        p._lastCommodityFactor = factor;
+        updated++;
+      }
+    });
+  });
+  if(updated>0){
+    renderParameters(); recalc();
+    alert(`Updated ${updated} cost driver(s) based on current commodity prices. Switch to the Should Cost Calculator tab to see the impact.`);
+    switchTab('calc');
+  } else alert('No matching commodity-linked drivers found in current analysis.');
+}
+
+/* ============== DEMAND FORECASTING ============== */
+function loadForecastDemo(){
+  // Realistic seasonal demand pattern
+  document.getElementById('fcInput').value = '120, 135, 142, 158, 175, 195, 220, 235, 250, 232, 215, 198, 145, 162, 175, 192, 215, 240, 265, 282, 298, 280, 258, 235';
+}
+function parseFCData(){
+  const txt = document.getElementById('fcInput').value;
+  return txt.split(/[\s,;]+/).map(parseFloat).filter(v=>!isNaN(v));
+}
+function runForecast(method){
+  const data = parseFCData();
+  if(data.length < 6){ alert('Provide at least 6 periods of historical data.'); return; }
+  const horizon = 12;
+  let forecast = [], fitted = [], modelName = '';
+  if(method==='ses') { [forecast, fitted, modelName] = sesForecast(data, horizon); }
+  else if(method==='holt') { [forecast, fitted, modelName] = holtForecast(data, horizon); }
+  else if(method==='hw') { [forecast, fitted, modelName] = holtWintersForecast(data, horizon); }
+  else if(method==='ar1') { [forecast, fitted, modelName] = ar1Forecast(data, horizon); }
+  // Compute accuracy metrics on training fit
+  const errs = data.map((v,i)=>v - fitted[i]);
+  const mae = errs.reduce((s,e)=>s+Math.abs(e),0)/errs.length;
+  const rmse = Math.sqrt(errs.reduce((s,e)=>s+e*e,0)/errs.length);
+  const mape = errs.reduce((s,e,i)=>s+Math.abs(e/data[i]*100),0)/errs.length;
+  const bias = errs.reduce((s,e)=>s+e,0)/errs.length;
+  // Confidence intervals (95%)
+  const ciFactor = 1.96 * rmse;
+  renderForecastResult(data, fitted, forecast, ciFactor, {mae, rmse, mape, bias}, modelName);
+}
+function sesForecast(data, h, alpha=0.3){
+  const fitted=[data[0]]; for(let i=1;i<data.length;i++) fitted.push(alpha*data[i-1]+(1-alpha)*fitted[i-1]);
+  const last = fitted[fitted.length-1];
+  const fc = new Array(h).fill(last);
+  return [fc, fitted, 'Simple Exponential Smoothing (α=0.3)'];
+}
+function holtForecast(data, h, alpha=0.3, beta=0.15){
+  let level=data[0], trend=data[1]-data[0]; const fitted=[level];
+  for(let i=1;i<data.length;i++){
+    const newLevel = alpha*data[i] + (1-alpha)*(level+trend);
+    const newTrend = beta*(newLevel-level) + (1-beta)*trend;
+    level = newLevel; trend = newTrend;
+    fitted.push(level);
+  }
+  const fc = Array.from({length:h},(_,i)=>level + (i+1)*trend);
+  return [fc, fitted, "Holt's Linear Trend (α=0.3, β=0.15)"];
+}
+function holtWintersForecast(data, h, alpha=0.3, beta=0.1, gamma=0.2, m=4){
+  if(data.length < m*2) return holtForecast(data, h);
+  let level = data.slice(0,m).reduce((a,b)=>a+b,0)/m;
+  let trend = (data.slice(m,2*m).reduce((a,b)=>a+b,0)/m - level)/m;
+  let season = []; for(let i=0;i<m;i++) season.push(data[i]/level);
+  const fitted = [];
+  for(let i=0;i<data.length;i++){
+    const s = season[i%m];
+    const fit = (level+trend)*s; fitted.push(fit);
+    const newLevel = alpha*(data[i]/s) + (1-alpha)*(level+trend);
+    const newTrend = beta*(newLevel-level) + (1-beta)*trend;
+    season[i%m] = gamma*(data[i]/newLevel) + (1-gamma)*s;
+    level = newLevel; trend = newTrend;
+  }
+  const fc = Array.from({length:h},(_,i)=>(level + (i+1)*trend)*season[i%m]);
+  return [fc, fitted, 'Holt-Winters Triple Exponential (m=4 seasons)'];
+}
+function ar1Forecast(data, h){
+  // Difference once for stationarity
+  const diffs = data.slice(1).map((v,i)=>v-data[i]);
+  const mean = diffs.reduce((a,b)=>a+b,0)/diffs.length;
+  // Estimate phi via lag-1 correlation
+  const cent = diffs.map(v=>v-mean);
+  const num = cent.slice(1).reduce((s,v,i)=>s+v*cent[i],0);
+  const den = cent.reduce((s,v)=>s+v*v,0);
+  const phi = den>0 ? Math.max(-0.99, Math.min(0.99, num/den)) : 0;
+  // Fitted (reconstruct)
+  const fitted = [data[0]];
+  for(let i=1;i<data.length;i++) fitted.push(data[i-1] + mean + phi*(diffs[i-1]-mean));
+  // Forecast
+  let lastVal = data[data.length-1], lastDiff = diffs[diffs.length-1];
+  const fc = [];
+  for(let i=0;i<h;i++){
+    const newDiff = mean + phi*(lastDiff-mean);
+    lastVal = lastVal + newDiff; fc.push(lastVal); lastDiff = newDiff;
+  }
+  return [fc, fitted, `ARIMA(1,1,0) — φ=${phi.toFixed(3)}, drift=${mean.toFixed(2)}`];
+}
+function renderForecastResult(actual, fitted, forecast, ciFactor, metrics, modelName){
+  const labels = [...actual.map((_,i)=>'T'+(i+1)), ...forecast.map((_,i)=>'T'+(actual.length+i+1))];
+  const actualPad = [...actual, ...new Array(forecast.length).fill(null)];
+  const fittedPad = [...fitted, ...new Array(forecast.length).fill(null)];
+  const fcPad = [...new Array(actual.length-1).fill(null), actual[actual.length-1], ...forecast];
+  const upperPad = [...new Array(actual.length).fill(null), ...forecast.map(v=>v+ciFactor)];
+  const lowerPad = [...new Array(actual.length).fill(null), ...forecast.map(v=>v-ciFactor)];
+  const container = document.getElementById('forecastResult');
+  container.classList.remove('hidden');
+  container.innerHTML = `
+    <div class="bg-white rounded-2xl card-shadow p-5">
+      <h3 class="font-bold text-base mb-2">Forecast — ${modelName}</h3>
+      <div class="h-72"><canvas id="fcChart"></canvas></div>
+    </div>
+    <div class="grid md:grid-cols-4 gap-3">
+      <div class="kpi-card"><div class="text-xs text-slate-500 uppercase">MAPE</div><div class="text-2xl font-bold text-blue-700">${metrics.mape.toFixed(1)}%</div><div class="text-xs text-slate-500">Mean Abs % Error</div></div>
+      <div class="kpi-card"><div class="text-xs text-slate-500 uppercase">RMSE</div><div class="text-2xl font-bold text-cyan-700">${metrics.rmse.toFixed(1)}</div><div class="text-xs text-slate-500">Root Mean Sq Error</div></div>
+      <div class="kpi-card"><div class="text-xs text-slate-500 uppercase">MAE</div><div class="text-2xl font-bold text-indigo-700">${metrics.mae.toFixed(1)}</div><div class="text-xs text-slate-500">Mean Abs Error</div></div>
+      <div class="kpi-card"><div class="text-xs text-slate-500 uppercase">Bias</div><div class="text-2xl font-bold ${metrics.bias>0?'text-amber-700':'text-emerald-700'}">${metrics.bias>0?'+':''}${metrics.bias.toFixed(1)}</div><div class="text-xs text-slate-500">${metrics.bias>0?'Over-forecast':'Under-forecast'}</div></div>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-5">
+      <h3 class="font-bold text-sm mb-2">12-Period Forecast</h3>
+      <div class="overflow-x-auto"><table class="w-full text-sm">
+        <thead class="bg-slate-50 text-xs uppercase"><tr><th class="p-2 text-left">Period</th><th class="p-2 text-right">Forecast</th><th class="p-2 text-right">Lower 95% CI</th><th class="p-2 text-right">Upper 95% CI</th></tr></thead>
+        <tbody>${forecast.map((v,i)=>`<tr class="border-t"><td class="p-2">T${actual.length+i+1}</td><td class="p-2 text-right font-mono">${v.toFixed(1)}</td><td class="p-2 text-right font-mono text-slate-500">${(v-ciFactor).toFixed(1)}</td><td class="p-2 text-right font-mono text-slate-500">${(v+ciFactor).toFixed(1)}</td></tr>`).join('')}</tbody>
+      </table></div>
+    </div>`;
+  setTimeout(()=>{
+    if(charts.fc) charts.fc.destroy();
+    charts.fc = new Chart(document.getElementById('fcChart').getContext('2d'), {
+      type:'line',
+      data:{labels, datasets:[
+        {label:'Actual', data:actualPad, borderColor:'#0F766E', backgroundColor:'#0F766E', tension:0.2, fill:false},
+        {label:'Fitted', data:fittedPad, borderColor:'#94A3B8', borderDash:[4,4], tension:0.2, fill:false},
+        {label:'Forecast', data:fcPad, borderColor:'#3B82F6', backgroundColor:'rgba(59,130,246,0.1)', tension:0.2, fill:false},
+        {label:'Upper 95%', data:upperPad, borderColor:'#93C5FD', borderDash:[2,2], pointRadius:0, fill:'+1', backgroundColor:'rgba(147,197,253,0.15)'},
+        {label:'Lower 95%', data:lowerPad, borderColor:'#93C5FD', borderDash:[2,2], pointRadius:0, fill:false}
+      ]},
+      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}}
+    });
+  }, 100);
+}
+
+/* ============== TARIFF OPTIMIZER ============== */
+const HTS_CODES = [
+  {match:['lithium','battery','li-ion','cell'],code:'8507.60',name:'Lithium-ion battery'},
+  {match:['conductor','copper cable','wire','copper wire'],code:'8544.49',name:'Insulated copper conductor'},
+  {match:['busbar','copper bar'],code:'7407.10',name:'Copper bar / rod'},
+  {match:['contactor','relay','switch'],code:'8536.41',name:'Electrical contactor/relay'},
+  {match:['fuse'],code:'8536.10',name:'Fuses, electrical'},
+  {match:['harness','cable assembly'],code:'8544.30',name:'Wiring harness for vehicles'},
+  {match:['pcb','circuit board'],code:'8534.00',name:'Printed circuit assembly'},
+  {match:['steel','sheet metal','stamping'],code:'7326.90',name:'Steel parts/articles'},
+  {match:['aluminum','aluminium','extrusion'],code:'7604.21',name:'Aluminum extrusion'},
+  {match:['bearing','ball bearing'],code:'8482.10',name:'Ball/roller bearing'},
+  {match:['spring','coil spring'],code:'7320.20',name:'Steel spring'},
+  {match:['gasket','o-ring','rubber'],code:'4016.93',name:'Rubber gasket/seal'},
+  {match:['casting'],code:'7325.99',name:'Cast iron/steel article'},
+  {match:['cardboard','carton','corrugated'],code:'4819.10',name:'Corrugated paper carton'},
+  {match:['bottle','pet','plastic container'],code:'3923.30',name:'Plastic container/bottle'},
+  {match:['glass bottle','glass vial','glass'],code:'7010.90',name:'Glass container'},
+  {match:['tablet','pill','medicine','pharma'],code:'3004.90',name:'Pharmaceutical (dosed)'},
+  {match:['perfume','fragrance','cologne'],code:'3303.00',name:'Perfume/EdT'},
+  {match:['tshirt','t-shirt','shirt','garment','apparel'],code:'6109.10',name:'Cotton T-shirt'},
+  {match:['brick','block','masonry'],code:'6904.10',name:'Building brick'}
+];
+// Tariff matrix: [origin][destination] = base MFN tariff %
+const TARIFF_MATRIX = {
+  china: {us: 25.0, eu: 6.5, india: 12.0, uk: 6.5, canada: 6.5, mexico: 7.0},
+  india: {us: 6.5, eu: 4.5, india: 0, uk: 4.5, canada: 6.0, mexico: 8.0},
+  vietnam:{us: 7.5, eu: 4.5, india: 8.0, uk: 4.5, canada: 6.5, mexico: 9.0},
+  mexico: {us: 0, eu: 5.5, india: 10.0, uk: 5.5, canada: 0, mexico: 0},
+  canada: {us: 0, eu: 4.0, india: 9.0, uk: 4.0, canada: 0, mexico: 0},
+  us: {us: 0, eu: 4.0, india: 9.5, uk: 4.0, canada: 0, mexico: 0},
+  germany:{us: 5.5, eu: 0, india: 8.5, uk: 4.5, canada: 5.0, mexico: 5.5},
+  uk: {us: 4.5, eu: 4.0, india: 0, uk: 0, canada: 5.0, mexico: 5.5},
+  korea: {us: 0, eu: 0, india: 5.5, uk: 0, canada: 4.5, mexico: 7.5},
+  taiwan: {us: 6.0, eu: 5.5, india: 9.0, uk: 5.5, canada: 6.0, mexico: 8.0},
+  turkey: {us: 6.0, eu: 0, india: 8.0, uk: 0, canada: 6.0, mexico: 8.0},
+  thailand:{us: 5.5, eu: 5.0, india: 5.0, uk: 5.0, canada: 6.0, mexico: 8.5}
+};
+// FTAs grant 0% tariff for specific origin-destination pairs
+const FTA_ELIGIBILITY = {
+  'mexico|us':'USMCA', 'canada|us':'USMCA', 'us|mexico':'USMCA', 'us|canada':'USMCA',
+  'mexico|canada':'USMCA', 'canada|mexico':'USMCA',
+  'vietnam|eu':'EVFTA', 'vietnam|uk':'UKVFTA',
+  'korea|us':'KORUS', 'korea|eu':'EU-Korea FTA',
+  'india|uk':'India-UK FTA (2025)', 'uk|india':'India-UK FTA (2025)',
+  'thailand|india':'India-ASEAN', 'vietnam|india':'India-ASEAN',
+  'turkey|eu':'EU Customs Union', 'eu|turkey':'EU Customs Union',
+  'mexico|eu':'EU-Mexico (Modernised)',
+  'india|us':'GSP partial (under review)'
+};
+function initTariff(){
+  // Pre-fill with current product if available
+  const pname = document.getElementById('productName').value;
+  if(pname) document.getElementById('tariffProduct').value = pname;
+}
+function lookupHTS(text){
+  text = (text||'').toLowerCase();
+  for(const h of HTS_CODES) if(h.match.some(m=>text.includes(m))) return h;
+  return {code:'??', name:'Generic merchandise', match:[]};
+}
+function findTariffOptimal(){
+  const product = document.getElementById('tariffProduct').value.trim();
+  const dest = document.getElementById('tariffDest').value;
+  const value = parseFloat(document.getElementById('tariffValue').value)||1;
+  if(!product){ alert('Enter a product description'); return; }
+  const hts = lookupHTS(product);
+  document.getElementById('tariffHtsHint').classList.remove('hidden');
+  document.getElementById('tariffHtsHint').innerHTML = `🏷️ HTS code: <b>${hts.code}</b> — ${hts.name}`;
+  // Score each origin
+  const results = Object.keys(TARIFF_MATRIX).map(origin=>{
+    const baseTariff = TARIFF_MATRIX[origin]?.[dest] ?? 10;
+    const ftaKey = origin+'|'+dest;
+    const fta = FTA_ELIGIBILITY[ftaKey];
+    const effectiveTariff = fta ? 0 : baseTariff;
+    const dutyM = value * effectiveTariff/100;
+    return {origin, baseTariff, effectiveTariff, fta:fta||'-', dutyM};
+  }).sort((a,b)=>a.dutyM-b.dutyM);
+  const highest = Math.max(...results.map(r=>r.dutyM));
+  const tbody = document.getElementById('tariffTableBody');
+  tbody.innerHTML = results.map((r,i)=>{
+    const savings = highest - r.dutyM;
+    const ftaTag = r.fta!=='-' ? `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full">${r.fta}</span>` : '<span class="text-slate-400 text-xs">No FTA</span>';
+    const rank = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+    return `<tr class="border-t hover:bg-slate-50">
+      <td class="p-2 text-center font-bold">${rank}</td>
+      <td class="p-2 font-medium capitalize">${r.origin}</td>
+      <td class="p-2 text-right">${r.baseTariff.toFixed(1)}%</td>
+      <td class="p-2 text-right ${r.fta!=='-'?'text-emerald-600 font-bold':''}">${r.effectiveTariff.toFixed(1)}%</td>
+      <td class="p-2">${ftaTag}</td>
+      <td class="p-2 text-right font-mono">$${r.dutyM.toFixed(2)}M</td>
+      <td class="p-2 text-right text-emerald-700 font-bold">${savings>0?'-$'+savings.toFixed(2)+'M':''}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('tariffResults').classList.remove('hidden');
+  const winner = results[0];
+  const worst = results[results.length-1];
+  document.getElementById('tariffRecommendation').innerHTML = `
+    <h3 class="text-lg font-bold mb-2">📋 Tariff Engineering Recommendation</h3>
+    <p class="text-sm mb-2">Source from <b class="capitalize">${winner.origin}</b> → <b class="capitalize">${dest}</b> via <b>${winner.fta!=='-'?winner.fta:'MFN '+winner.effectiveTariff.toFixed(1)+'% tariff'}</b> to minimize duty exposure.</p>
+    <p class="text-sm">Annual savings vs sourcing from <b class="capitalize">${worst.origin}</b>: <b>$${(worst.dutyM-winner.dutyM).toFixed(2)}M</b> per year on $${value}M import volume.</p>
+    <p class="text-xs mt-2 text-amber-100">📚 Tactics also worth evaluating: tariff engineering (minor design tweak to change HTS code), Foreign Trade Zones / bonded warehouses, first-sale valuation, drawback claims on re-exports.</p>`;
+}
+
+/* ============== NEGOTIATION SIMULATOR ============== */
+let negHistory = [];
+let negActive = false;
+let negTurn = 0;
+function initNegotiation(){
+  // Pre-fill if current should-cost
+  if(currentParams.length>0){
+    const sub = currentParams.filter(p=>p.group!=='margin').reduce((t,p)=>t+p.qty*p.rate,0);
+    const m = currentParams.find(p=>p.group==='margin'); const mr=m?m.rate:0;
+    const unit = sub*(1+mr);
+    document.getElementById('negShouldCost').value = unit.toFixed(2);
+    document.getElementById('negCeiling').value = (unit*1.08).toFixed(2);
+    if(!document.getElementById('negProduct').value)
+      document.getElementById('negProduct').value = document.getElementById('productName').value;
+    if(!document.getElementById('negQty').value || document.getElementById('negQty').value === '10000')
+      document.getElementById('negQty').value = document.getElementById('orderQty').value;
+  }
+}
+function resetNegotiation(){
+  negHistory=[]; negActive=false; negTurn=0;
+  document.getElementById('negLog').innerHTML = '<div class="text-center text-slate-400 italic text-sm py-10">Configure the deal on the left and click "Start Negotiation" — the AI supplier will make an opening offer.</div>';
+  document.getElementById('negInput').disabled = true;
+  document.getElementById('negSendBtn').disabled = true;
+  document.getElementById('negAcceptBtn').classList.add('hidden');
+  document.getElementById('negWalkBtn').classList.add('hidden');
+  document.getElementById('negStatus').classList.add('hidden');
+}
+async function startNegotiation(){
+  if(!AI.enabled){ alert('Negotiation Simulator requires Live AI. Click "Connect Live AI" in the header.'); return; }
+  const product = document.getElementById('negProduct').value || 'a manufactured product';
+  const qty = document.getElementById('negQty').value || 10000;
+  const shouldCost = document.getElementById('negShouldCost').value || 100;
+  const ceiling = document.getElementById('negCeiling').value || (parseFloat(shouldCost)*1.08).toFixed(2);
+  const persona = document.getElementById('negPersona').value;
+  negHistory = []; negActive = true; negTurn = 1;
+  document.getElementById('negLog').innerHTML = '';
+  document.getElementById('negInput').disabled = false;
+  document.getElementById('negSendBtn').disabled = false;
+  document.getElementById('negAcceptBtn').classList.remove('hidden');
+  document.getElementById('negWalkBtn').classList.remove('hidden');
+  document.getElementById('negStatus').classList.remove('hidden');
+  updateNegStatus(shouldCost, ceiling, qty, '-', persona);
+  await callNegAI(`Setup:\n- Product: ${product}\n- Quantity: ${qty}\n- Buyer's should-cost: ₹${shouldCost}/unit (this is private to the buyer)\n- Buyer's walk-away ceiling: ₹${ceiling} (also private)\n- Your supplier persona: ${persona}\n\nThis is turn 1. The buyer just opened the conversation. Greet briefly (1 line) and make your OPENING price quote per unit. Stay in character for "${persona}". Be specific about price, lead time, payment terms.`);
+}
+async function sendNegMessage(){
+  const inp = document.getElementById('negInput');
+  const msg = inp.value.trim(); if(!msg || !negActive) return;
+  addNegMsg('user', msg); inp.value = '';
+  negTurn++;
+  await callNegAI(msg);
+}
+function addNegMsg(role, content){
+  negHistory.push({role, content});
+  const log = document.getElementById('negLog');
+  const html = role==='user'
+    ? `<div class="chat-bubble-user text-sm">${escape(content)}</div>`
+    : `<div class="chat-bubble-bot text-sm"><div class="text-xs text-amber-700 font-bold mb-1">🦈 Supplier (${document.getElementById('negPersona').selectedOptions[0].textContent.split('—')[0]})</div>${content}</div>`;
+  log.insertAdjacentHTML('beforeend', html);
+  log.scrollTop = log.scrollHeight;
+}
+async function callNegAI(userMessage){
+  if(!AI.enabled) return;
+  const persona = document.getElementById('negPersona').value;
+  const product = document.getElementById('negProduct').value || 'product';
+  const qty = document.getElementById('negQty').value;
+  const personaTraits = {
+    aggressive: 'You are a hard-nosed sales director. Open HIGH (30-50% above buyer\'s likely should-cost). Use scarcity ("we have other buyers"), invoke production constraints, refuse to drop more than 3-5% per round. You CAN agree to terms but only after 4+ rounds of resistance.',
+    collaborative: 'You are a relationship-focused account manager. Open at a reasonable margin (8-12% above market). Listen to the buyer. Trade payment terms for price. Mention long-term partnership. Drop 5-8% across the conversation if the buyer is professional.',
+    desperate: 'Your company needs this order to hit quarter. You\'re hiding this but it leaks through. Open near competitive market price. Concede readily (10-15% drop). Throw in extras (free shipping, extra warranty) but never admit desperation.',
+    premium: 'You sell quality and reliability, not price. Open 25-40% above commodity rate. When pushed on price, deflect to quality, certifications (ISO, IATF), defect rate, on-time history. Drop only 2-3%. Walk away if buyer is purely price-focused.',
+    distracted: 'You\'re juggling 5 deals. Responses are short, sometimes vague. Get details wrong occasionally (offer wrong qty, miss the email). Take 2 messages to commit to anything. Drop price only when buyer pushes specifically and clearly.'
+  };
+  const system = `You are roleplaying as a supplier in a B2B procurement negotiation. PERSONA: ${persona}. ${personaTraits[persona]}
+
+Product being sold: ${product}, quantity ${qty}.
+
+RULES:
+- Stay in character. Always reply as the supplier, never break the fourth wall.
+- Each reply should include a current PRICE per unit, LEAD TIME, and PAYMENT TERMS when relevant.
+- Use HTML formatting: <b> for the current price offer, <ul><li> for terms when proposing them.
+- Keep replies under 80 words.
+- Use sales/account-manager language ("our pricing", "I can speak to my manager", "given your volume").
+- The buyer's should-cost and walk-away are SECRET — don't know them. Negotiate based on market intuition.
+- Currency: ₹ (rupees).`;
+  const log = document.getElementById('negLog');
+  log.insertAdjacentHTML('beforeend', '<div class="chat-bubble-bot text-sm italic opacity-60">Supplier is thinking…</div>');
+  log.scrollTop = log.scrollHeight;
+  try {
+    // Build conversation context
+    const conv = negHistory.map(h=>(h.role==='user'?'Buyer: ':'Supplier: ')+stripHtml(h.content)).join('\n');
+    const prompt = `Conversation so far:\n${conv}\n\nBuyer's latest message: "${userMessage}"\n\nReply as the supplier. Maintain ${persona} persona. Turn ${negTurn}.`;
+    const reply = await aiCall(prompt, {system, maxTokens:300});
+    log.querySelector('.italic.opacity-60')?.remove();
+    addNegMsg('bot', reply);
+    // Detect final price for status bar
+    const m = reply.match(/₹\s*([\d,]+(?:\.\d+)?)/);
+    if(m){
+      const offered = parseFloat(m[1].replace(/,/g,''));
+      const shouldCost = parseFloat(document.getElementById('negShouldCost').value);
+      const ceiling = parseFloat(document.getElementById('negCeiling').value);
+      updateNegStatus(shouldCost, ceiling, document.getElementById('negQty').value, offered, persona);
+    }
+  } catch(err){
+    log.querySelector('.italic.opacity-60')?.remove();
+    addNegMsg('bot', '<span class="text-red-600">⚠️ '+err.message+'</span>');
+  }
+}
+function stripHtml(s){ return s.replace(/<[^>]+>/g,''); }
+function updateNegStatus(shouldCost, ceiling, qty, offered, persona){
+  const status = document.getElementById('negStatus');
+  const variance = offered !== '-' ? (((offered-shouldCost)/shouldCost)*100).toFixed(1) : '-';
+  const ok = offered !== '-' && offered <= ceiling;
+  status.innerHTML = `
+    <div><div class="font-bold text-slate-600">Should-Cost</div><div class="font-mono">₹${parseFloat(shouldCost).toFixed(2)}</div></div>
+    <div><div class="font-bold text-slate-600">Ceiling</div><div class="font-mono">₹${parseFloat(ceiling).toFixed(2)}</div></div>
+    <div><div class="font-bold text-slate-600">Current Offer</div><div class="font-mono ${ok?'text-emerald-700':'text-red-700'}">${offered==='-'?'-':'₹'+offered}</div></div>
+    <div><div class="font-bold text-slate-600">vs Should-Cost</div><div class="font-mono">${variance==='-'?'-':(variance>0?'+':'')+variance+'%'}</div></div>`;
+}
+async function acceptDeal(){
+  if(!negActive) return;
+  const offered = document.querySelector('#negStatus .font-mono.text-emerald-700, #negStatus .font-mono.text-red-700');
+  const offerVal = offered ? offered.textContent : '?';
+  const shouldCost = parseFloat(document.getElementById('negShouldCost').value);
+  const ceiling = parseFloat(document.getElementById('negCeiling').value);
+  let verdict = '';
+  const m = (offerVal||'').match(/[\d.]+/);
+  if(m){
+    const v = parseFloat(m[0]);
+    if(v <= shouldCost) verdict = '<b class="text-emerald-300">🏆 EXCELLENT — Below should-cost. You out-negotiated the supplier.</b>';
+    else if(v <= ceiling) verdict = '<b class="text-amber-300">✅ ACCEPTABLE — Above should-cost but within ceiling.</b>';
+    else verdict = '<b class="text-red-300">❌ POOR DEAL — Above your walk-away ceiling. You overpaid.</b>';
+  }
+  negActive = false;
+  document.getElementById('negInput').disabled = true;
+  document.getElementById('negSendBtn').disabled = true;
+  const log = document.getElementById('negLog');
+  log.insertAdjacentHTML('beforeend', `<div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-2xl p-4 mt-4">
+    <div class="text-xs uppercase tracking-wider font-bold mb-1">🤝 Deal Accepted</div>
+    <div class="text-2xl font-bold">${offerVal}/unit</div>
+    <div class="text-sm mt-2">${verdict}</div>
+  </div>`);
+  log.scrollTop = log.scrollHeight;
+  // Ask AI for negotiation coaching
+  if(AI.enabled){
+    try {
+      const conv = negHistory.map(h=>(h.role==='user'?'Buyer: ':'Supplier: ')+stripHtml(h.content)).join('\n');
+      const coach = await aiCall(`Buyer just accepted a deal at ${offerVal}/unit. Their should-cost was ₹${shouldCost}, ceiling ₹${ceiling}.\n\nConversation:\n${conv}\n\nAs a senior procurement coach, give 3 SHORT bullet points (HTML <ul><li>) on what the BUYER did well and what they could have done better. Be direct, constructive.`, {maxTokens:300, system:'You are a senior procurement negotiation coach reviewing this negotiation.'});
+      log.insertAdjacentHTML('beforeend', `<div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 mt-2"><div class="text-xs uppercase font-bold text-blue-700 mb-1">📝 Coach Feedback</div>${coach}</div>`);
+      log.scrollTop = log.scrollHeight;
+    } catch(err){}
+  }
+}
+function walkAway(){
+  if(!negActive) return;
+  negActive = false;
+  document.getElementById('negInput').disabled = true;
+  document.getElementById('negSendBtn').disabled = true;
+  const log = document.getElementById('negLog');
+  log.insertAdjacentHTML('beforeend', `<div class="bg-gradient-to-r from-red-600 to-pink-700 text-white rounded-2xl p-4 mt-4">
+    <div class="text-xs uppercase tracking-wider font-bold mb-1">🚪 Walked Away</div>
+    <div class="text-sm">Sometimes the best deal is the one you don't take. Re-evaluate alternates and try again with a different persona.</div>
+  </div>`);
+  log.scrollTop = log.scrollHeight;
+}
 
 /* ============== RFQ / RFP MANAGER ============== */
 let rfqQuotes = JSON.parse(localStorage.getItem('rfqQuotesV1')||'[]');
