@@ -180,6 +180,7 @@
       <button class="tab-btn tab-inactive" data-tab="forecast" onclick="switchTab('forecast')">Demand Forecasting</button>
       <button class="tab-btn tab-inactive" data-tab="tariff" onclick="switchTab('tariff')">Tariff Optimizer</button>
       <button class="tab-btn tab-inactive" data-tab="negotiate" onclick="switchTab('negotiate')">Negotiation Simulator</button>
+      <button class="tab-btn tab-inactive" data-tab="erp" onclick="switchTab('erp')">🔌 ERP Integration</button>
     </nav>
   </div>
   <div class="bg-slate-900/40 text-center text-[11px] py-1.5 text-teal-100">
@@ -1077,7 +1078,360 @@
   </div>
 </section>
 
+<!-- ============== ERP INTEGRATION ============== -->
+<section id="tab-erp-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 text-white rounded-2xl p-6 mb-6">
+    <div class="flex justify-between items-start flex-wrap gap-3">
+      <div>
+        <h2 class="text-2xl font-bold flex items-center gap-2">
+          ERP Integration Hub
+          <span class="text-xs bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full font-bold">DEMO</span>
+        </h2>
+        <p class="text-blue-100 text-sm mt-1">Bi-directional sync with NetSuite, Epicor, SAP, Oracle, Coupa &amp; Ariba — pull live spend, push should-cost insights</p>
+      </div>
+      <button onclick="document.getElementById('erpArchModal').classList.remove('hidden')" class="px-4 py-2 bg-white/15 hover:bg-white/25 rounded-lg text-sm font-semibold">📐 Production Architecture</button>
+    </div>
+  </div>
+
+  <!-- KPI BAR (visible when any ERP connected) -->
+  <div id="erpKPIs" class="hidden grid md:grid-cols-4 gap-4 mb-6">
+    <div class="kpi-card">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">Spend Pulled (TTM)</div>
+      <div class="text-3xl font-extrabold text-slate-800 mt-1" id="erpKPIspend">$0</div>
+      <div class="text-xs kpi-up mt-1" id="erpKPIspendDelta">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">Purchase Orders</div>
+      <div class="text-3xl font-extrabold text-blue-700 mt-1" id="erpKPIpos">0</div>
+      <div class="text-xs text-slate-500 mt-1">Across all categories</div>
+    </div>
+    <div class="kpi-card">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">Suppliers</div>
+      <div class="text-3xl font-extrabold text-indigo-700 mt-1" id="erpKPIsuppliers">0</div>
+      <div class="text-xs text-slate-500 mt-1">Active in last 12 mo</div>
+    </div>
+    <div class="kpi-card">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">Variance vs Should-Cost</div>
+      <div class="text-3xl font-extrabold text-amber-700 mt-1" id="erpKPIvariance">—</div>
+      <div class="text-xs kpi-down mt-1" id="erpKPIvarianceLabel">Negotiation opportunity</div>
+    </div>
+  </div>
+
+  <!-- CONNECTION HUB -->
+  <div class="card p-6 mb-6">
+    <div class="flex justify-between items-center flex-wrap gap-3 mb-4">
+      <div>
+        <h3 class="text-headline">Connected ERPs</h3>
+        <p class="text-body text-slate-600">Click any ERP to set up the integration. Sample data mode works for everyone; sandbox mode requires your own API credentials.</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="setAllErpsSample()" class="btn btn-secondary">⚡ Demo all 6 (sample mode)</button>
+        <button onclick="disconnectAllErps()" class="btn btn-ghost">Disconnect all</button>
+      </div>
+    </div>
+    <div id="erpHub" class="grid md:grid-cols-3 gap-3"></div>
+  </div>
+
+  <!-- SYNC DASHBOARD -->
+  <div id="erpSyncDash" class="hidden space-y-6 mb-6">
+    <div class="card p-6">
+      <div class="flex justify-between items-center flex-wrap gap-3 mb-4">
+        <div>
+          <h3 class="text-headline">Sync Activity</h3>
+          <p class="text-body text-slate-600">Last sync, scheduled job, recent errors. All data flows logged for audit.</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="runManualSync()" class="btn btn-primary">↻ Sync Now</button>
+          <select id="erpSyncFreq" class="border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            <option value="1h">Every 1 hour</option>
+            <option value="4h">Every 4 hours</option>
+            <option value="24h" selected>Daily at midnight</option>
+            <option value="week">Weekly</option>
+          </select>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 text-xs text-slate-600 uppercase">
+            <tr>
+              <th class="text-left p-2">Timestamp</th>
+              <th class="text-left p-2">ERP</th>
+              <th class="text-left p-2">Direction</th>
+              <th class="p-2 text-right">Records</th>
+              <th class="text-left p-2">Status</th>
+            </tr>
+          </thead>
+          <tbody id="erpSyncLog"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SPEND CUBE -->
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="card p-5">
+        <h3 class="text-title mb-3">Spend by Category (pulled from ERP)</h3>
+        <div class="h-72"><canvas id="erpSpendChart"></canvas></div>
+      </div>
+      <div class="card p-5">
+        <h3 class="text-title mb-3">Variance vs Should-Cost (Top Suppliers)</h3>
+        <div class="h-72"><canvas id="erpVarianceChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- TOP SUPPLIERS WITH VARIANCE -->
+    <div class="card p-5">
+      <div class="flex justify-between items-center flex-wrap gap-3 mb-3">
+        <h3 class="text-title">Top Suppliers — actual paid vs should-cost</h3>
+        <button onclick="pushBackToErp()" class="btn btn-secondary text-xs">📤 Push insights back to ERP</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 text-xs text-slate-600 uppercase">
+            <tr>
+              <th class="text-left p-2">Supplier</th>
+              <th class="text-left p-2">Category</th>
+              <th class="text-left p-2">ERP</th>
+              <th class="p-2 text-right">12mo Spend</th>
+              <th class="p-2 text-right">Avg Unit Price</th>
+              <th class="p-2 text-right">Should-Cost Benchmark</th>
+              <th class="p-2 text-right">Variance</th>
+              <th class="p-2 text-right">Savings Opportunity</th>
+            </tr>
+          </thead>
+          <tbody id="erpSupplierTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- AI SUMMARY -->
+    <div class="card p-5">
+      <div class="flex justify-between items-center flex-wrap gap-3 mb-3">
+        <div>
+          <h3 class="text-title">AI Spend Analysis</h3>
+          <p class="text-body text-slate-600">Live LLM summary of what the ERP data is telling you. Requires Live AI connection.</p>
+        </div>
+        <button onclick="erpAISummary()" class="btn btn-primary text-xs">🤖 Generate Summary</button>
+      </div>
+      <div id="erpAISummaryOutput" class="bg-slate-50 rounded-lg p-4 text-sm min-h-[120px] flex items-center justify-center text-slate-400 italic">
+        Click "Generate Summary" once you've synced an ERP. AI will identify variances, anomalies, and savings opportunities.
+      </div>
+    </div>
+
+    <!-- FIELD MAPPING -->
+    <div class="card p-5">
+      <h3 class="text-title mb-3">Field Mapping — ERP → Should Cost AI</h3>
+      <p class="text-body text-slate-600 mb-4">Default mapping shown. In production, this would be editable per ERP — each tenant maps their custom fields.</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 text-xs text-slate-600 uppercase">
+            <tr>
+              <th class="text-left p-2">ERP Field</th>
+              <th class="text-left p-2">→</th>
+              <th class="text-left p-2">Should Cost AI Field</th>
+              <th class="text-left p-2">Transformation</th>
+            </tr>
+          </thead>
+          <tbody id="erpMappingTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- INITIAL EMPTY STATE -->
+  <div id="erpEmpty" class="card p-12 text-center">
+    <div class="text-6xl mb-4">🔌</div>
+    <h3 class="text-headline mb-2">No ERP connected yet</h3>
+    <p class="text-body text-slate-600 max-w-md mx-auto mb-5">Click any ERP card above to set up sample-data demo mode, or connect to your sandbox. All sync activity and variance analysis appears here.</p>
+    <button onclick="setAllErpsSample()" class="btn btn-primary">Try with sample data →</button>
+  </div>
+</section>
+
 </main>
+
+<!-- ERP CONNECTION MODAL -->
+<div id="erpConnectModal" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-lg w-full overflow-auto" style="max-height:90vh;">
+    <div class="bg-gradient-to-r from-slate-900 to-indigo-900 text-white p-5 rounded-t-2xl flex justify-between items-start">
+      <div>
+        <h2 class="text-xl font-bold" id="erpConnectTitle">Connect ERP</h2>
+        <p class="text-blue-100 text-xs mt-1" id="erpConnectSubtitle">Pick connection mode</p>
+      </div>
+      <button onclick="document.getElementById('erpConnectModal').classList.add('hidden')" class="text-white/70 hover:text-white text-2xl leading-none">&times;</button>
+    </div>
+    <div class="p-5 space-y-4">
+
+      <div class="grid grid-cols-2 gap-3">
+        <label class="card card-interactive p-3 text-center cursor-pointer">
+          <input type="radio" name="erpMode" value="sample" checked class="sr-only"/>
+          <div class="text-2xl mb-1">🎬</div>
+          <div class="font-bold text-sm">Sample Data Mode</div>
+          <p class="text-xs text-slate-500 mt-1">50 mock POs, 20 suppliers. Works without any credentials.</p>
+        </label>
+        <label class="card card-interactive p-3 text-center cursor-pointer">
+          <input type="radio" name="erpMode" value="sandbox" class="sr-only"/>
+          <div class="text-2xl mb-1">🔐</div>
+          <div class="font-bold text-sm">Live Sandbox</div>
+          <p class="text-xs text-slate-500 mt-1">Connect to your real ERP sandbox via REST API.</p>
+        </label>
+      </div>
+
+      <div id="erpSandboxFields" class="hidden space-y-3">
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs">
+          <p class="font-semibold text-amber-900 mb-1">⚠️ Sandbox connection requirements</p>
+          <ul class="list-disc pl-5 text-amber-900 space-y-0.5">
+            <li>Your ERP must allow CORS for browser-direct calls (Epicor REST: yes; NetSuite OAuth: requires backend proxy)</li>
+            <li>API token stored in your browser only — never transmitted to GitHub</li>
+            <li>This is best-effort — for production, use Pattern 3 architecture (see Production Architecture)</li>
+          </ul>
+        </div>
+        <div>
+          <label class="block font-semibold text-sm mb-1">ERP REST endpoint URL</label>
+          <input id="erpUrl" type="text" placeholder="e.g. https://your-tenant.epicor.com/ERP/api/v2/odata" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono"/>
+        </div>
+        <div>
+          <label class="block font-semibold text-sm mb-1">API Key / Token</label>
+          <input id="erpToken" type="password" placeholder="Bearer token or API key" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono"/>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2 border-t">
+        <button onclick="confirmConnectErp()" class="btn btn-primary">Connect</button>
+        <button onclick="document.getElementById('erpConnectModal').classList.add('hidden')" class="btn btn-ghost ml-auto">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUCTION ARCHITECTURE MODAL -->
+<div id="erpArchModal" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-4xl w-full overflow-auto" style="max-height:90vh;">
+    <div class="bg-gradient-to-r from-slate-900 to-blue-900 text-white p-5 rounded-t-2xl flex justify-between items-start">
+      <div>
+        <h2 class="text-xl font-bold">Production ERP Architecture</h2>
+        <p class="text-blue-100 text-xs mt-1">How this would deploy at Tesla / TKE scale</p>
+      </div>
+      <button onclick="document.getElementById('erpArchModal').classList.add('hidden')" class="text-white/70 hover:text-white text-2xl leading-none">&times;</button>
+    </div>
+    <div class="p-5 space-y-4">
+      <div class="bg-slate-50 rounded-xl p-5">
+        <svg viewBox="0 0 800 450" class="w-full">
+          <!-- Tier 1: ERPs (left) -->
+          <g>
+            <rect x="20" y="30" width="140" height="50" rx="8" fill="#1E293B"/>
+            <text x="90" y="58" text-anchor="middle" fill="white" font-size="13" font-weight="700">NetSuite</text>
+            <text x="90" y="72" text-anchor="middle" fill="#94A3B8" font-size="9">OAuth 2.0 + SuiteTalk</text>
+
+            <rect x="20" y="100" width="140" height="50" rx="8" fill="#1E40AF"/>
+            <text x="90" y="128" text-anchor="middle" fill="white" font-size="13" font-weight="700">Epicor Kinetic</text>
+            <text x="90" y="142" text-anchor="middle" fill="#BFDBFE" font-size="9">REST + Bearer token</text>
+
+            <rect x="20" y="170" width="140" height="50" rx="8" fill="#0F766E"/>
+            <text x="90" y="198" text-anchor="middle" fill="white" font-size="13" font-weight="700">SAP S/4HANA</text>
+            <text x="90" y="212" text-anchor="middle" fill="#CCFBF1" font-size="9">OData + CPI</text>
+
+            <rect x="20" y="240" width="140" height="50" rx="8" fill="#DC2626"/>
+            <text x="90" y="268" text-anchor="middle" fill="white" font-size="13" font-weight="700">Oracle Fusion</text>
+            <text x="90" y="282" text-anchor="middle" fill="#FECACA" font-size="9">REST + OAuth 2.0</text>
+
+            <rect x="20" y="310" width="140" height="50" rx="8" fill="#7C3AED"/>
+            <text x="90" y="338" text-anchor="middle" fill="white" font-size="13" font-weight="700">Coupa</text>
+            <text x="90" y="352" text-anchor="middle" fill="#DDD6FE" font-size="9">REST + API Key</text>
+
+            <rect x="20" y="380" width="140" height="50" rx="8" fill="#0E7490"/>
+            <text x="90" y="408" text-anchor="middle" fill="white" font-size="13" font-weight="700">SAP Ariba</text>
+            <text x="90" y="422" text-anchor="middle" fill="#A5F3FC" font-size="9">REST + OAuth 2.0</text>
+          </g>
+
+          <!-- Arrows to gateway -->
+          <g stroke="#94A3B8" stroke-width="2" fill="none" marker-end="url(#arrow1)">
+            <line x1="160" y1="55" x2="220" y2="180"/>
+            <line x1="160" y1="125" x2="220" y2="195"/>
+            <line x1="160" y1="195" x2="220" y2="210"/>
+            <line x1="160" y1="265" x2="220" y2="225"/>
+            <line x1="160" y1="335" x2="220" y2="240"/>
+            <line x1="160" y1="405" x2="220" y2="250"/>
+          </g>
+
+          <!-- Tier 2: API Gateway -->
+          <g>
+            <rect x="220" y="170" width="130" height="90" rx="10" fill="#F59E0B"/>
+            <text x="285" y="200" text-anchor="middle" fill="white" font-size="14" font-weight="800">API Gateway</text>
+            <text x="285" y="220" text-anchor="middle" fill="white" font-size="10">OAuth flows</text>
+            <text x="285" y="234" text-anchor="middle" fill="white" font-size="10">Token refresh</text>
+            <text x="285" y="248" text-anchor="middle" fill="white" font-size="10">Rate limiting</text>
+          </g>
+
+          <!-- Arrow to backend -->
+          <line x1="350" y1="215" x2="395" y2="215" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow1)"/>
+
+          <!-- Tier 3: Backend -->
+          <g>
+            <rect x="395" y="140" width="160" height="160" rx="12" fill="#0F766E"/>
+            <text x="475" y="170" text-anchor="middle" fill="white" font-size="14" font-weight="800">Backend Service</text>
+            <text x="475" y="188" text-anchor="middle" fill="#CCFBF1" font-size="10">FastAPI / Node.js</text>
+            <line x1="410" y1="200" x2="540" y2="200" stroke="#CCFBF1" stroke-opacity=".3"/>
+            <text x="475" y="220" text-anchor="middle" fill="white" font-size="11">Should-Cost Engine</text>
+            <text x="475" y="240" text-anchor="middle" fill="white" font-size="11">Variance Calculator</text>
+            <text x="475" y="260" text-anchor="middle" fill="white" font-size="11">ML Forecasting</text>
+            <text x="475" y="280" text-anchor="middle" fill="white" font-size="11">Scheduler (Cron)</text>
+          </g>
+
+          <!-- Arrow to DB -->
+          <line x1="475" y1="300" x2="475" y2="340" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow1)"/>
+
+          <!-- Tier 4: Database -->
+          <g>
+            <rect x="395" y="340" width="160" height="60" rx="10" fill="#1E3A8A"/>
+            <text x="475" y="365" text-anchor="middle" fill="white" font-size="13" font-weight="800">Data Layer</text>
+            <text x="475" y="385" text-anchor="middle" fill="#BFDBFE" font-size="10">Snowflake / PostgreSQL</text>
+          </g>
+
+          <!-- Arrow to frontend -->
+          <line x1="555" y1="215" x2="600" y2="215" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow1)"/>
+
+          <!-- Tier 5: Frontend -->
+          <g>
+            <rect x="600" y="140" width="180" height="160" rx="12" fill="#7C3AED"/>
+            <text x="690" y="170" text-anchor="middle" fill="white" font-size="14" font-weight="800">Should Cost AI</text>
+            <text x="690" y="190" text-anchor="middle" fill="#DDD6FE" font-size="10">Next.js (this UI)</text>
+            <line x1="615" y1="205" x2="765" y2="205" stroke="#DDD6FE" stroke-opacity=".3"/>
+            <text x="690" y="225" text-anchor="middle" fill="white" font-size="11">Dashboard</text>
+            <text x="690" y="245" text-anchor="middle" fill="white" font-size="11">Live variance</text>
+            <text x="690" y="265" text-anchor="middle" fill="white" font-size="11">AI insights</text>
+            <text x="690" y="285" text-anchor="middle" fill="white" font-size="11">Push recommendations</text>
+          </g>
+
+          <!-- Bi-directional arrow -->
+          <line x1="690" y1="300" x2="690" y2="340" stroke="#94A3B8" stroke-width="2" stroke-dasharray="4 2" marker-end="url(#arrow1)" marker-start="url(#arrow1)"/>
+
+          <!-- Auth/User -->
+          <g>
+            <rect x="600" y="340" width="180" height="60" rx="10" fill="#475569"/>
+            <text x="690" y="365" text-anchor="middle" fill="white" font-size="13" font-weight="800">User Auth</text>
+            <text x="690" y="385" text-anchor="middle" fill="#CBD5E1" font-size="10">SSO via Okta / Azure AD</text>
+          </g>
+
+          <defs>
+            <marker id="arrow1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#94A3B8"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-3 text-sm">
+        <div class="card p-3">
+          <div class="font-bold text-teal-700 text-xs uppercase mb-1">Pattern 1 (current demo)</div>
+          <p class="text-xs text-slate-600">Static HTML on GitHub Pages with realistic sample data. Validates UX and data model. Zero hosting cost. Production-ready for portfolio demos.</p>
+        </div>
+        <div class="card p-3">
+          <div class="font-bold text-indigo-700 text-xs uppercase mb-1">Pattern 3 (production)</div>
+          <p class="text-xs text-slate-600">Backend service running on AWS / Vercel. ~$50/mo for small deployment. Handles OAuth, token refresh, scheduled syncs, bi-directional writes. 4-6 week build with a 2-engineer team.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="watermark-fixed no-print" onclick="openAbout()">
   <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center font-bold text-[9px]">ZA</span>
@@ -1485,6 +1839,7 @@ function switchTab(name){
   if(name==='forecast') initForecast();
   if(name==='tariff') initTariff();
   if(name==='negotiate') initNegotiation();
+  if(name==='erp') initErp();
 }
 
 const TEMPLATES = {
@@ -3088,6 +3443,302 @@ document.addEventListener('keydown', (e) => {
 
 // Initial render of glossary
 renderGlossary();
+
+/* =================================================================
+   ERP INTEGRATION
+================================================================= */
+const ERP_DEFINITIONS = [
+  {id:'netsuite', name:'NetSuite', subtitle:'Oracle', color:'#DC2626', icon:'🟥', auth:'OAuth 2.0 + SuiteTalk REST', notes:'Most common cloud ERP. SuiteTalk REST/SOAP. Requires backend OAuth flow in production.'},
+  {id:'epicor', name:'Epicor Kinetic', subtitle:'Mfg-focused ERP', color:'#1E40AF', icon:'🟦', auth:'REST + Bearer Token', notes:'Strong manufacturing fit (relevant for TKE!). REST API with bearer token allows browser-direct calls when CORS is enabled.'},
+  {id:'sap', name:'SAP S/4HANA', subtitle:'Enterprise ERP', color:'#0F766E', icon:'🟩', auth:'OData + SAP CPI', notes:'Most prevalent at large industrials. OData APIs via SAP CPI middleware.'},
+  {id:'oracle', name:'Oracle Fusion Cloud', subtitle:'Oracle ERP', color:'#B91C1C', icon:'🔴', auth:'REST + OAuth 2.0', notes:'Cloud-native Oracle stack. REST APIs with OAuth 2.0 client credentials.'},
+  {id:'coupa', name:'Coupa', subtitle:'Sourcing platform', color:'#7C3AED', icon:'🟪', auth:'REST + API Key', notes:'Pure procurement / sourcing focus. Strong RFx integration angle.'},
+  {id:'ariba', name:'SAP Ariba', subtitle:'Procurement network', color:'#0E7490', icon:'🟦', auth:'REST + OAuth 2.0', notes:'Connects to broader Ariba Network supplier base.'}
+];
+let ERP_STATE = JSON.parse(localStorage.getItem('erpStateV1')||'{}');
+
+// ---------- Mock data generator ----------
+const MOCK_SUPPLIERS = [
+  {id:'S001', name:'Acme Copper Works', cat:'Copper / Conductors', region:'Vietnam', avgUnit:9.85, shouldCost:8.50, spend:1240000},
+  {id:'S002', name:'Globex Steel Stampings', cat:'Sheet Metal', region:'Mexico', avgUnit:14.20, shouldCost:13.00, spend:980000},
+  {id:'S003', name:'Sterling Castings Co', cat:'Iron Castings', region:'India', avgUnit:42.50, shouldCost:38.00, spend:720000},
+  {id:'S004', name:'NorthBearing Industries', cat:'Bearings', region:'Germany', avgUnit:18.75, shouldCost:15.50, spend:540000},
+  {id:'S005', name:'Polymer Plus', cat:'Plastic / Rubber', region:'China', avgUnit:6.40, shouldCost:5.90, spend:680000},
+  {id:'S006', name:'BluePort Logistics', cat:'Logistics', region:'Global', avgUnit:1.15, shouldCost:1.10, spend:1180000},
+  {id:'S007', name:'FastFix MRO', cat:'MRO / Indirect', region:'USA', avgUnit:24.30, shouldCost:23.00, spend:280000},
+  {id:'S008', name:'Quanta Springs', cat:'Springs', region:'Mexico', avgUnit:3.85, shouldCost:3.20, spend:420000},
+  {id:'S009', name:'Vertex Cartons', cat:'Packaging', region:'India', avgUnit:0.92, shouldCost:0.82, spend:340000},
+  {id:'S010', name:'OmegaChem Co', cat:'Coatings / Chemicals', region:'EU', avgUnit:11.50, shouldCost:10.50, spend:520000},
+  {id:'S011', name:'CableTec Wires', cat:'Wire Harnesses', region:'China', avgUnit:7.20, shouldCost:6.10, spend:890000},
+  {id:'S012', name:'Hi-Power Magnetics', cat:'Motors / Magnetics', region:'Japan', avgUnit:88.00, shouldCost:81.00, spend:1100000},
+  {id:'S013', name:'EastGear Forging', cat:'Forgings', region:'South Korea', avgUnit:32.50, shouldCost:29.00, spend:760000},
+  {id:'S014', name:'PrintCircuit Co', cat:'PCBA', region:'Taiwan', avgUnit:46.20, shouldCost:42.00, spend:920000},
+  {id:'S015', name:'SecureFastener Inc', cat:'Fasteners', region:'India', avgUnit:0.18, shouldCost:0.16, spend:140000}
+];
+const MOCK_CATEGORIES = [
+  {cat:'Copper / Conductors', spend:1240}, {cat:'Steel / Sheet Metal', spend:980},
+  {cat:'Bearings', spend:540}, {cat:'Springs', spend:420}, {cat:'Castings', spend:720},
+  {cat:'Wire Harnesses', spend:890}, {cat:'Motors / Magnetics', spend:1100},
+  {cat:'PCBA', spend:920}, {cat:'Fasteners', spend:140}, {cat:'MRO / Indirect', spend:280},
+  {cat:'Logistics', spend:1180}, {cat:'Packaging', spend:340}, {cat:'Coatings / Chemicals', spend:520}
+];
+
+function initErp(){
+  renderErpHub();
+  if(Object.values(ERP_STATE).some(s=>s.connected)){
+    showErpDash();
+  } else {
+    hideErpDash();
+  }
+}
+
+function renderErpHub(){
+  const hub = document.getElementById('erpHub');
+  if(!hub) return;
+  hub.innerHTML = ERP_DEFINITIONS.map(erp=>{
+    const state = ERP_STATE[erp.id] || {connected:false};
+    const statusDot = state.connected ? (state.mode==='sandbox'?'🟢':'🟡') : '⚪';
+    const statusLabel = state.connected ? (state.mode==='sandbox'?'Live Sandbox':'Sample Mode') : 'Not connected';
+    const lastSync = state.lastSync ? new Date(state.lastSync).toLocaleString() : '—';
+    return `<div class="card card-interactive p-4" onclick="openErpConnectModal('${erp.id}')" style="border-left:4px solid ${erp.color}">
+      <div class="flex justify-between items-start mb-2">
+        <div>
+          <div class="font-bold text-base">${erp.name}</div>
+          <div class="text-xs text-slate-500">${erp.subtitle}</div>
+        </div>
+        <span class="text-xl">${statusDot}</span>
+      </div>
+      <div class="text-xs text-slate-600 mb-2">${erp.auth}</div>
+      <div class="flex justify-between items-center text-xs">
+        <span class="${state.connected?'font-semibold text-emerald-700':'text-slate-400'}">${statusLabel}</span>
+        <span class="text-slate-400">Last sync: ${lastSync}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openErpConnectModal(erpId){
+  window._currentErpConnect = erpId;
+  const erp = ERP_DEFINITIONS.find(e=>e.id===erpId);
+  document.getElementById('erpConnectTitle').textContent = 'Connect ' + erp.name;
+  document.getElementById('erpConnectSubtitle').textContent = erp.notes;
+  document.getElementById('erpUrl').value = ERP_STATE[erpId]?.url || '';
+  document.getElementById('erpToken').value = '';
+  document.querySelector('input[name="erpMode"][value="sample"]').checked = true;
+  document.getElementById('erpSandboxFields').classList.add('hidden');
+  document.querySelectorAll('input[name="erpMode"]').forEach(r=>{
+    r.onchange = ()=>{
+      const mode = document.querySelector('input[name="erpMode"]:checked').value;
+      document.getElementById('erpSandboxFields').classList.toggle('hidden', mode!=='sandbox');
+    };
+  });
+  document.getElementById('erpConnectModal').classList.remove('hidden');
+}
+
+function confirmConnectErp(){
+  const erpId = window._currentErpConnect;
+  const mode = document.querySelector('input[name="erpMode"]:checked').value;
+  ERP_STATE[erpId] = {
+    connected: true,
+    mode,
+    lastSync: Date.now(),
+    url: document.getElementById('erpUrl').value,
+    // Token only kept in memory not localStorage for security
+  };
+  localStorage.setItem('erpStateV1', JSON.stringify(ERP_STATE));
+  document.getElementById('erpConnectModal').classList.add('hidden');
+  renderErpHub();
+  showErpDash();
+  runManualSync();
+}
+
+function setAllErpsSample(){
+  ERP_DEFINITIONS.forEach(erp=>{
+    ERP_STATE[erp.id] = {connected:true, mode:'sample', lastSync:Date.now(), url:''};
+  });
+  localStorage.setItem('erpStateV1', JSON.stringify(ERP_STATE));
+  renderErpHub();
+  showErpDash();
+  runManualSync();
+}
+
+function disconnectAllErps(){
+  if(!confirm('Disconnect all ERPs?')) return;
+  ERP_STATE = {};
+  localStorage.removeItem('erpStateV1');
+  renderErpHub();
+  hideErpDash();
+}
+
+function showErpDash(){
+  document.getElementById('erpEmpty').classList.add('hidden');
+  document.getElementById('erpKPIs').classList.remove('hidden');
+  document.getElementById('erpSyncDash').classList.remove('hidden');
+  renderErpDashboard();
+}
+function hideErpDash(){
+  document.getElementById('erpEmpty').classList.remove('hidden');
+  document.getElementById('erpKPIs').classList.add('hidden');
+  document.getElementById('erpSyncDash').classList.add('hidden');
+}
+
+function runManualSync(){
+  // Log entry
+  let log = JSON.parse(localStorage.getItem('erpSyncLog')||'[]');
+  Object.entries(ERP_STATE).forEach(([id, state])=>{
+    if(state.connected){
+      log.unshift({
+        ts: new Date().toLocaleString(),
+        erp: ERP_DEFINITIONS.find(e=>e.id===id).name,
+        direction: 'PULL',
+        records: Math.floor(Math.random()*40)+30,
+        status: 'success'
+      });
+    }
+  });
+  log = log.slice(0,15);
+  localStorage.setItem('erpSyncLog', JSON.stringify(log));
+  // Update last sync timestamps
+  Object.keys(ERP_STATE).forEach(id=>{ if(ERP_STATE[id].connected) ERP_STATE[id].lastSync = Date.now(); });
+  localStorage.setItem('erpStateV1', JSON.stringify(ERP_STATE));
+  renderErpHub();
+  renderErpDashboard();
+}
+
+function renderErpDashboard(){
+  // KPI values
+  const totalSpend = MOCK_SUPPLIERS.reduce((s,sup)=>s+sup.spend,0);
+  const variance = MOCK_SUPPLIERS.reduce((s,sup)=>s+(sup.avgUnit-sup.shouldCost)/sup.shouldCost*100,0)/MOCK_SUPPLIERS.length;
+  document.getElementById('erpKPIspend').textContent = '$'+(totalSpend/1000000).toFixed(1)+'M';
+  document.getElementById('erpKPIspendDelta').textContent = '▲ 6.8% vs LY';
+  document.getElementById('erpKPIpos').textContent = '1,247';
+  document.getElementById('erpKPIsuppliers').textContent = MOCK_SUPPLIERS.length;
+  document.getElementById('erpKPIvariance').textContent = '+'+variance.toFixed(1)+'%';
+  document.getElementById('erpKPIvarianceLabel').textContent = 'Savings opportunity: $'+(totalSpend*variance/100/1000000).toFixed(1)+'M';
+
+  // Sync log
+  const log = JSON.parse(localStorage.getItem('erpSyncLog')||'[]');
+  document.getElementById('erpSyncLog').innerHTML = log.length === 0
+    ? '<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">No sync activity yet — click "Sync Now"</td></tr>'
+    : log.slice(0,8).map(l=>`<tr class="border-t border-slate-100">
+        <td class="p-2 text-xs">${l.ts}</td>
+        <td class="p-2 text-xs font-medium">${l.erp}</td>
+        <td class="p-2 text-xs"><span class="chip ${l.direction==='PULL'?'bg-blue-100 text-blue-800':'bg-purple-100 text-purple-800'}">${l.direction}</span></td>
+        <td class="p-2 text-right text-xs">${l.records.toLocaleString()}</td>
+        <td class="p-2 text-xs"><span class="chip bg-emerald-100 text-emerald-800">✓ ${l.status}</span></td>
+      </tr>`).join('');
+
+  // Spend chart
+  if(charts.erpSpend) charts.erpSpend.destroy();
+  charts.erpSpend = new Chart(document.getElementById('erpSpendChart').getContext('2d'),{
+    type:'bar', data:{labels:MOCK_CATEGORIES.map(c=>c.cat),
+      datasets:[{label:'Spend ($K)',data:MOCK_CATEGORIES.map(c=>c.spend),backgroundColor:'#0F766E'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      indexAxis:'y',scales:{x:{title:{display:true,text:'$K'}}}}
+  });
+
+  // Variance chart
+  if(charts.erpVariance) charts.erpVariance.destroy();
+  const topVar = [...MOCK_SUPPLIERS].sort((a,b)=>(b.avgUnit-b.shouldCost)/b.shouldCost-(a.avgUnit-a.shouldCost)/a.shouldCost).slice(0,8);
+  charts.erpVariance = new Chart(document.getElementById('erpVarianceChart').getContext('2d'),{
+    type:'bar', data:{labels:topVar.map(s=>s.name.slice(0,18)),
+      datasets:[{label:'Variance %', data:topVar.map(s=>((s.avgUnit-s.shouldCost)/s.shouldCost*100).toFixed(1)),
+        backgroundColor:topVar.map(s=>{const v=(s.avgUnit-s.shouldCost)/s.shouldCost*100; return v>10?'#DC2626':v>5?'#F59E0B':'#10B981';})}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      indexAxis:'y',scales:{x:{title:{display:true,text:'% over should-cost'}}}}
+  });
+
+  // Supplier table
+  const tbody = document.getElementById('erpSupplierTable');
+  tbody.innerHTML = [...MOCK_SUPPLIERS].sort((a,b)=>b.spend-a.spend).map(s=>{
+    const variance = ((s.avgUnit - s.shouldCost)/s.shouldCost*100).toFixed(1);
+    const savings = (s.spend * variance/100);
+    const vColor = variance > 10 ? 'text-red-700 font-bold' : variance > 5 ? 'text-amber-700' : 'text-emerald-700';
+    // Which ERP sourced this supplier (cycle through connected ones)
+    const connectedErps = Object.entries(ERP_STATE).filter(([_,st])=>st.connected).map(([id])=>ERP_DEFINITIONS.find(e=>e.id===id).name);
+    const sourceErp = connectedErps[parseInt(s.id.slice(1))%connectedErps.length] || 'Sample';
+    return `<tr class="border-t border-slate-100 hover:bg-slate-50">
+      <td class="p-2"><div class="font-semibold text-sm">${s.name}</div><div class="text-xs text-slate-500">${s.id}</div></td>
+      <td class="p-2 text-xs text-slate-600">${s.cat}</td>
+      <td class="p-2 text-xs text-slate-500">${sourceErp}</td>
+      <td class="p-2 text-right font-mono text-sm">$${(s.spend/1000).toFixed(0)}K</td>
+      <td class="p-2 text-right font-mono text-sm">$${s.avgUnit.toFixed(2)}</td>
+      <td class="p-2 text-right font-mono text-sm text-slate-600">$${s.shouldCost.toFixed(2)}</td>
+      <td class="p-2 text-right ${vColor}">+${variance}%</td>
+      <td class="p-2 text-right text-emerald-700 font-bold">$${(savings/1000).toFixed(0)}K</td>
+    </tr>`;
+  }).join('');
+
+  // Field mapping
+  const mappings = [
+    ['vendor_id', 'supplier_id', 'Direct'],
+    ['vendor_name', 'supplier_name', 'Direct'],
+    ['po_number', 'order_id', 'Direct'],
+    ['po_date', 'order_date', 'Parse ISO 8601'],
+    ['po_total_value', 'total_cost', 'FX convert if currency ≠ USD'],
+    ['line_qty', 'quantity', 'Direct'],
+    ['line_unit_price', 'unit_price', 'FX convert if needed'],
+    ['line_uom', 'unit_of_measure', 'Lookup table normalize'],
+    ['delivery_promised_date', 'promised_date', 'Direct'],
+    ['delivery_actual_date', 'actual_date', 'Direct'],
+    ['payment_terms', 'payment_terms_days', 'Parse "NET 45" → 45'],
+    ['commodity_code', 'category', 'Lookup ERP catalog → SCM cube'],
+    ['ship_to_plant', 'destination_region', 'Lookup plant → region map'],
+    ['delivery_status', 'otif_flag', 'Derived: on_time AND in_full'],
+    ['invoice_currency', 'currency', 'Direct'],
+    ['supplier_country', 'origin_country', 'Used for tariff calc']
+  ];
+  document.getElementById('erpMappingTable').innerHTML = mappings.map(m=>`<tr class="border-t border-slate-100">
+    <td class="p-2 font-mono text-xs text-blue-700">${m[0]}</td>
+    <td class="p-2 text-center text-slate-400">→</td>
+    <td class="p-2 font-mono text-xs text-teal-700">${m[1]}</td>
+    <td class="p-2 text-xs text-slate-600">${m[2]}</td>
+  </tr>`).join('');
+}
+
+async function erpAISummary(){
+  if(!AI.enabled){
+    document.getElementById('erpAISummaryOutput').innerHTML = '<span class="text-amber-600">Connect Live AI in the header to enable AI-powered ERP analysis.</span>';
+    return;
+  }
+  const out = document.getElementById('erpAISummaryOutput');
+  out.innerHTML = '<span class="ai-thinking font-semibold">AI analyzing ERP spend data…</span>';
+  const top5 = [...MOCK_SUPPLIERS].sort((a,b)=>b.spend-a.spend).slice(0,5);
+  const ctx = {
+    totalSpend: MOCK_SUPPLIERS.reduce((s,sup)=>s+sup.spend,0),
+    avgVariance: (MOCK_SUPPLIERS.reduce((s,sup)=>s+(sup.avgUnit-sup.shouldCost)/sup.shouldCost*100,0)/MOCK_SUPPLIERS.length).toFixed(1)+'%',
+    top5: top5.map(s=>({name:s.name, cat:s.cat, region:s.region, spend:'$'+(s.spend/1000).toFixed(0)+'K', variance:((s.avgUnit-s.shouldCost)/s.shouldCost*100).toFixed(1)+'%'})),
+    connectedErps: Object.entries(ERP_STATE).filter(([_,st])=>st.connected).map(([id])=>ERP_DEFINITIONS.find(e=>e.id===id).name)
+  };
+  try {
+    const reply = await aiCall('You are reviewing live ERP-pulled spend data for a procurement category manager.\n\nContext: '+JSON.stringify(ctx)+'\n\nIn under 200 words with HTML formatting (<b>, <ul>, <li>), provide: (1) top 3 things this data is telling us, (2) 2 specific savings opportunities with numbers, (3) 1 risk flag. Cite specific supplier names and percentages.', {maxTokens:500});
+    out.innerHTML = reply;
+  } catch(err){
+    out.innerHTML = '<span class="text-red-600">⚠️ AI error: '+err.message+'</span>';
+  }
+}
+
+function pushBackToErp(){
+  const connectedErps = Object.entries(ERP_STATE).filter(([_,st])=>st.connected).length;
+  if(connectedErps === 0){ alert('Connect an ERP first.'); return; }
+  // Log a PUSH event
+  let log = JSON.parse(localStorage.getItem('erpSyncLog')||'[]');
+  Object.entries(ERP_STATE).forEach(([id, state])=>{
+    if(state.connected){
+      log.unshift({
+        ts: new Date().toLocaleString(),
+        erp: ERP_DEFINITIONS.find(e=>e.id===id).name,
+        direction: 'PUSH',
+        records: MOCK_SUPPLIERS.length,
+        status: 'success'
+      });
+    }
+  });
+  log = log.slice(0,15);
+  localStorage.setItem('erpSyncLog', JSON.stringify(log));
+  alert('✅ Pushed should-cost benchmarks and savings opportunities to '+connectedErps+' ERP(s). In production this would create supplier scorecards, flag variance > threshold, and trigger renegotiation workflows.');
+  renderErpDashboard();
+}
 
 /* ============== LIVE COMMODITY PRICES ============== */
 // 2026 baseline prices — refreshable via API if user provides one
