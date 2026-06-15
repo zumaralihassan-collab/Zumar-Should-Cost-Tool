@@ -87,6 +87,12 @@
   .tab-btn > span:last-child {
     flex:1; overflow:hidden; text-overflow:ellipsis; line-height:1.25;
   }
+  .sidebar .tab-btn{ color:#334155 !important; }
+  .sidebar .tab-btn.tab-active{ background:#0F766E !important; color:#ffffff !important; box-shadow:0 2px 6px rgba(15,118,110,.3); }
+  .sidebar .tab-btn.tab-inactive{ background:transparent; color:#334155 !important; }
+  .sidebar .tab-btn.tab-inactive:hover{ background:#F1F5F9; color:#0F766E !important; }
+  .sidebar .tab-btn > span{ color:inherit; }
+  /* Legacy support */
   .tab-active{ background:#0F766E; color:white; box-shadow:0 2px 6px rgba(15,118,110,.3); }
   .tab-inactive{ background:transparent; color:#334155; }
   .tab-inactive:hover{ background:#F1F5F9; color:#0F766E; }
