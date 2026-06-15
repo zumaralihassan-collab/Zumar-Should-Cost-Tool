@@ -255,6 +255,8 @@
       <button class="tab-btn tab-inactive" data-tab="negotiate" onclick="switchTab('negotiate')">Negotiation Simulator</button>
       <button class="tab-btn tab-inactive" data-tab="erp" onclick="switchTab('erp')">🔌 ERP Integration</button>
       <button class="tab-btn tab-inactive" data-tab="stakeholders" onclick="switchTab('stakeholders')">🎯 Stakeholder Hub</button>
+      <button class="tab-btn tab-inactive" data-tab="aidash" onclick="switchTab('aidash')">🎨 AI Dashboard Builder</button>
+      <button class="tab-btn tab-inactive" data-tab="vendor" onclick="switchTab('vendor')">🤝 Vendor Onboarding</button>
     </nav>
   </div>
   <div class="bg-slate-900/40 text-center text-[11px] py-1.5 text-teal-100">
@@ -1361,6 +1363,261 @@
 
 </main>
 
+<!-- ============== AI DASHBOARD BUILDER ============== -->
+<section id="tab-aidash-content" class="tab-content hidden" style="margin-top:1.5rem;">
+  <div class="bg-gradient-to-r from-violet-700 via-purple-700 to-fuchsia-700 text-white rounded-2xl p-6 mb-6">
+    <div class="flex justify-between items-start flex-wrap gap-3">
+      <div>
+        <h2 class="text-2xl font-bold flex items-center gap-2">AI Dashboard Builder
+          <span class="text-xs bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full font-bold">PROMPT → LIVE VIZ</span></h2>
+        <p class="text-purple-100 text-sm mt-1">Type what you want. AI returns a structured plan. Tool renders live charts with filters, sorts, narrative — all editable via further prompts.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROMPT INPUT -->
+  <div class="card p-6 mb-6">
+    <label class="block font-semibold text-sm mb-2">What dashboard do you need?</label>
+    <textarea id="aidashPrompt" rows="3" placeholder="e.g. Show me supplier risk by region with OTIF, defect rate, single-source flag — filter by category" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+    <div class="flex items-center gap-2 mt-3 flex-wrap">
+      <button onclick="generateAIDashboard()" class="btn btn-primary">✨ Generate Dashboard</button>
+      <button onclick="loadAIDashSample('risk')" class="btn btn-ghost text-xs">⚠️ Supplier risk dashboard</button>
+      <button onclick="loadAIDashSample('savings')" class="btn btn-ghost text-xs">💰 Savings tracker</button>
+      <button onclick="loadAIDashSample('commodity')" class="btn btn-ghost text-xs">📊 Commodity trends</button>
+      <button onclick="loadAIDashSample('integrity')" class="btn btn-ghost text-xs">🛡️ Supplier integrity</button>
+      <button onclick="loadAIDashSample('esg')" class="btn btn-ghost text-xs">🌱 ESG scorecard</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD OUTPUT -->
+  <div id="aidashEmpty" class="card p-12 text-center">
+    <div class="text-6xl mb-4">🎨</div>
+    <h3 class="text-headline mb-2">Type a prompt above</h3>
+    <p class="text-body text-slate-600 max-w-md mx-auto">AI returns a JSON dashboard plan (KPIs + multiple charts + filters + narrative + recommendations) and the tool renders it live. Iterate by editing the prompt.</p>
+    <div class="mt-4 text-xs text-slate-500">Requires Live AI · uses Claude or OpenAI</div>
+  </div>
+
+  <div id="aidashOutput" class="hidden space-y-6"></div>
+
+  <!-- REFINE PROMPT -->
+  <div id="aidashRefine" class="hidden card p-5 mt-6">
+    <label class="block font-semibold text-sm mb-2">Refine — modify, filter, ask follow-ups</label>
+    <div class="flex gap-2">
+      <input id="aidashRefineInput" type="text" placeholder="e.g. filter to last 90 days, add a heatmap of defects by region, switch the pie to a pareto" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm" onkeydown="if(event.key==='Enter')refineAIDashboard()"/>
+      <button onclick="refineAIDashboard()" class="btn btn-primary">↻ Refine</button>
+    </div>
+  </div>
+</section>
+
+<!-- ========= VENDOR ONBOARDING & COMPLIANCE HUB ========= -->
+<section id="tab-vendor-content" class="tab-content hidden" style="margin-top:1.5rem;">
+  <div class="bg-gradient-to-r from-teal-700 via-cyan-700 to-blue-700 text-white rounded-2xl p-6 mb-6">
+    <div class="flex justify-between items-start flex-wrap gap-3">
+      <div>
+        <h2 class="text-2xl font-bold flex items-center gap-2">Vendor Onboarding &amp; Compliance Hub
+          <span class="text-xs bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full font-bold">CROSS-FUNCTIONAL</span></h2>
+        <p class="text-cyan-100 text-sm mt-1">Single source of truth for vendor docs, terms, compliance status — visible to Procurement, Legal, Finance, Quality, Security, ESG teams</p>
+      </div>
+      <button onclick="openVendorRegisterModal()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 rounded-lg text-sm font-semibold">＋ Register New Vendor</button>
+    </div>
+  </div>
+
+  <!-- KPI BAR -->
+  <div class="grid md:grid-cols-5 gap-3 mb-6">
+    <div class="kpi-card border-l-4" style="border-left-color:#0F766E">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">Total Vendors</div>
+      <div class="text-2xl font-extrabold mt-1 text-teal-700" id="vendorKPItotal">0</div>
+      <div class="text-xs text-slate-500 mt-1">Across all stages</div>
+    </div>
+    <div class="kpi-card border-l-4" style="border-left-color:#F59E0B">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">In Review</div>
+      <div class="text-2xl font-extrabold mt-1 text-amber-700" id="vendorKPIreview">0</div>
+      <div class="text-xs text-slate-500 mt-1">Pending team action</div>
+    </div>
+    <div class="kpi-card border-l-4" style="border-left-color:#10B981">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">Approved</div>
+      <div class="text-2xl font-extrabold mt-1 text-emerald-700" id="vendorKPIapproved">0</div>
+      <div class="text-xs text-slate-500 mt-1">Active &amp; cleared</div>
+    </div>
+    <div class="kpi-card border-l-4" style="border-left-color:#DC2626">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">Compliance Gaps</div>
+      <div class="text-2xl font-extrabold mt-1 text-red-700" id="vendorKPIgaps">0</div>
+      <div class="text-xs text-slate-500 mt-1">Missing or expired docs</div>
+    </div>
+    <div class="kpi-card border-l-4" style="border-left-color:#3B82F6">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">Avg Onboarding Time</div>
+      <div class="text-2xl font-extrabold mt-1 text-blue-700">14 days</div>
+      <div class="text-xs text-slate-500 mt-1">Target: under 12</div>
+    </div>
+  </div>
+
+  <!-- ONBOARDING FUNNEL -->
+  <div class="card p-5 mb-6">
+    <h3 class="text-title mb-4">📋 Onboarding Pipeline</h3>
+    <div class="grid md:grid-cols-6 gap-2 text-center">
+      <div class="card p-3 bg-slate-50">
+        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">1 · Invited</div>
+        <div class="text-2xl font-bold text-slate-700" id="funnelInvited">0</div>
+      </div>
+      <div class="card p-3 bg-blue-50">
+        <div class="text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">2 · Registered</div>
+        <div class="text-2xl font-bold text-blue-700" id="funnelRegistered">0</div>
+      </div>
+      <div class="card p-3 bg-amber-50">
+        <div class="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">3 · Docs Pending</div>
+        <div class="text-2xl font-bold text-amber-700" id="funnelDocs">0</div>
+      </div>
+      <div class="card p-3 bg-purple-50">
+        <div class="text-xs font-bold text-purple-700 uppercase tracking-wider mb-1">4 · Legal Review</div>
+        <div class="text-2xl font-bold text-purple-700" id="funnelLegal">0</div>
+      </div>
+      <div class="card p-3 bg-indigo-50">
+        <div class="text-xs font-bold text-indigo-700 uppercase tracking-wider mb-1">5 · Quality Check</div>
+        <div class="text-2xl font-bold text-indigo-700" id="funnelQuality">0</div>
+      </div>
+      <div class="card p-3 bg-emerald-50">
+        <div class="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">6 · Approved</div>
+        <div class="text-2xl font-bold text-emerald-700" id="funnelApproved">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VENDOR LIST -->
+  <div class="card p-5 mb-6">
+    <div class="flex justify-between items-center flex-wrap gap-3 mb-3">
+      <h3 class="text-title">Vendor Directory</h3>
+      <div class="flex gap-2">
+        <input id="vendorSearch" type="text" placeholder="Search vendors…" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm" oninput="renderVendorList()"/>
+        <select id="vendorFilter" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm" onchange="renderVendorList()">
+          <option value="all">All stages</option>
+          <option value="Invited">Invited</option>
+          <option value="Registered">Registered</option>
+          <option value="Docs Pending">Docs Pending</option>
+          <option value="Legal Review">Legal Review</option>
+          <option value="Quality Check">Quality Check</option>
+          <option value="Approved">Approved</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+        <button onclick="seedSampleVendors()" class="btn btn-secondary text-xs">⚡ Load sample vendors</button>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-xs text-slate-600 uppercase">
+          <tr>
+            <th class="text-left p-2">Vendor</th>
+            <th class="text-left p-2">Category</th>
+            <th class="text-left p-2">Region</th>
+            <th class="text-left p-2">Stage</th>
+            <th class="p-2 text-center">Docs</th>
+            <th class="p-2 text-center">Compliance</th>
+            <th class="p-2 text-center">Owner</th>
+            <th class="p-2"></th>
+          </tr>
+        </thead>
+        <tbody id="vendorTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- COMPLIANCE OVERVIEW -->
+  <div class="grid md:grid-cols-2 gap-4 mb-6">
+    <div class="card p-5">
+      <h3 class="text-title mb-3">🛡️ Compliance Status Overview</h3>
+      <div class="space-y-2 text-sm" id="complianceOverview"></div>
+    </div>
+    <div class="card p-5">
+      <h3 class="text-title mb-3">⏰ Expiring Documents (next 90 days)</h3>
+      <div class="space-y-2 text-sm" id="expiringDocs"></div>
+    </div>
+  </div>
+
+  <!-- TEAM ACCESS -->
+  <div class="card p-5">
+    <h3 class="text-title mb-3">👥 Cross-Functional Visibility</h3>
+    <p class="text-body text-slate-600 mb-4">Each team has a tailored view of vendor data based on what they need to see.</p>
+    <div class="grid md:grid-cols-3 gap-3" id="teamAccessGrid"></div>
+  </div>
+</section>
+
+<!-- VENDOR REGISTRATION MODAL -->
+<div id="vendorRegisterModal" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-3xl w-full overflow-auto" style="max-height:90vh;">
+    <div class="bg-gradient-to-r from-teal-700 to-cyan-700 text-white p-5 rounded-t-2xl flex justify-between items-start">
+      <div>
+        <h2 class="text-xl font-bold">Register New Vendor</h2>
+        <p class="text-cyan-100 text-xs mt-1">Self-service form sent to vendor; status visible to all teams</p>
+      </div>
+      <button onclick="document.getElementById('vendorRegisterModal').classList.add('hidden')" class="text-white/70 hover:text-white text-2xl leading-none">&times;</button>
+    </div>
+    <div class="p-5 space-y-4">
+
+      <div class="grid md:grid-cols-2 gap-3">
+        <div><label class="block text-xs font-semibold mb-1">Legal Company Name *</label>
+          <input id="vrName" type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"/></div>
+        <div><label class="block text-xs font-semibold mb-1">Trade / DBA Name</label>
+          <input id="vrDBA" type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"/></div>
+        <div><label class="block text-xs font-semibold mb-1">Category *</label>
+          <select id="vrCat" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            <option>Raw Materials</option><option>Electronics</option><option>Packaging</option>
+            <option>Mechanical Parts</option><option>Chemicals</option><option>Logistics</option>
+            <option>MRO / Indirect</option><option>IT / Software</option><option>Professional Services</option>
+          </select></div>
+        <div><label class="block text-xs font-semibold mb-1">Country *</label>
+          <input id="vrCountry" type="text" placeholder="e.g. Vietnam" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"/></div>
+        <div><label class="block text-xs font-semibold mb-1">Primary Contact</label>
+          <input id="vrContact" type="text" placeholder="Name + email" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"/></div>
+        <div><label class="block text-xs font-semibold mb-1">Tax ID / EIN / VAT</label>
+          <input id="vrTax" type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"/></div>
+      </div>
+
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Required Documents (vendor uploads after invitation)</p>
+        <div class="grid md:grid-cols-2 gap-2 text-xs">
+          <label class="flex items-center gap-2"><input type="checkbox" checked/> W9 / W8-BEN tax form</label>
+          <label class="flex items-center gap-2"><input type="checkbox" checked/> Certificate of Insurance (≥$2M liability)</label>
+          <label class="flex items-center gap-2"><input type="checkbox" checked/> Bank account verification (ACH/wire)</label>
+          <label class="flex items-center gap-2"><input type="checkbox" checked/> Business registration / incorporation</label>
+          <label class="flex items-center gap-2"><input type="checkbox" checked/> NDA (signed)</label>
+          <label class="flex items-center gap-2"><input type="checkbox" checked/> Master Service Agreement (MSA)</label>
+          <label class="flex items-center gap-2"><input type="checkbox"/> ISO 9001 certificate</label>
+          <label class="flex items-center gap-2"><input type="checkbox"/> ISO 14001 (environmental)</label>
+          <label class="flex items-center gap-2"><input type="checkbox"/> ISO 45001 (health &amp; safety)</label>
+          <label class="flex items-center gap-2"><input type="checkbox"/> SOC 2 Type II (for SaaS)</label>
+          <label class="flex items-center gap-2"><input type="checkbox"/> Cyber security questionnaire</label>
+          <label class="flex items-center gap-2"><input type="checkbox"/> Modern Slavery Act statement</label>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Compliance Attestations</p>
+        <div class="grid md:grid-cols-2 gap-2 text-xs">
+          <label class="flex items-center gap-2"><input type="checkbox" checked/> RoHS compliance</label>
+          <label class="flex items-center gap-2"><input type="checkbox" checked/> REACH compliance</label>
+          <label class="flex items-center gap-2"><input type="checkbox" checked/> Conflict Minerals (3TG)</label>
+          <label class="flex items-center gap-2"><input type="checkbox" checked/> Anti-Bribery / FCPA</label>
+          <label class="flex items-center gap-2"><input type="checkbox"/> EU CBAM declaration</label>
+          <label class="flex items-center gap-2"><input type="checkbox"/> GDPR / data processing addendum</label>
+          <label class="flex items-center gap-2"><input type="checkbox"/> ESG / CDP self-assessment</label>
+          <label class="flex items-center gap-2"><input type="checkbox"/> Diverse supplier certification</label>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-3 border-t">
+        <button onclick="registerVendor()" class="btn btn-primary">Send Invitation</button>
+        <button onclick="document.getElementById('vendorRegisterModal').classList.add('hidden')" class="btn btn-ghost ml-auto">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VENDOR DETAIL DRAWER -->
+<div id="vendorDetailDrawer" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-4xl w-full overflow-auto" style="max-height:90vh;">
+    <div id="vendorDetailContent"></div>
+  </div>
+</div>
+
 <!-- SHARE LIVING BRIEF MODAL -->
 <div id="shareBriefModal" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-2xl w-full overflow-auto" style="max-height:90vh;">
@@ -2041,6 +2298,8 @@ function switchTab(name){
   if(name==='negotiate') initNegotiation();
   if(name==='erp') initErp();
   if(name==='stakeholders') initStakeholders();
+  if(name==='aidash') initAIDash();
+  if(name==='vendor') initVendor();
 }
 
 const TEMPLATES = {
@@ -4396,6 +4655,563 @@ function clearAIAssistant(){
   localStorage.removeItem('aiAssistantHistory');
   renderAssistantChat();
   addAssistantMsg('bot', getWelcomeMessage());
+}
+
+/* =================================================================
+   AI DASHBOARD BUILDER — prompt → JSON plan → live render
+================================================================= */
+let currentDashboard = null;
+let dashboardHistory = [];
+
+function initAIDash(){
+  // Pre-load sample prompt
+  if(!document.getElementById('aidashPrompt').value){
+    document.getElementById('aidashPrompt').placeholder = 'e.g. Show me supplier risk by region with OTIF, defect rate, single-source flag — filter by category';
+  }
+}
+
+const AIDASH_SAMPLES = {
+  risk: "Build a supplier risk dashboard. Show OTIF, PPM defects, single-source concentration, geopolitical exposure. Include KPIs for total risk score, suppliers in red zone, mitigation actions in flight. Filters: region, category, criticality tier.",
+  savings: "Track procurement savings YTD vs target. Show cost-avoidance vs cost-reduction breakdown, savings by category (pareto), top 5 savings projects status, quarterly burn-down vs target. Filters: business unit, savings type.",
+  commodity: "Visualize commodity price trends and impact on our cost base. Show 12-month indexed prices for copper, steel, aluminum, plastic. Compute exposure ($) by commodity. Recommend hedging or repricing actions.",
+  integrity: "Build a supplier integrity dashboard. Show supplier financial health (Altman Z proxies), audit findings, ESG ratings, sanctions screening status, contract compliance rate. Flag suppliers needing review.",
+  esg: "Generate an ESG procurement scorecard. Show Scope 3 emissions trend, supplier CDP A/B rating coverage, diverse supplier spend %, recycled content %, carbon cost per category at €90/tCO2e."
+};
+
+function loadAIDashSample(key){
+  document.getElementById('aidashPrompt').value = AIDASH_SAMPLES[key] || '';
+  generateAIDashboard();
+}
+
+async function generateAIDashboard(){
+  const promptText = document.getElementById('aidashPrompt').value.trim();
+  if(!promptText){ alert('Type a prompt first'); return; }
+
+  if(!AI.enabled){
+    // Fallback: generate from local templates without AI
+    currentDashboard = synthesizeLocalDashboard(promptText);
+    renderAIDashboard();
+    return;
+  }
+
+  const empty = document.getElementById('aidashEmpty');
+  const out = document.getElementById('aidashOutput');
+  empty.classList.add('hidden');
+  out.classList.remove('hidden');
+  out.innerHTML = `<div class="card p-8 text-center">
+    <div class="ai-thinking font-semibold text-lg mb-2">AI is composing your dashboard…</div>
+    <p class="text-xs text-slate-500">Sending prompt → AI → structured JSON plan → rendering live charts</p>
+  </div>`;
+
+  const sysPrompt = `You are a procurement analytics dashboard generator. The user describes what dashboard they want. You MUST return ONLY a JSON object (no markdown, no preamble, no closing comments). The JSON must follow this exact schema:
+
+{
+  "title": "Dashboard title",
+  "subtitle": "1-line description",
+  "kpis": [
+    {"label": "KPI name", "value": "$24.8M", "color": "emerald|amber|red|blue|slate|purple", "sub": "delta/context"}
+  ],
+  "filters": [
+    {"label": "Region", "options": ["All","China","India","Vietnam","Mexico"]},
+    {"label": "Period", "options": ["YTD","Q4","Last 12 months"]}
+  ],
+  "charts": [
+    {"type": "bar|line|pie|doughnut|scatter|pareto|hbar", "title": "Chart title", "size": "small|medium|large", "labels": ["A","B","C"], "data": [10,20,30], "color": "#0F766E"}
+  ],
+  "narrative": "<p>2-3 sentence narrative.</p><ul><li>Key insight 1</li><li>Key insight 2</li></ul>",
+  "recommendations": ["Action 1 with $ impact", "Action 2 with $ impact", "Action 3 with $ impact"]
+}
+
+Use realistic procurement data: realistic supplier names, plausible % variances, real commodity prices (LME copper ~$8900/MT, steel ~$780/MT), believable regional spread (China 30-40%, India 20-25%, Vietnam 12-15%, USA 10-12%, EU 6-8%, Mexico 8-10%).
+
+Aim for 4-6 KPIs, 2-4 charts with diverse types, 2-3 filters, narrative with 3-4 bullet insights, 3-4 actionable recommendations with $ figures.
+
+Return ONLY the JSON. No other text. No markdown code fences.`;
+
+  try {
+    const reply = await aiCall(promptText, {system: sysPrompt, maxTokens: 2000});
+    // Strip any markdown fences if AI included them
+    let json = reply.trim();
+    json = json.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+    // Find first { and last }
+    const start = json.indexOf('{'), end = json.lastIndexOf('}');
+    if(start>=0 && end>start) json = json.slice(start, end+1);
+    const plan = JSON.parse(json);
+    currentDashboard = plan;
+    dashboardHistory.push({prompt: promptText, plan});
+    renderAIDashboard();
+  } catch(err){
+    out.innerHTML = `<div class="card p-6 bg-red-50 border-red-200">
+      <h3 class="font-bold text-red-800 mb-2">⚠️ Could not generate dashboard</h3>
+      <p class="text-sm text-red-700 mb-2">${err.message}</p>
+      <p class="text-xs text-red-600">Try a simpler prompt, or check your Live AI connection in the header.</p>
+    </div>`;
+  }
+}
+
+function synthesizeLocalDashboard(promptText){
+  const txt = promptText.toLowerCase();
+  // Pick a sensible default based on keywords
+  if(txt.includes('risk')) return {
+    title: "Supplier Risk Dashboard (sample data — connect AI for AI-generated)",
+    subtitle: "Risk scoring across financial, operational, geopolitical, ESG dimensions",
+    kpis: [
+      {label:"Suppliers in Red Zone", value:"3", color:"red", sub:"Critical — qualify alternates"},
+      {label:"Avg Risk Score", value:"38/100", color:"amber", sub:"Below 50 target"},
+      {label:"Single-Source Categories", value:"7", color:"red", sub:"Highest exposure"},
+      {label:"Mitigation Actions Open", value:"12", color:"blue", sub:"4 due this week"}
+    ],
+    filters: [
+      {label:"Region", options:["All","China","India","Vietnam","Mexico","EU","USA"]},
+      {label:"Risk Tier", options:["All","Critical","High","Medium","Low"]}
+    ],
+    charts: [
+      {type:"bar", title:"Risk Score by Supplier", labels:MOCK_SUPPLIERS.slice(0,8).map(s=>s.name.slice(0,16)), data:MOCK_SUPPLIERS.slice(0,8).map(s=>Math.floor(100-s.score+20)), color:"#DC2626"},
+      {type:"pie", title:"Risk Distribution by Region", labels:["China","India","Vietnam","Mexico","EU","USA"], data:[35,22,15,12,8,8], color:"#7C3AED"},
+      {type:"hbar", title:"Suppliers Needing Review", labels:MOCK_SUPPLIERS.slice(0,5).map(s=>s.name), data:[28,24,21,18,15], color:"#F59E0B"}
+    ],
+    narrative: "<p>Risk concentration is highest in your China sourcing base (35% of spend). Three suppliers are flagged red zone — primarily due to declining OTIF and quality drift.</p><ul><li><b>Top issue:</b> NorthMetal Co at 220 PPM defects driving 38% of total COPQ</li><li><b>Geopolitical:</b> 12% of Tier-2 supply traces back to sanctioned input flows</li><li><b>Action gap:</b> 4 mitigation tasks are overdue, requires Category Leader intervention</li></ul>",
+    recommendations: [
+      "Qualify dual-source for top 3 single-source categories — estimated $890K risk-adjusted savings",
+      "Escalate NorthMetal Co quality issue to 8D — $340K COPQ exposure",
+      "Add ESG audit to next 5 supplier reviews — preempt CBAM/CSDDD compliance gaps"
+    ]
+  };
+  // Default: generic spend dashboard
+  return {
+    title: "Procurement Snapshot (sample data — connect AI for AI-generated)",
+    subtitle: "Connect Live AI in the header for prompt-driven custom dashboards",
+    kpis: [
+      {label:"Total Addressable Spend", value:"$24.8M", color:"slate", sub:"▲ 6.4% vs LY"},
+      {label:"Realized Savings", value:"$2.14M", color:"emerald", sub:"8.6% of spend"},
+      {label:"Supplier OTIF", value:"94.2%", color:"emerald", sub:"Above target"},
+      {label:"Variance to Should-Cost", value:"+11.3%", color:"amber", sub:"$2.8M opportunity"}
+    ],
+    filters: [{label:"Period", options:["YTD","Q4","Last 12 months"]}],
+    charts: [
+      {type:"bar", title:"Spend by Category", labels:DASH_CATEGORIES.map(c=>c.cat), data:DASH_CATEGORIES.map(c=>c.spend), color:"#0F766E"},
+      {type:"line", title:"Commodity Trends", labels:DASH_TREND.map(t=>t.m), data:DASH_TREND.map(t=>t.steel), color:"#DC2626"}
+    ],
+    narrative: "<p>Connect Live AI to generate custom dashboards from prompts.</p>",
+    recommendations: ["Connect Claude or OpenAI in the header to unlock prompt-driven analytics"]
+  };
+}
+
+function renderAIDashboard(){
+  if(!currentDashboard) return;
+  const p = currentDashboard;
+  document.getElementById('aidashEmpty').classList.add('hidden');
+  document.getElementById('aidashRefine').classList.remove('hidden');
+  const out = document.getElementById('aidashOutput');
+  out.classList.remove('hidden');
+
+  const colorClass = c => ({emerald:'text-emerald-700', amber:'text-amber-700', red:'text-red-700', blue:'text-blue-700', slate:'text-slate-700', purple:'text-purple-700'}[c]||'text-slate-700');
+  const borderColor = c => ({emerald:'#10B981', amber:'#F59E0B', red:'#DC2626', blue:'#3B82F6', slate:'#94A3B8', purple:'#7C3AED'}[c]||'#94A3B8');
+
+  // KPI grid
+  const kpiHtml = p.kpis && p.kpis.length ? `<div class="grid md:grid-cols-${Math.min(p.kpis.length,4)} gap-3">
+    ${p.kpis.map(k=>`<div class="kpi-card" style="border-left:4px solid ${borderColor(k.color)}">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">${k.label}</div>
+      <div class="text-2xl font-extrabold mt-1 ${colorClass(k.color)}">${k.value}</div>
+      <div class="text-xs text-slate-600 mt-1">${k.sub||''}</div>
+    </div>`).join('')}
+  </div>` : '';
+
+  // Filters
+  const filterHtml = p.filters && p.filters.length ? `<div class="card p-4 flex flex-wrap gap-3 items-center">
+    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Filters:</span>
+    ${p.filters.map((f,i)=>`<div class="flex items-center gap-2">
+      <label class="text-xs font-medium text-slate-600">${f.label}</label>
+      <select onchange="applyDashboardFilter()" class="border border-slate-300 rounded px-2 py-1 text-xs">
+        ${f.options.map(o=>`<option>${o}</option>`).join('')}
+      </select>
+    </div>`).join('')}
+    <button onclick="sortDashboard()" class="ml-auto btn btn-ghost text-xs">⇅ Sort</button>
+  </div>` : '';
+
+  // Charts grid
+  const sizeClass = sz => ({small:'md:col-span-1', medium:'md:col-span-1', large:'md:col-span-2'}[sz]||'md:col-span-1');
+  const chartsHtml = p.charts && p.charts.length ? `<div class="grid md:grid-cols-2 gap-4">
+    ${p.charts.map((c,i)=>`<div class="card p-5 ${sizeClass(c.size)}">
+      <h3 class="text-title mb-3">${c.title}</h3>
+      <div class="h-64"><canvas id="aidashChart-${i}"></canvas></div>
+    </div>`).join('')}
+  </div>` : '';
+
+  // Narrative + Recommendations
+  const narrativeHtml = p.narrative ? `<div class="card p-5">
+    <h3 class="text-title mb-3">📖 Insights</h3>
+    <div class="prose prose-sm max-w-none text-slate-700">${p.narrative}</div>
+  </div>` : '';
+
+  const recHtml = p.recommendations && p.recommendations.length ? `<div class="card p-5 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+    <h3 class="text-title mb-3">🎯 Recommendations</h3>
+    <ol class="space-y-2">
+      ${p.recommendations.map((r,i)=>`<li class="flex items-start gap-3">
+        <div class="w-7 h-7 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">${i+1}</div>
+        <p class="text-sm text-slate-700">${r}</p>
+      </li>`).join('')}
+    </ol>
+  </div>` : '';
+
+  // Header + body
+  out.innerHTML = `
+    <div class="card p-6">
+      <div class="flex justify-between items-start flex-wrap gap-3 mb-4">
+        <div>
+          <h2 class="text-headline">${p.title}</h2>
+          <p class="text-body text-slate-600">${p.subtitle||''}</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="exportDashboardExcel()" class="btn btn-secondary text-xs">📊 Export Excel</button>
+          <button onclick="window.print()" class="btn btn-secondary text-xs">🖨️ Print/PDF</button>
+        </div>
+      </div>
+      ${kpiHtml}
+    </div>
+    ${filterHtml}
+    ${chartsHtml}
+    ${narrativeHtml}
+    ${recHtml}
+    <div class="card p-4 bg-slate-50 text-center text-xs text-slate-500">
+      💡 Iterate: type a follow-up below to refine — e.g. "filter to Asia only", "swap pie for pareto", "add a quality cost overlay"
+    </div>`;
+
+  // Render charts after DOM update
+  setTimeout(()=>{
+    if(!p.charts) return;
+    p.charts.forEach((c,i)=>{
+      const ctx = document.getElementById('aidashChart-'+i);
+      if(!ctx) return;
+      if(charts['aidash-'+i]) charts['aidash-'+i].destroy();
+      const type = ({hbar:'bar', pareto:'bar'})[c.type] || c.type || 'bar';
+      const labels = c.labels || [];
+      const data = c.data || [];
+      const color = c.color || '#0F766E';
+      const colors = ['#0F766E','#F59E0B','#3B82F6','#DC2626','#8B5CF6','#10B981','#EC4899','#0E7490','#84CC16','#F97316','#6366F1'];
+      let config;
+      if(c.type==='pareto'){
+        let cum=0; const tot=data.reduce((a,b)=>a+b,0)||1;
+        const cumPct = data.map(v=>{cum+=v; return +(cum/tot*100).toFixed(1);});
+        config = {type:'bar',data:{labels,datasets:[{type:'bar',label:'Value',data,backgroundColor:color,yAxisID:'y'},
+          {type:'line',label:'Cumulative %',data:cumPct,borderColor:'#F59E0B',backgroundColor:'#F59E0B',tension:0.3,yAxisID:'y1'}]},
+          options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},
+            scales:{y1:{position:'right',min:0,max:100,grid:{drawOnChartArea:false}}}}};
+      } else if(type==='pie' || type==='doughnut'){
+        config = {type, data:{labels, datasets:[{data, backgroundColor:colors}]},
+          options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10}}}}}};
+      } else if(type==='line'){
+        config = {type:'line', data:{labels, datasets:[{label:c.title, data, borderColor:color, backgroundColor:color+'20', tension:0.3, fill:true}]},
+          options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}};
+      } else if(type==='scatter'){
+        config = {type:'scatter', data:{datasets:[{label:c.title, data:data.map((v,i)=>({x:i,y:v})), backgroundColor:color}]},
+          options:{responsive:true,maintainAspectRatio:false}};
+      } else {
+        config = {type:'bar', data:{labels, datasets:[{label:c.title, data, backgroundColor:c.type==='hbar'?colors:color}]},
+          options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},indexAxis: c.type==='hbar'?'y':'x'}};
+      }
+      charts['aidash-'+i] = new Chart(ctx, config);
+    });
+  }, 100);
+}
+
+async function refineAIDashboard(){
+  const refine = document.getElementById('aidashRefineInput').value.trim();
+  if(!refine || !currentDashboard) return;
+  if(!AI.enabled){ alert('Refinement requires Live AI — connect Claude/OpenAI in the header.'); return; }
+  document.getElementById('aidashRefineInput').value = '';
+  const originalPrompt = document.getElementById('aidashPrompt').value;
+  const fullPrompt = `Previous prompt: ${originalPrompt}\n\nPrevious dashboard plan: ${JSON.stringify(currentDashboard).slice(0,1500)}\n\nUser refinement: ${refine}\n\nReturn updated JSON dashboard plan only.`;
+  document.getElementById('aidashPrompt').value = originalPrompt + ' [refined: ' + refine + ']';
+  await generateAIDashboard();
+  document.getElementById('aidashPrompt').value = originalPrompt; // restore original
+}
+
+function applyDashboardFilter(){
+  // For demo: re-render with same data but show a "filter applied" toast
+  // In production this would re-query and re-render
+  const toast = document.createElement('div');
+  toast.className = 'fixed bottom-20 right-4 bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs shadow-lg z-50';
+  toast.innerHTML = '✓ Filter applied — refresh prompt to re-query';
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(), 2500);
+}
+
+function sortDashboard(){
+  if(!currentDashboard || !currentDashboard.charts) return;
+  // Sort bar/hbar charts by descending data
+  currentDashboard.charts.forEach(c=>{
+    if((c.type==='bar' || c.type==='hbar') && c.data && c.labels){
+      const pairs = c.labels.map((l,i)=>({l, v:c.data[i]}));
+      pairs.sort((a,b)=>b.v-a.v);
+      c.labels = pairs.map(p=>p.l);
+      c.data = pairs.map(p=>p.v);
+    }
+  });
+  renderAIDashboard();
+}
+
+function exportDashboardExcel(){
+  if(!currentDashboard) return;
+  const p = currentDashboard;
+  const wb = XLSX.utils.book_new();
+  const kpiRows = [[p.title], [p.subtitle], [], ['KPI','Value','Sub']];
+  if(p.kpis) p.kpis.forEach(k => kpiRows.push([k.label, k.value, k.sub||'']));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(kpiRows), 'KPIs');
+  if(p.charts) p.charts.forEach((c,i)=>{
+    const rows = [[c.title], [], ['Label','Value']];
+    (c.labels||[]).forEach((l,j)=>rows.push([l, (c.data||[])[j]]));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Chart '+(i+1));
+  });
+  if(p.recommendations){
+    const rRows = [['Recommendations'], ...p.recommendations.map((r,i)=>['#'+(i+1), r])];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rRows), 'Recommendations');
+  }
+  XLSX.writeFile(wb, 'ai-dashboard-' + (p.title||'export').replace(/\W+/g,'_').slice(0,30) + '.xlsx');
+}
+
+/* =================================================================
+   VENDOR ONBOARDING & COMPLIANCE HUB
+================================================================= */
+let VENDORS = JSON.parse(localStorage.getItem('vendorsV1')||'[]');
+
+const VENDOR_STAGES = ['Invited','Registered','Docs Pending','Legal Review','Quality Check','Approved','Rejected'];
+const COMPLIANCE_CHECKS = [
+  {key:'rohs', label:'RoHS', team:'Quality'},
+  {key:'reach', label:'REACH', team:'Quality'},
+  {key:'conflictMin', label:'Conflict Minerals 3TG', team:'Procurement'},
+  {key:'fcpa', label:'Anti-Bribery / FCPA', team:'Legal'},
+  {key:'gdpr', label:'GDPR', team:'Legal'},
+  {key:'msa', label:'Master Service Agreement', team:'Legal'},
+  {key:'nda', label:'NDA', team:'Legal'},
+  {key:'w9', label:'W9/W8 tax form', team:'Finance'},
+  {key:'coi', label:'Cert. of Insurance', team:'Finance'},
+  {key:'iso9001', label:'ISO 9001', team:'Quality'},
+  {key:'iso14001', label:'ISO 14001', team:'Sustainability'},
+  {key:'soc2', label:'SOC 2 Type II', team:'Security'},
+  {key:'cyber', label:'Cyber questionnaire', team:'Security'},
+  {key:'esg', label:'ESG / CDP rating', team:'Sustainability'},
+  {key:'modSlavery', label:'Modern Slavery Statement', team:'Legal'},
+];
+
+const TEAM_ACCESS = [
+  {team:'🛒 Procurement', icon:'🛒', sees:'Commercial terms, pricing, OTIF history, supplier scorecards, RFx participation, savings tracking', color:'teal'},
+  {team:'⚖️ Legal', icon:'⚖️', sees:'MSA, NDA, T&Cs, jurisdiction, sanctions screening, contract expiries, FCPA attestations, GDPR DPA', color:'purple'},
+  {team:'💵 Finance', icon:'💵', sees:'W9/W8 tax forms, banking details (ACH/wire), payment terms (NET 30/45/60), Certificate of Insurance, dispute history', color:'emerald'},
+  {team:'🛡️ Quality', icon:'🛡️', sees:'ISO 9001, RoHS/REACH, PPM defects, audit findings, 8D open issues, PPAP status, supplier quality scorecards', color:'amber'},
+  {team:'🔐 IT / Security', icon:'🔐', sees:'SOC 2, cyber questionnaire, GDPR, data processing addendum, system access reviews, MFA enforcement', color:'red'},
+  {team:'🌱 ESG / Sustainability', icon:'🌱', sees:'CDP rating, ISO 14001, Scope 3 emissions data, diverse supplier certifications, modern slavery, conflict minerals', color:'green'},
+];
+
+function initVendor(){ renderVendorList(); renderVendorKPIs(); renderComplianceOverview(); renderExpiringDocs(); renderTeamAccess(); }
+
+function saveVendors(){ localStorage.setItem('vendorsV1', JSON.stringify(VENDORS)); }
+
+function openVendorRegisterModal(){
+  ['vrName','vrDBA','vrContact','vrCountry','vrTax'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('vendorRegisterModal').classList.remove('hidden');
+}
+
+function registerVendor(){
+  const name = document.getElementById('vrName').value.trim();
+  if(!name){ alert('Legal company name required'); return; }
+  const v = {
+    id: 'V' + Math.random().toString(36).slice(2,7).toUpperCase(),
+    name,
+    dba: document.getElementById('vrDBA').value.trim(),
+    cat: document.getElementById('vrCat').value,
+    country: document.getElementById('vrCountry').value || 'TBD',
+    contact: document.getElementById('vrContact').value || 'TBD',
+    tax: document.getElementById('vrTax').value || '',
+    stage: 'Invited',
+    owner: 'Zumar Ali Hassan',
+    createdAt: new Date().toISOString(),
+    docs: {},
+    compliance: {},
+    notes: ''
+  };
+  VENDORS.unshift(v);
+  saveVendors();
+  document.getElementById('vendorRegisterModal').classList.add('hidden');
+  initVendor();
+  alert(`✅ Invitation sent to ${name}. In production they would receive an email with a self-service portal link to upload docs.`);
+}
+
+function seedSampleVendors(){
+  const samples = [
+    {name:'Acme Copper Works', cat:'Raw Materials', country:'Vietnam', stage:'Approved', owner:'Procurement Lead', docs:{w9:1,coi:1,nda:1,msa:1,iso9001:1}, compliance:{rohs:1,reach:1,conflictMin:1,fcpa:1,iso9001:1}},
+    {name:'Globex Steel Stampings', cat:'Mechanical Parts', country:'Mexico', stage:'Approved', owner:'Cat Mgr', docs:{w9:1,coi:1,nda:1,msa:1,iso9001:1}, compliance:{rohs:1,reach:1,fcpa:1}},
+    {name:'Sterling Castings Co', cat:'Raw Materials', country:'India', stage:'Quality Check', owner:'Quality Eng', docs:{w9:1,coi:1,nda:1}, compliance:{rohs:1,fcpa:1}},
+    {name:'NorthBearing Industries', cat:'Mechanical Parts', country:'Germany', stage:'Legal Review', owner:'Sourcing', docs:{w9:1,coi:1,nda:1,msa:0}, compliance:{rohs:1,reach:1,gdpr:1}},
+    {name:'Polymer Plus', cat:'Chemicals', country:'China', stage:'Docs Pending', owner:'Cat Mgr', docs:{w9:1,coi:0,nda:1}, compliance:{rohs:1}},
+    {name:'BluePort Logistics', cat:'Logistics', country:'Global', stage:'Approved', owner:'Procurement', docs:{w9:1,coi:1,nda:1,msa:1}, compliance:{fcpa:1,gdpr:1,modSlavery:1}},
+    {name:'FastFix MRO', cat:'MRO / Indirect', country:'USA', stage:'Approved', owner:'Indirect Buyer', docs:{w9:1,coi:1,nda:1,msa:1}, compliance:{fcpa:1}},
+    {name:'CyberSecure SaaS', cat:'IT / Software', country:'USA', stage:'Registered', owner:'IT', docs:{w9:1,nda:1}, compliance:{soc2:1,gdpr:1,cyber:1}},
+    {name:'Vertex Cartons', cat:'Packaging', country:'India', stage:'Approved', owner:'Pkg Mgr', docs:{w9:1,coi:1,nda:1,msa:1,iso9001:1,iso14001:1}, compliance:{rohs:1,reach:1,esg:1}},
+    {name:'OmegaChem Co', cat:'Chemicals', country:'EU', stage:'Approved', owner:'Cat Mgr', docs:{w9:1,coi:1,nda:1,msa:1}, compliance:{rohs:1,reach:1,gdpr:1,iso14001:1}}
+  ];
+  samples.forEach((s,i)=>{
+    if(!VENDORS.find(v=>v.name===s.name)){
+      VENDORS.push({...s, id:'V'+String(1000+i), createdAt:new Date(Date.now() - (samples.length-i)*864e5*7).toISOString()});
+    }
+  });
+  saveVendors(); initVendor();
+}
+
+function renderVendorList(){
+  const tbody = document.getElementById('vendorTableBody'); if(!tbody) return;
+  const q = (document.getElementById('vendorSearch')?.value||'').toLowerCase();
+  const filterStage = document.getElementById('vendorFilter')?.value||'all';
+  let list = VENDORS.filter(v => (filterStage==='all'||v.stage===filterStage) && (!q||v.name.toLowerCase().includes(q)||v.cat.toLowerCase().includes(q)||v.country.toLowerCase().includes(q)));
+  if(list.length === 0){
+    tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400 italic">${VENDORS.length===0?'No vendors yet. Click "⚡ Load sample vendors" or "＋ Register New Vendor".':'No vendors match your filters.'}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(v=>{
+    const stageColor = {Invited:'bg-slate-100 text-slate-700', Registered:'bg-blue-100 text-blue-800', 'Docs Pending':'bg-amber-100 text-amber-800', 'Legal Review':'bg-purple-100 text-purple-800', 'Quality Check':'bg-indigo-100 text-indigo-800', Approved:'bg-emerald-100 text-emerald-800', Rejected:'bg-red-100 text-red-800'}[v.stage]||'bg-slate-100';
+    const docsTotal = COMPLIANCE_CHECKS.length;
+    const docsCount = Object.values(v.docs||{}).filter(x=>x).length + Object.values(v.compliance||{}).filter(x=>x).length;
+    const compPct = Math.round(docsCount/docsTotal*100);
+    const compColor = compPct >= 70 ? 'text-emerald-700' : compPct >= 40 ? 'text-amber-700' : 'text-red-700';
+    return `<tr class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="openVendorDetail('${v.id}')">
+      <td class="p-2"><div class="font-semibold text-sm">${v.name}</div><div class="text-xs text-slate-500">${v.id} · ${v.dba||''}</div></td>
+      <td class="p-2 text-xs text-slate-600">${v.cat}</td>
+      <td class="p-2 text-xs text-slate-600">${v.country}</td>
+      <td class="p-2"><span class="chip text-xs ${stageColor}">${v.stage}</span></td>
+      <td class="p-2 text-center"><span class="text-xs font-mono">${Object.values(v.docs||{}).filter(x=>x).length}/${6}</span></td>
+      <td class="p-2 text-center"><span class="font-bold ${compColor}">${compPct}%</span></td>
+      <td class="p-2 text-center text-xs text-slate-600">${v.owner||'-'}</td>
+      <td class="p-2 text-right"><span class="text-slate-400">›</span></td>
+    </tr>`;
+  }).join('');
+  renderVendorKPIs();
+}
+
+function renderVendorKPIs(){
+  document.getElementById('vendorKPItotal').textContent = VENDORS.length;
+  document.getElementById('vendorKPIreview').textContent = VENDORS.filter(v=>['Docs Pending','Legal Review','Quality Check'].includes(v.stage)).length;
+  document.getElementById('vendorKPIapproved').textContent = VENDORS.filter(v=>v.stage==='Approved').length;
+  document.getElementById('vendorKPIgaps').textContent = VENDORS.filter(v=>v.stage!=='Rejected' && Object.values(v.compliance||{}).filter(x=>x).length < 4).length;
+  // Funnel
+  const counts = {Invited:0, Registered:0, 'Docs Pending':0, 'Legal Review':0, 'Quality Check':0, Approved:0};
+  VENDORS.forEach(v=>{ if(counts[v.stage] !== undefined) counts[v.stage]++; });
+  document.getElementById('funnelInvited').textContent = counts['Invited'];
+  document.getElementById('funnelRegistered').textContent = counts['Registered'];
+  document.getElementById('funnelDocs').textContent = counts['Docs Pending'];
+  document.getElementById('funnelLegal').textContent = counts['Legal Review'];
+  document.getElementById('funnelQuality').textContent = counts['Quality Check'];
+  document.getElementById('funnelApproved').textContent = counts['Approved'];
+}
+
+function renderComplianceOverview(){
+  const el = document.getElementById('complianceOverview'); if(!el) return;
+  if(VENDORS.length === 0){ el.innerHTML = '<p class="text-xs text-slate-400 italic">No vendors yet</p>'; return; }
+  el.innerHTML = COMPLIANCE_CHECKS.slice(0,8).map(c=>{
+    const compliant = VENDORS.filter(v=>v.compliance && v.compliance[c.key]).length;
+    const pct = VENDORS.length>0 ? Math.round(compliant/VENDORS.length*100) : 0;
+    const color = pct >= 70 ? '#10B981' : pct >= 40 ? '#F59E0B' : '#DC2626';
+    return `<div>
+      <div class="flex justify-between items-center text-xs mb-1">
+        <span><b>${c.label}</b> <span class="text-slate-500">(${c.team})</span></span>
+        <span class="font-mono">${compliant}/${VENDORS.length} (${pct}%)</span>
+      </div>
+      <div class="w-full bg-slate-200 rounded-full h-1.5"><div class="h-1.5 rounded-full" style="width:${pct}%;background:${color}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderExpiringDocs(){
+  const el = document.getElementById('expiringDocs'); if(!el) return;
+  if(VENDORS.length===0){ el.innerHTML = '<p class="text-xs text-slate-400 italic">No vendors yet</p>'; return; }
+  // Synthesize 4-5 expiring docs from sample vendors
+  const sample = VENDORS.filter(v=>v.stage==='Approved').slice(0,4);
+  el.innerHTML = sample.length === 0
+    ? '<p class="text-xs text-slate-400 italic">No approved vendors yet</p>'
+    : sample.map((v,i)=>{
+        const days = 14 + i*21;
+        const docs = ['Certificate of Insurance','ISO 9001','SOC 2 Type II','Master Service Agreement'];
+        const color = days < 30 ? 'text-red-700 bg-red-50' : days < 60 ? 'text-amber-700 bg-amber-50' : 'text-blue-700 bg-blue-50';
+        return `<div class="flex justify-between items-center p-2 rounded ${color}">
+          <div><div class="font-semibold text-xs">${docs[i]}</div><div class="text-xs opacity-80">${v.name}</div></div>
+          <span class="text-xs font-bold">${days}d</span>
+        </div>`;
+      }).join('');
+}
+
+function renderTeamAccess(){
+  const el = document.getElementById('teamAccessGrid'); if(!el) return;
+  el.innerHTML = TEAM_ACCESS.map(t=>{
+    const colorMap = {teal:'border-teal-500 bg-teal-50', purple:'border-purple-500 bg-purple-50', emerald:'border-emerald-500 bg-emerald-50', amber:'border-amber-500 bg-amber-50', red:'border-red-500 bg-red-50', green:'border-green-500 bg-green-50'};
+    return `<div class="card p-4 border-l-4 ${colorMap[t.color]||'border-slate-300'}">
+      <div class="text-2xl mb-2">${t.icon}</div>
+      <div class="font-bold text-sm mb-1">${t.team}</div>
+      <p class="text-xs text-slate-600">${t.sees}</p>
+    </div>`;
+  }).join('');
+}
+
+function openVendorDetail(id){
+  const v = VENDORS.find(x=>x.id===id); if(!v) return;
+  const content = document.getElementById('vendorDetailContent');
+  const docsCount = Object.values(v.docs||{}).filter(x=>x).length;
+  const compCount = Object.values(v.compliance||{}).filter(x=>x).length;
+  const totalCount = docsCount + compCount;
+  const totalRequired = COMPLIANCE_CHECKS.length;
+  content.innerHTML = `
+    <div class="bg-gradient-to-r from-teal-700 to-cyan-700 text-white p-5 rounded-t-2xl flex justify-between items-start">
+      <div>
+        <h2 class="text-xl font-bold">${v.name}</h2>
+        <p class="text-cyan-100 text-xs mt-1">${v.id} · ${v.cat} · ${v.country}</p>
+      </div>
+      <button onclick="document.getElementById('vendorDetailDrawer').classList.add('hidden')" class="text-white/70 hover:text-white text-2xl leading-none">&times;</button>
+    </div>
+    <div class="p-5 space-y-4">
+      <div class="grid md:grid-cols-4 gap-3">
+        <div class="kpi-card"><div class="text-xs text-slate-500 uppercase">Stage</div><div class="text-lg font-bold mt-1">${v.stage}</div></div>
+        <div class="kpi-card"><div class="text-xs text-slate-500 uppercase">Owner</div><div class="text-sm font-bold mt-1">${v.owner||'-'}</div></div>
+        <div class="kpi-card"><div class="text-xs text-slate-500 uppercase">Docs Complete</div><div class="text-lg font-bold mt-1 text-emerald-700">${totalCount}/${totalRequired}</div></div>
+        <div class="kpi-card"><div class="text-xs text-slate-500 uppercase">Created</div><div class="text-sm font-bold mt-1">${new Date(v.createdAt).toLocaleDateString()}</div></div>
+      </div>
+
+      <div class="card p-4">
+        <h3 class="font-bold text-sm mb-3">📋 Documents &amp; Compliance Status</h3>
+        <div class="grid md:grid-cols-2 gap-2 text-xs">
+          ${COMPLIANCE_CHECKS.map(c=>{
+            const has = (v.docs && v.docs[c.key]) || (v.compliance && v.compliance[c.key]);
+            const teamColor = {Quality:'bg-amber-100 text-amber-800', Legal:'bg-purple-100 text-purple-800', Finance:'bg-emerald-100 text-emerald-800', Procurement:'bg-teal-100 text-teal-800', Security:'bg-red-100 text-red-800', Sustainability:'bg-green-100 text-green-800'}[c.team]||'bg-slate-100';
+            return `<div class="flex items-center justify-between p-2 border border-slate-200 rounded">
+              <div class="flex items-center gap-2">
+                <span class="text-base">${has?'✅':'⚪'}</span>
+                <span class="${has?'font-semibold':'text-slate-600'}">${c.label}</span>
+              </div>
+              <span class="chip text-[10px] ${teamColor}">${c.team}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="card p-4 bg-slate-50">
+        <h3 class="font-bold text-sm mb-2">🔄 Workflow Actions</h3>
+        <div class="flex flex-wrap gap-2">
+          ${VENDOR_STAGES.filter(s=>s!==v.stage).map(s=>{
+            const color = {Approved:'btn-primary', Rejected:'bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-semibold'}[s] || 'btn-secondary';
+            return `<button onclick="moveVendorStage('${v.id}','${s}')" class="${color} text-xs">→ ${s}</button>`;
+          }).join('')}
+        </div>
+      </div>
+
+      ${v.notes ? `<div class="card p-3 bg-yellow-50"><h3 class="font-bold text-xs mb-1">📝 Notes</h3><p class="text-xs">${v.notes}</p></div>`:''}
+    </div>`;
+  document.getElementById('vendorDetailDrawer').classList.remove('hidden');
+}
+
+function moveVendorStage(id, newStage){
+  const v = VENDORS.find(x=>x.id===id);
+  if(!v) return;
+  v.stage = newStage;
+  saveVendors();
+  document.getElementById('vendorDetailDrawer').classList.add('hidden');
+  initVendor();
 }
 
 /* ============== LIVE COMMODITY PRICES ============== */
