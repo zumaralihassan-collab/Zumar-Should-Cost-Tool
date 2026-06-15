@@ -76,12 +76,57 @@
   .chip-interactive{ cursor:pointer; }
   .chip-interactive:hover{ transform:scale(1.05); }
 
-  /* ========== TAB SYSTEM ========== */
-  .tab-btn{ padding:.65rem 1.1rem; border-radius:.625rem; font-weight:600; font-size:.875rem;
-            transition:var(--transition); cursor:pointer; border:none; position:relative; }
-  .tab-active{ background:white; color:#0F766E; box-shadow:0 2px 8px rgba(15,118,110,.25); transform:translateY(-1px); }
-  .tab-inactive{ background:transparent; color:white; opacity:.85; }
-  .tab-inactive:hover{ background:rgba(255,255,255,.15); opacity:1; transform:translateY(-1px); }
+  /* ========== TAB SYSTEM (legacy — used for sidebar buttons) ========== */
+  .tab-btn{ padding:.5rem .7rem; border-radius:.5rem; font-weight:500; font-size:.8rem;
+            transition:var(--transition); cursor:pointer; border:none; text-align:left;
+            display:flex; align-items:center; gap:.5rem; width:100%; }
+  .tab-active{ background:#0F766E; color:white; box-shadow:0 2px 6px rgba(15,118,110,.3); }
+  .tab-inactive{ background:transparent; color:#475569; }
+  .tab-inactive:hover{ background:#F1F5F9; color:#0F766E; }
+
+  /* ========== SIDEBAR LAYOUT ========== */
+  .app-layout { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 240px; flex-shrink: 0; background: white;
+    border-right: 1px solid #E2E8F0;
+    position: fixed; left: 0; top: 64px; bottom: 0; overflow-y: auto;
+    padding: 16px 12px; z-index: 20;
+    transition: transform .25s;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 2px; }
+  .sidebar-bucket { margin-bottom: 12px; }
+  .sidebar-bucket-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px; font-weight: 800; letter-spacing: 1.2px;
+    color: #94A3B8; padding: 8px 8px 4px; text-transform: uppercase;
+  }
+  .main-content { flex: 1; margin-left: 240px; min-width: 0; }
+
+  /* Compact header */
+  .gradient-header.compact {
+    padding: 0 1.5rem; height: 64px; display: flex; align-items: center;
+    position: sticky; top: 0; z-index: 25;
+  }
+  .gradient-header.compact .creator-strip { display: none; }
+
+  /* Mobile */
+  .sidebar-toggle { display: none; }
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main-content { margin-left: 0; }
+    .sidebar-toggle {
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,.15); border: none; color: white;
+      padding: 8px; border-radius: 8px; cursor: pointer; font-size: 18px;
+    }
+    .sidebar-backdrop {
+      display: none; position: fixed; inset: 64px 0 0 0;
+      background: rgba(15,23,42,.4); z-index: 18;
+    }
+    .sidebar.open + .sidebar-backdrop { display: block; }
+  }
 
   /* ========== TAB CONTENT FADE-IN ========== */
   .tab-content{ animation:fadeInUp .35s cubic-bezier(.4,0,.2,1); }
@@ -216,56 +261,73 @@
 </head>
 <body class="min-h-screen text-slate-800">
 
-<header class="gradient-header text-white">
-  <div class="max-w-7xl mx-auto px-6 pt-6 pb-3">
-    <div class="flex items-center justify-between flex-wrap gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
-        </div>
-        <div>
-          <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Should Cost AI</h1>
-          <p class="text-teal-100 text-xs md:text-sm">Procurement &amp; Supply Chain Intelligence Suite</p>
-        </div>
+<header class="gradient-header compact text-white">
+  <div class="w-full flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <button id="sidebarToggle" class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+      <div class="w-9 h-9 rounded-lg bg-white/15 backdrop-blur flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
       </div>
-      <div class="flex gap-2 items-center">
-        <button onclick="openAbout()" class="px-3 py-1.5 bg-white/15 hover:bg-white/25 backdrop-blur rounded-lg text-xs font-medium transition flex items-center gap-2">
-          <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center font-bold text-[10px]">ZA</span>
-          About the Creator
-        </button>
-        <button id="aiStatusBtn" onclick="openAISettings()" class="px-3 py-1.5 bg-white/15 hover:bg-white/25 backdrop-blur rounded-lg text-xs font-medium transition flex items-center gap-2">
-          <span id="aiStatusDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
-          <span id="aiStatusLabel">Connect Live AI</span>
-        </button>
-        <button onclick="showHelp()" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur rounded-lg text-xs font-medium">How it works</button>
+      <div>
+        <h1 class="text-base md:text-lg font-bold tracking-tight leading-none">Should Cost AI</h1>
+        <p class="text-teal-100 text-[10px] leading-none mt-0.5 hidden md:block">by Mohammed Zumar Ali Hassan</p>
       </div>
     </div>
-
-    <nav class="mt-5 flex flex-wrap gap-1">
-      <button class="tab-btn tab-active" data-tab="welcome" onclick="switchTab('welcome')">✨ Welcome &amp; Tour</button>
-      <button class="tab-btn tab-inactive" data-tab="calc" onclick="switchTab('calc')">Should Cost Calculator</button>
-      <button class="tab-btn tab-inactive" data-tab="dash" onclick="switchTab('dash')">Executive Dashboard</button>
-      <button class="tab-btn tab-inactive" data-tab="sca" onclick="switchTab('sca')">Supply Chain Analytics</button>
-      <button class="tab-btn tab-inactive" data-tab="ai" onclick="switchTab('ai')">AI Procurement Strategist</button>
-      <button class="tab-btn tab-inactive" data-tab="insights" onclick="switchTab('insights')">Insights &amp; Recommendations</button>
-      <button class="tab-btn tab-inactive" data-tab="rfq" onclick="switchTab('rfq')">RFQ / RFP Manager</button>
-      <button class="tab-btn tab-inactive" data-tab="commodity" onclick="switchTab('commodity')">Live Commodities</button>
-      <button class="tab-btn tab-inactive" data-tab="forecast" onclick="switchTab('forecast')">Demand Forecasting</button>
-      <button class="tab-btn tab-inactive" data-tab="tariff" onclick="switchTab('tariff')">Tariff Optimizer</button>
-      <button class="tab-btn tab-inactive" data-tab="negotiate" onclick="switchTab('negotiate')">Negotiation Simulator</button>
-      <button class="tab-btn tab-inactive" data-tab="erp" onclick="switchTab('erp')">🔌 ERP Integration</button>
-      <button class="tab-btn tab-inactive" data-tab="stakeholders" onclick="switchTab('stakeholders')">🎯 Stakeholder Hub</button>
-      <button class="tab-btn tab-inactive" data-tab="aidash" onclick="switchTab('aidash')">🎨 AI Dashboard Builder</button>
-      <button class="tab-btn tab-inactive" data-tab="vendor" onclick="switchTab('vendor')">🤝 Vendor Onboarding</button>
-      <button class="tab-btn tab-inactive" data-tab="srm" onclick="switchTab('srm')">⭐ SRM Hub</button>
-    </nav>
-  </div>
-  <div class="bg-slate-900/40 text-center text-[11px] py-1.5 text-teal-100">
-    Designed &amp; built by <b class="text-white">Mohammed Zumar Ali Hassan</b> · MS Supply Chain Management (STEM), UT Dallas · <a href="https://linkedin.com/in/zumarali15" target="_blank" class="underline">linkedin.com/in/zumarali15</a>
+    <div class="flex gap-2 items-center">
+      <button onclick="openAbout()" class="px-3 py-1.5 bg-white/15 hover:bg-white/25 backdrop-blur rounded-lg text-xs font-medium transition flex items-center gap-2">
+        <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center font-bold text-[9px]">ZA</span>
+        <span class="hidden md:inline">About</span>
+      </button>
+      <button id="aiStatusBtn" onclick="openAISettings()" class="px-3 py-1.5 bg-white/15 hover:bg-white/25 backdrop-blur rounded-lg text-xs font-medium transition flex items-center gap-2">
+        <span id="aiStatusDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+        <span id="aiStatusLabel" class="hidden md:inline">Connect AI</span>
+      </button>
+      <button onclick="showHelp()" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur rounded-lg text-xs font-medium hidden md:inline-block">Help</button>
+    </div>
   </div>
 </header>
 
-<main class="max-w-7xl mx-auto px-6 py-6">
+<div class="app-layout">
+
+<aside id="appSidebar" class="sidebar no-print">
+  <div class="sidebar-bucket">
+    <button class="tab-btn tab-active" data-tab="welcome" onclick="switchTab('welcome')"><span>✨</span><span>Welcome &amp; Tour</span></button>
+  </div>
+  <div class="sidebar-bucket">
+    <div class="sidebar-bucket-label">📊 Analyze</div>
+    <button class="tab-btn tab-inactive" data-tab="calc" onclick="switchTab('calc')"><span>🧮</span><span>Should Cost Calculator</span></button>
+    <button class="tab-btn tab-inactive" data-tab="dash" onclick="switchTab('dash')"><span>📈</span><span>Executive Dashboard</span></button>
+    <button class="tab-btn tab-inactive" data-tab="sca" onclick="switchTab('sca')"><span>🎯</span><span>Supply Chain Analytics</span></button>
+    <button class="tab-btn tab-inactive" data-tab="forecast" onclick="switchTab('forecast')"><span>🔮</span><span>Demand Forecasting</span></button>
+    <button class="tab-btn tab-inactive" data-tab="commodity" onclick="switchTab('commodity')"><span>💰</span><span>Live Commodities</span></button>
+    <button class="tab-btn tab-inactive" data-tab="aidash" onclick="switchTab('aidash')"><span>🎨</span><span>AI Dashboard Builder</span></button>
+  </div>
+  <div class="sidebar-bucket">
+    <div class="sidebar-bucket-label">🛒 Source</div>
+    <button class="tab-btn tab-inactive" data-tab="rfq" onclick="switchTab('rfq')"><span>📋</span><span>RFQ / RFP Manager</span></button>
+    <button class="tab-btn tab-inactive" data-tab="tariff" onclick="switchTab('tariff')"><span>🌐</span><span>Tariff Optimizer</span></button>
+    <button class="tab-btn tab-inactive" data-tab="vendor" onclick="switchTab('vendor')"><span>🤝</span><span>Vendor Onboarding</span></button>
+    <button class="tab-btn tab-inactive" data-tab="erp" onclick="switchTab('erp')"><span>🔌</span><span>ERP Integration</span></button>
+  </div>
+  <div class="sidebar-bucket">
+    <div class="sidebar-bucket-label">🤝 Negotiate</div>
+    <button class="tab-btn tab-inactive" data-tab="ai" onclick="switchTab('ai')"><span>💬</span><span>AI Procurement Strategist</span></button>
+    <button class="tab-btn tab-inactive" data-tab="negotiate" onclick="switchTab('negotiate')"><span>🦈</span><span>Negotiation Simulator</span></button>
+    <button class="tab-btn tab-inactive" data-tab="insights" onclick="switchTab('insights')"><span>💡</span><span>Insights &amp; Recs</span></button>
+  </div>
+  <div class="sidebar-bucket">
+    <div class="sidebar-bucket-label">⭐ Operate</div>
+    <button class="tab-btn tab-inactive" data-tab="srm" onclick="switchTab('srm')"><span>⭐</span><span>SRM Hub</span></button>
+    <button class="tab-btn tab-inactive" data-tab="stakeholders" onclick="switchTab('stakeholders')"><span>🎯</span><span>Stakeholder Hub</span></button>
+  </div>
+  <div class="mt-4 pt-3 border-t border-slate-200 text-center">
+    <p class="text-[10px] text-slate-500">© Mohammed Zumar Ali Hassan</p>
+    <a href="https://linkedin.com/in/zumarali15" target="_blank" class="text-[10px] text-teal-600 hover:underline">linkedin/zumarali15</a>
+  </div>
+</aside>
+<div class="sidebar-backdrop" onclick="toggleSidebar()"></div>
+
+<main class="main-content px-6 py-6">
 
 <!-- ============= WELCOME & GUIDED TOUR ============= -->
 <section id="tab-welcome-content" class="tab-content">
@@ -2176,6 +2238,8 @@
   </div>
 </div>
 
+</div><!-- /app-layout -->
+
 <div class="watermark-fixed no-print" onclick="openAbout()">
   <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center font-bold text-[9px]">ZA</span>
   © Mohammed Zumar Ali Hassan
@@ -2564,6 +2628,11 @@ async function suggestCostDrivers(){
   await aiObserve('Current product: "'+ctx.product+'" in region '+ctx.region+'.\nCurrent cost drivers: '+driverNames+'\n\nIn 3-5 bullets (HTML <ul><li>), suggest cost drivers that may be MISSING. Each bullet: <b>name</b>, then brief reason.');
 }
 
+function toggleSidebar(){
+  const sb = document.getElementById('appSidebar');
+  if(sb) sb.classList.toggle('open');
+}
+
 function switchTab(name){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
   const target = document.getElementById('tab-'+name+'-content');
@@ -2572,6 +2641,9 @@ function switchTab(name){
     if(b.dataset.tab===name){ b.classList.add('tab-active'); b.classList.remove('tab-inactive'); }
     else{ b.classList.add('tab-inactive'); b.classList.remove('tab-active'); }
   });
+  // Auto-close mobile sidebar
+  const sb = document.getElementById('appSidebar');
+  if(sb && window.innerWidth <= 768) sb.classList.remove('open');
   window.scrollTo({top:0,behavior:'smooth'});
   if(name==='dash') initDashboard();
   if(name==='sca') initSCA();
