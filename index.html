@@ -128,6 +128,79 @@
   .quadrant-routine{ background:linear-gradient(135deg,#D1FAE5,#A7F3D0); }
   .heat-cell{ padding:6px 4px; text-align:center; font-size:11px; color:white; font-weight:600; }
   @media print{ .no-print{ display:none !important; } .watermark-fixed{ position:static; background:#0F766E; } }
+
+  /* ============ FLOATING AI ASSISTANT ============ */
+  .ai-fab {
+    position: fixed; bottom: 60px; right: 18px; z-index: 40;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, #0F766E 0%, #134E4A 100%);
+    color: white; border: 3px solid white;
+    box-shadow: 0 8px 24px rgba(15,118,110,.4), 0 4px 8px rgba(0,0,0,.15);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 24px; transition: all .25s cubic-bezier(.4,0,.2,1);
+  }
+  .ai-fab:hover { transform: scale(1.1) rotate(-5deg); box-shadow: 0 12px 32px rgba(15,118,110,.5); }
+  .ai-fab .pulse-ring {
+    position: absolute; inset: -3px; border-radius: 50%;
+    border: 2px solid #0F766E; animation: aiPulse 2s infinite;
+  }
+  @keyframes aiPulse { 0%{transform:scale(1);opacity:1} 100%{transform:scale(1.6);opacity:0} }
+
+  .ai-chat-panel {
+    position: fixed; bottom: 0; right: 0; z-index: 45;
+    width: 420px; max-width: 100vw; height: 600px; max-height: 100vh;
+    background: white; border-radius: 16px 0 0 0;
+    box-shadow: -8px 0 32px rgba(0,0,0,.15), 0 -4px 16px rgba(0,0,0,.08);
+    transform: translateY(100%); transition: transform .35s cubic-bezier(.4,0,.2,1);
+    display: flex; flex-direction: column;
+  }
+  .ai-chat-panel.open { transform: translateY(0); }
+  .ai-chat-header {
+    background: linear-gradient(135deg, #0F766E 0%, #134E4A 100%);
+    color: white; padding: 14px 16px; border-radius: 16px 0 0 0;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .ai-chat-log {
+    flex: 1; overflow-y: auto; padding: 16px;
+    display: flex; flex-direction: column; gap: 12px; background: #F8FAFC;
+  }
+  .ai-msg-user {
+    align-self: flex-end; max-width: 80%;
+    background: #0F766E; color: white;
+    padding: 10px 14px; border-radius: 16px 16px 4px 16px;
+    font-size: 13px; line-height: 1.5;
+  }
+  .ai-msg-bot {
+    align-self: flex-start; max-width: 92%;
+    background: white; color: #1E293B; border: 1px solid #E2E8F0;
+    padding: 10px 14px; border-radius: 16px 16px 16px 4px;
+    font-size: 13px; line-height: 1.5;
+  }
+  .ai-chat-input-wrap {
+    padding: 12px 16px; border-top: 1px solid #E2E8F0;
+    background: white; display: flex; gap: 8px;
+  }
+  .ai-chat-input-wrap input {
+    flex: 1; border: 1px solid #CBD5E1; border-radius: 10px;
+    padding: 10px 14px; font-size: 13px;
+  }
+  .ai-chat-input-wrap input:focus { outline: none; border-color: #0F766E; box-shadow: 0 0 0 3px rgba(15,118,110,.15); }
+  .ai-chat-send {
+    background: #0F766E; color: white; border: none; border-radius: 10px;
+    padding: 10px 16px; font-weight: 600; cursor: pointer; transition: all .15s;
+  }
+  .ai-chat-send:hover { background: #134E4A; }
+  .ai-chat-send:disabled { background: #94A3B8; cursor: not-allowed; }
+  .ai-suggested-chip {
+    background: #F1F5F9; border: 1px solid #E2E8F0; color: #475569;
+    padding: 6px 10px; border-radius: 999px; font-size: 11px; cursor: pointer;
+    transition: all .15s;
+  }
+  .ai-suggested-chip:hover { background: #E2E8F0; border-color: #0F766E; color: #0F766E; }
+  @media (max-width: 640px){
+    .ai-chat-panel { width: 100vw; height: 85vh; border-radius: 16px 16px 0 0; }
+    .ai-chat-header { border-radius: 16px 16px 0 0; }
+  }
   /* MOBILE RESPONSIVE */
   @media (max-width: 768px){
     .tab-btn{ padding:.5rem .7rem; font-size:.75rem; }
@@ -1523,6 +1596,40 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- FLOATING AI ASSISTANT BUTTON -->
+<button id="aiAssistantFab" class="ai-fab no-print" onclick="toggleAIAssistant()" aria-label="Open AI Assistant">
+  <span class="pulse-ring"></span>
+  <span id="aiFabIcon">💬</span>
+</button>
+
+<!-- FLOATING AI ASSISTANT PANEL -->
+<div id="aiAssistantPanel" class="ai-chat-panel no-print">
+  <div class="ai-chat-header">
+    <div class="flex items-center gap-2">
+      <div class="relative w-2.5 h-2.5">
+        <span class="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping"></span>
+        <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-300"></span>
+      </div>
+      <div>
+        <div class="font-bold text-sm">AI Assistant</div>
+        <div class="text-[10px] opacity-80" id="aiFabStatus">Ask me anything — procurement, code, life</div>
+      </div>
+    </div>
+    <div class="flex gap-1">
+      <button onclick="clearAIAssistant()" title="Clear chat" class="text-white/70 hover:text-white text-base px-2">🗑️</button>
+      <button onclick="toggleAIAssistant()" title="Close" class="text-white/70 hover:text-white text-2xl leading-none px-2">×</button>
+    </div>
+  </div>
+  <div id="aiAssistantLog" class="ai-chat-log"></div>
+  <div class="px-4 py-2 border-t border-slate-100 bg-white">
+    <div class="flex flex-wrap gap-1.5" id="aiSuggestedChips"></div>
+  </div>
+  <div class="ai-chat-input-wrap">
+    <input id="aiAssistantInput" type="text" placeholder="Ask anything…" onkeydown="if(event.key==='Enter')sendAIAssistant()" autocomplete="off"/>
+    <button class="ai-chat-send" onclick="sendAIAssistant()" id="aiAssistantSendBtn">Send</button>
   </div>
 </div>
 
@@ -4148,6 +4255,147 @@ function copyShareUrl(){
 // On page load, check for shared brief URL
 if(window.location.hash.includes('brief')){
   setTimeout(()=>switchTab('stakeholders'), 100);
+}
+
+/* =================================================================
+   FLOATING AI ASSISTANT — answers ANY question, on/off-topic
+================================================================= */
+let assistantHistory = JSON.parse(localStorage.getItem('aiAssistantHistory')||'[]');
+let assistantOpen = false;
+
+const ASSISTANT_SUGGESTED = [
+  "What does this tool do?",
+  "Explain Kraljic Matrix",
+  "Write a supplier rejection email",
+  "Compare ARIMA vs Exponential Smoothing",
+  "What's the EOQ formula?",
+  "Draft a 1-week sourcing plan for copper",
+  "How does CBAM work?",
+  "Translate to Spanish: 'Please send your best quote'",
+  "Explain quantum computing in 1 paragraph",
+  "Write a Python script to compute Safety Stock",
+  "What are top 3 risks for sourcing from Vietnam?",
+  "Suggest a healthy lunch under 600 calories"
+];
+
+function toggleAIAssistant(){
+  assistantOpen = !assistantOpen;
+  const panel = document.getElementById('aiAssistantPanel');
+  const fab = document.getElementById('aiAssistantFab');
+  const icon = document.getElementById('aiFabIcon');
+  if(assistantOpen){
+    panel.classList.add('open');
+    icon.textContent = '✕';
+    renderAssistantChat();
+    renderAssistantSuggestions();
+    setTimeout(()=>document.getElementById('aiAssistantInput').focus(), 350);
+    // Welcome message if empty
+    if(assistantHistory.length === 0){
+      addAssistantMsg('bot', getWelcomeMessage());
+    }
+  } else {
+    panel.classList.remove('open');
+    icon.textContent = '💬';
+  }
+}
+
+function getWelcomeMessage(){
+  const aiState = AI.enabled ? `<span class="inline-flex items-center gap-1 text-xs text-emerald-700 font-semibold">🟢 Live AI connected (${AI.provider} ${AI.model.split('-')[1]||''})</span>`
+    : `<span class="inline-flex items-center gap-1 text-xs text-amber-700">⚠️ Live AI not connected — <a onclick="openAISettings(); toggleAIAssistant();" class="underline cursor-pointer">connect Claude/OpenAI</a> for full power.</span>`;
+  return `<div class="font-semibold mb-1">👋 Hi! I'm your AI assistant.</div>
+  <p class="text-sm mb-2">I can answer <b>anything</b> — procurement questions about this tool, code, writing, math, life advice, whatever. Try one of the suggestions below or just type.</p>
+  ${aiState}`;
+}
+
+function renderAssistantSuggestions(){
+  const wrap = document.getElementById('aiSuggestedChips');
+  // Show 4 random suggestions
+  const shuffled = [...ASSISTANT_SUGGESTED].sort(()=>Math.random()-0.5).slice(0,4);
+  wrap.innerHTML = shuffled.map(s=>`<button class="ai-suggested-chip" onclick="document.getElementById('aiAssistantInput').value='${s.replace(/'/g,"\\'")}';sendAIAssistant();">${s}</button>`).join('');
+}
+
+function renderAssistantChat(){
+  const log = document.getElementById('aiAssistantLog');
+  if(assistantHistory.length === 0){
+    log.innerHTML = '';
+    return;
+  }
+  log.innerHTML = assistantHistory.map(m =>
+    m.role === 'user'
+      ? `<div class="ai-msg-user">${escapeHtml(m.content)}</div>`
+      : `<div class="ai-msg-bot">${m.content}</div>`
+  ).join('');
+  log.scrollTop = log.scrollHeight;
+}
+
+function escapeHtml(str){ return String(str).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function addAssistantMsg(role, content){
+  assistantHistory.push({role, content});
+  if(assistantHistory.length > 50) assistantHistory = assistantHistory.slice(-50);
+  localStorage.setItem('aiAssistantHistory', JSON.stringify(assistantHistory));
+  renderAssistantChat();
+}
+
+async function sendAIAssistant(){
+  const input = document.getElementById('aiAssistantInput');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  document.getElementById('aiAssistantSendBtn').disabled = true;
+
+  addAssistantMsg('user', text);
+
+  // If AI not connected, give a smart deterministic fallback
+  if(!AI.enabled){
+    // Try local knowledge base for procurement Qs
+    const kb = findKB(text);
+    if(kb){
+      addAssistantMsg('bot', `<div class="font-semibold text-teal-700 mb-1">${kb.title}</div>${kb.body}${kb.strategy?'<div class="mt-2 bg-amber-50 border-l-4 border-amber-400 p-2 rounded text-xs"><b>Strategy:</b> '+kb.strategy+'</div>':''}<p class="mt-2 text-xs italic text-slate-500">💡 Connect Live AI in the header for unrestricted answers on any topic.</p>`);
+    } else {
+      addAssistantMsg('bot', `I have a built-in procurement knowledge base, but for unrestricted answers I need Live AI connected. <a onclick="openAISettings()" class="text-teal-700 underline cursor-pointer">Connect Claude or OpenAI</a> (~$0.001 per message) and I can answer anything — code, writing, life advice, complex strategy.`);
+    }
+    document.getElementById('aiAssistantSendBtn').disabled = false;
+    return;
+  }
+
+  // Show typing indicator
+  assistantHistory.push({role:'bot', content:'<span class="ai-thinking font-semibold">Thinking…</span>'});
+  renderAssistantChat();
+
+  // Build context-aware system prompt — unrestricted
+  const ctxNote = currentParams && currentParams.length > 0
+    ? `\n\nCurrent procurement context (only mention if relevant): user is analyzing "${document.getElementById('productName').value}" with ${currentParams.length} cost drivers.`
+    : '';
+  const systemPrompt = `You are an intelligent AI assistant embedded in Should Cost AI — a procurement intelligence suite built by Mohammed Zumar Ali Hassan (MS Supply Chain Management, UT Dallas). You can answer ANY question on ANY topic — procurement, code, writing, math, life advice, history, science, current events.
+
+When questions are about Should Cost AI specifically, you know it has 13 tabs: Welcome & Tour, Should Cost Calculator, Executive Dashboard, Supply Chain Analytics, AI Procurement Strategist, Insights & Recommendations, RFQ/RFP Manager, Live Commodities, Demand Forecasting, Tariff Optimizer, Negotiation Simulator, ERP Integration, Stakeholder Hub.
+
+Format with HTML when helpful (<b>, <ul>, <li>, <code>, <br>). Keep responses concise (under 200 words) unless asked for depth. Be helpful, accurate, and direct.${ctxNote}`;
+
+  try {
+    // Last 8 turns as context
+    const recentTurns = assistantHistory.slice(0,-1).slice(-8); // exclude the "Thinking…" placeholder
+    const convStr = recentTurns.map(m => (m.role==='user'?'User: ':'Assistant: ') + m.content.replace(/<[^>]+>/g,'')).join('\n');
+    const fullPrompt = (convStr ? convStr + '\n\n' : '') + 'User: ' + text;
+    const reply = await aiCall(fullPrompt, {system: systemPrompt, maxTokens: 600});
+    assistantHistory.pop(); // remove placeholder
+    addAssistantMsg('bot', reply);
+  } catch(err){
+    assistantHistory.pop();
+    addAssistantMsg('bot', '<span class="text-red-600">⚠️ '+err.message+'</span><br><br>If this persists, check your API key in Settings.');
+  } finally {
+    document.getElementById('aiAssistantSendBtn').disabled = false;
+    renderAssistantSuggestions();
+  }
+}
+
+function clearAIAssistant(){
+  if(!confirm('Clear chat history?')) return;
+  assistantHistory = [];
+  localStorage.removeItem('aiAssistantHistory');
+  renderAssistantChat();
+  addAssistantMsg('bot', getWelcomeMessage());
 }
 
 /* ============== LIVE COMMODITY PRICES ============== */
