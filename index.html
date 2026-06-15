@@ -181,6 +181,7 @@
       <button class="tab-btn tab-inactive" data-tab="tariff" onclick="switchTab('tariff')">Tariff Optimizer</button>
       <button class="tab-btn tab-inactive" data-tab="negotiate" onclick="switchTab('negotiate')">Negotiation Simulator</button>
       <button class="tab-btn tab-inactive" data-tab="erp" onclick="switchTab('erp')">🔌 ERP Integration</button>
+      <button class="tab-btn tab-inactive" data-tab="stakeholders" onclick="switchTab('stakeholders')">🎯 Stakeholder Hub</button>
     </nav>
   </div>
   <div class="bg-slate-900/40 text-center text-[11px] py-1.5 text-teal-100">
@@ -1246,7 +1247,99 @@
   </div>
 </section>
 
+<!-- ============== STAKEHOLDER HUB ============== -->
+<section id="tab-stakeholders-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 text-white rounded-2xl p-6 mb-6">
+    <div class="flex justify-between items-start flex-wrap gap-3">
+      <div>
+        <h2 class="text-2xl font-bold flex items-center gap-2">Cross-Functional Stakeholder Hub
+          <span class="text-xs bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full font-bold">INVINCIBLE MODE</span></h2>
+        <p class="text-indigo-100 text-sm mt-1">One data source, eight tailored views. Pick a role to see what they care about — and generate a brief for them.</p>
+      </div>
+      <button onclick="openShareBriefModal()" class="px-4 py-2 bg-white/15 hover:bg-white/25 rounded-lg text-sm font-semibold">🔗 Share Living Brief</button>
+    </div>
+  </div>
+
+  <!-- AUDIENCE SELECTOR -->
+  <div class="card p-5 mb-6">
+    <p class="text-micro mb-2">Pick a stakeholder</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="stakeholderSelector"></div>
+  </div>
+
+  <!-- ACTIVE STAKEHOLDER VIEW -->
+  <div id="stakeholderView" class="space-y-4"></div>
+
+  <!-- ACTION BAR -->
+  <div class="card p-5 mt-6">
+    <div class="flex justify-between items-center flex-wrap gap-3">
+      <div>
+        <h3 class="text-title">Generate a brief for this stakeholder</h3>
+        <p class="text-body text-slate-600">AI writes a tailored 1-page brief. Print as PDF or copy a shareable link.</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="generateAIBrief()" class="btn btn-primary">🤖 Generate AI Brief</button>
+        <button onclick="window.print()" class="btn btn-secondary">🖨️ Print/PDF</button>
+        <button onclick="openShareBriefModal()" class="btn btn-secondary">🔗 Share Link</button>
+      </div>
+    </div>
+    <div id="aiBriefOutput" class="hidden mt-5 bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-xl p-6"></div>
+  </div>
+</section>
+
 </main>
+
+<!-- SHARE LIVING BRIEF MODAL -->
+<div id="shareBriefModal" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-2xl w-full overflow-auto" style="max-height:90vh;">
+    <div class="bg-gradient-to-r from-indigo-700 to-purple-700 text-white p-5 rounded-t-2xl flex justify-between items-start">
+      <div>
+        <h2 class="text-xl font-bold">Share Living Brief</h2>
+        <p class="text-indigo-100 text-xs mt-1">Generates a URL that always shows current data — send to your CFO, engineering lead, anyone.</p>
+      </div>
+      <button onclick="document.getElementById('shareBriefModal').classList.add('hidden')" class="text-white/70 hover:text-white text-2xl leading-none">&times;</button>
+    </div>
+    <div class="p-5 space-y-4">
+      <div>
+        <label class="block font-semibold text-sm mb-1">Audience</label>
+        <select id="shareAudience" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          <option value="cfo">CFO — financial impact, working capital</option>
+          <option value="ceo">CEO — strategic summary, top risks</option>
+          <option value="engineering">Engineering — DFC, alternates</option>
+          <option value="sales">Sales — cost-to-quote, margins</option>
+          <option value="plant">Plant Manager — operations, lead times</option>
+          <option value="sustainability">Sustainability — Scope 3, ESG</option>
+          <option value="legal">Legal — contracts, compliance</option>
+          <option value="quality">Quality — PPM, defect cost</option>
+        </select>
+      </div>
+      <div>
+        <label class="block font-semibold text-sm mb-1">Include in brief</label>
+        <div class="space-y-2 text-sm">
+          <label class="flex items-center gap-2"><input type="checkbox" id="shareIncludeKPIs" checked/> Live KPIs</label>
+          <label class="flex items-center gap-2"><input type="checkbox" id="shareIncludeAI" checked/> AI-generated narrative</label>
+          <label class="flex items-center gap-2"><input type="checkbox" id="shareIncludeCalc" checked/> Current should-cost analysis</label>
+          <label class="flex items-center gap-2"><input type="checkbox" id="shareIncludeSuppliers"/> Supplier scorecards</label>
+        </div>
+      </div>
+      <div>
+        <label class="block font-semibold text-sm mb-1">Shareable URL</label>
+        <div class="flex gap-2">
+          <input id="shareUrl" type="text" readonly class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono bg-slate-50"/>
+          <button onclick="copyShareUrl()" class="btn btn-primary text-xs">📋 Copy</button>
+        </div>
+        <p class="text-xs text-slate-500 mt-2">📡 This URL embeds your current product context. Anyone opening it sees today's snapshot — perfect for CFO weekly reviews or engineering hand-offs.</p>
+      </div>
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs">
+        <p class="font-semibold text-blue-900 mb-1">💡 How "Living" works in production</p>
+        <p class="text-blue-900">This demo shares a URL with a snapshot. In production, you'd back this with a database — every time the recipient opens the URL, it queries the latest ERP sync and renders <i>live</i> data. The architecture diagram in the ERP tab shows how.</p>
+      </div>
+      <div class="flex gap-2 pt-2 border-t">
+        <button onclick="generateShareUrl()" class="btn btn-primary">↻ Regenerate URL</button>
+        <button onclick="document.getElementById('shareBriefModal').classList.add('hidden')" class="btn btn-ghost ml-auto">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ERP CONNECTION MODAL -->
 <div id="erpConnectModal" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4">
@@ -1840,6 +1933,7 @@ function switchTab(name){
   if(name==='tariff') initTariff();
   if(name==='negotiate') initNegotiation();
   if(name==='erp') initErp();
+  if(name==='stakeholders') initStakeholders();
 }
 
 const TEMPLATES = {
@@ -3721,7 +3815,6 @@ async function erpAISummary(){
 function pushBackToErp(){
   const connectedErps = Object.entries(ERP_STATE).filter(([_,st])=>st.connected).length;
   if(connectedErps === 0){ alert('Connect an ERP first.'); return; }
-  // Log a PUSH event
   let log = JSON.parse(localStorage.getItem('erpSyncLog')||'[]');
   Object.entries(ERP_STATE).forEach(([id, state])=>{
     if(state.connected){
@@ -3738,6 +3831,323 @@ function pushBackToErp(){
   localStorage.setItem('erpSyncLog', JSON.stringify(log));
   alert('✅ Pushed should-cost benchmarks and savings opportunities to '+connectedErps+' ERP(s). In production this would create supplier scorecards, flag variance > threshold, and trigger renegotiation workflows.');
   renderErpDashboard();
+}
+
+/* =================================================================
+   STAKEHOLDER HUB · AI BRIEFINGS · LIVING BRIEF
+================================================================= */
+const STAKEHOLDERS = {
+  cfo: {
+    icon:'👔', name:'CFO',
+    title:'Chief Financial Officer',
+    desc:'Cares about budget impact, working capital, savings tracking, and EBITDA effect.',
+    kpis: ctx => ([
+      {label:'Spend YTD vs Budget', value:'$24.8M / $26.4M', color:'emerald', sub:'94% of budget · on track'},
+      {label:'Realized Savings', value:'$2.14M', color:'emerald', sub:'8.6% of spend · ahead of 7% target'},
+      {label:'Should-Cost Variance', value:'+11.3%', color:'amber', sub:'$2.8M renegotiation opportunity'},
+      {label:'Working Capital Lock', value:'$4.2M', color:'slate', sub:'45 days inventory · VMI could free $1.2M'}
+    ]),
+    recommendations: [
+      'Renegotiate top 3 suppliers exceeding +8% variance — projected $890K annualized',
+      'Shift 5 categories to VMI / consignment — frees $1.2M working capital',
+      'Lock copper at LME index +5% for 12 months — hedges $340K of FX/commodity risk',
+      'Push payment terms from NET 30 → NET 60 on Tier-3 suppliers — $400K cash flow improvement'
+    ]
+  },
+  ceo: {
+    icon:'🏢', name:'CEO',
+    title:'Chief Executive Officer',
+    desc:'Needs a one-pager: top risks, top opportunities, strategic positioning.',
+    kpis: ctx => ([
+      {label:'Total Addressable Spend', value:'$24.8M', color:'slate', sub:'▲ 6.4% vs LY'},
+      {label:'Procurement Savings', value:'$2.14M', color:'emerald', sub:'12.8% YoY improvement'},
+      {label:'Supplier OTIF', value:'94.2%', color:'emerald', sub:'World-class threshold'},
+      {label:'Single-Source Risk', value:'3 categories', color:'red', sub:'Critical — qualification needed'}
+    ]),
+    recommendations: [
+      'Top opportunity: $2.8M annualized savings from should-cost-driven negotiations',
+      'Top risk: 3 strategic categories with single-source exposure — particularly relevant given China-US trade tensions',
+      'Strategic move: nearshore 18% of China spend to Mexico via USMCA — eliminates $890K of tariff exposure',
+      'Talent gap: hire one strategic sourcing manager → ROI within 6 months at current savings rate'
+    ]
+  },
+  engineering: {
+    icon:'🔧', name:'Engineering',
+    title:'VP Engineering / Design Lead',
+    desc:'Cares about DFC (Design for Cost), alternates, BoM cost rollup, NPI cost targets.',
+    kpis: ctx => ([
+      {label:'Should-Cost vs Quoted', value:'+11.3%', color:'amber', sub:'12% of cost is in materials we can DFC'},
+      {label:'DFC Opportunities Flagged', value:'14', color:'blue', sub:'Components with cheaper functional alternates'},
+      {label:'NPI Pipeline Cost Variance', value:'+8.4%', color:'amber', sub:'Above 5% target — review with category leaders'},
+      {label:'Engineering Change Cost', value:'$340K', color:'slate', sub:'YTD impact of ECOs on procurement'}
+    ]),
+    recommendations: [
+      'Consider substituting 0.85mm copper conductor with 0.80mm — same electrical performance, 6% material cost reduction',
+      'Bearing 6204-2RS: switch to dual-source alternate (NorthBearing + EastGear) — qualifies in 8 weeks, 9% cost reduction',
+      'Cardboard outer cartons: standardize across 4 product families — consolidates spend, 11% bulk discount available',
+      'PCBA: redesign with 4-layer instead of 6-layer reduces FAB cost by 22% — recommend joint engineering / procurement workshop'
+    ]
+  },
+  sales: {
+    icon:'💼', name:'Sales',
+    title:'VP Sales / Bid Manager',
+    desc:'Needs cost-to-quote, margin per product, customer cost requests.',
+    kpis: ctx => ([
+      {label:'Avg Margin per Unit', value:'18.4%', color:'emerald', sub:'Above 16% target'},
+      {label:'Cost-to-Quote Cycle', value:'4.2 days', color:'amber', sub:'Target: under 2 days'},
+      {label:'Win Rate on Cost-Driven Bids', value:'42%', color:'blue', sub:'Up from 35% with should-cost data'},
+      {label:'Customer Cost-Down Requests', value:'$1.4M', color:'amber', sub:'YTD asks — need negotiation playbook'}
+    ]),
+    recommendations: [
+      'Use should-cost data in proposals — wins 7 pts higher when buyer sees you understand their cost basis',
+      'Pre-build cost-to-quote templates for top 10 products — collapses 4.2 day → 4 hour cycle',
+      'For customer cost-down asks above 5%, redirect to engineering DFC — joint solution beats unilateral price cut',
+      'Bundle services with product to lift margins — $890K opportunity in current pipeline'
+    ]
+  },
+  plant: {
+    icon:'🏭', name:'Plant Manager',
+    title:'Plant / Operations Manager',
+    desc:'Cares about lead times, stock-outs, local supplier alternatives, OEE impact.',
+    kpis: ctx => ([
+      {label:'Avg Inbound Lead Time', value:'24 days', color:'amber', sub:'Target: under 18'},
+      {label:'Stock-Out Events (90 day)', value:'7', color:'red', sub:'Lost $180K of production'},
+      {label:'Supplier OTIF (this plant)', value:'89%', color:'amber', sub:'Below 92% threshold'},
+      {label:'Inventory Turns', value:'9.2', color:'emerald', sub:'Industry benchmark'}
+    ]),
+    recommendations: [
+      'Qualify 2 local backup suppliers for top stock-out items — reduces 90-day stock-out risk by 60%',
+      'Move top 8 SKUs to VMI — supplier holds inventory at your dock, you pay on consumption',
+      'NorthMetal Co has worst OTIF (88%) — escalate or replace; alternative qualified at Quanta Tools',
+      'Implement 2-week buffer on tariff-exposed China imports — protects against port congestion'
+    ]
+  },
+  sustainability: {
+    icon:'🌱', name:'Sustainability',
+    title:'Chief Sustainability Officer',
+    desc:'Tracks Scope 3 emissions, ESG supplier scores, sustainable sourcing wins.',
+    kpis: ctx => ([
+      {label:'Scope 3 Emissions (YTD)', value:'4,240 tCO₂e', color:'amber', sub:'Up 3% — driven by China sourcing'},
+      {label:'Suppliers with CDP A/B Rating', value:'42%', color:'emerald', sub:'Target: 60% by 2027'},
+      {label:'Recycled Content (avg)', value:'28%', color:'blue', sub:'Up from 18% LY'},
+      {label:'Carbon Cost @ €90/tCO₂e', value:'€381K', color:'amber', sub:'Embodied price if CBAM applied'}
+    ]),
+    recommendations: [
+      'Switch 3 EU-bound categories to Vietnamese suppliers with renewable electricity — cuts Scope 3 by 8%',
+      'Add 10% sustainability weight to all RFQ scoring — accelerates supplier transition without immediate cost penalty',
+      'Aluminum: source from European smelters using hydro power — premium 4%, but eliminates 65% of emissions',
+      'Build a carbon-cost-of-procurement metric and report quarterly — positions you for EU CBAM compliance'
+    ]
+  },
+  legal: {
+    icon:'⚖️', name:'Legal',
+    title:'General Counsel / Procurement Legal',
+    desc:'Watches contract expiries, sanctions risk, jurisdiction, force majeure.',
+    kpis: ctx => ([
+      {label:'Contracts Expiring < 90 days', value:'14', color:'amber', sub:'Renew or rebid'},
+      {label:'Suppliers in High-Risk Jurisdictions', value:'8', color:'red', sub:'Russia exposure: 2 indirect tiers'},
+      {label:'Sanctions Hits (auto-screen)', value:'0', color:'emerald', sub:'Last scan: 4 hours ago'},
+      {label:'MFN Clauses in Force', value:'62%', color:'blue', sub:'Of strategic contracts'}
+    ]),
+    recommendations: [
+      'Priority renewals: Acme Copper (expires in 47 days, $1.2M annual) — start now',
+      'Update force majeure language across all contracts — current language too narrow post-COVID',
+      'Add ESG / sustainability clauses to top 20 contracts as they renew',
+      'Tier-2 supplier mapping shows 8% exposure to sanctioned Russia inputs — establish alternates'
+    ]
+  },
+  quality: {
+    icon:'🛡️', name:'Quality',
+    title:'VP Quality / Supplier Quality Engineer',
+    desc:'PPM defect trends, 8D status, PPAP approvals, cost of poor quality.',
+    kpis: ctx => ([
+      {label:'Overall Defect PPM', value:'124', color:'blue', sub:'Target: under 100 (world-class)'},
+      {label:'Open 8D Investigations', value:'5', color:'amber', sub:'3 are over 30 days'},
+      {label:'Cost of Poor Quality (YTD)', value:'$340K', color:'red', sub:'~1.4% of spend'},
+      {label:'PPAP Approval Rate', value:'87%', color:'amber', sub:'Industrial benchmark: 92%'}
+    ]),
+    recommendations: [
+      'NorthMetal Co at 220 PPM defects — drives 38% of total COPQ; escalate or replace',
+      'Implement layered process audits with top 5 suppliers — typical PPM reduction 40% in 6 months',
+      'Add quality dimension weight in RFQ scoring to 50% (from 40%) — slows winning bids but eliminates 60% of defect cost',
+      'Cross-functional quality team needed for NPI — current 87% PPAP approval delays launch by avg 11 days'
+    ]
+  }
+};
+
+let currentStakeholder = 'cfo';
+
+function initStakeholders(){
+  renderStakeholderSelector();
+  renderStakeholderView();
+  // Check URL hash for shared brief
+  if(window.location.hash.includes('brief')){
+    const params = new URLSearchParams(window.location.hash.split('?')[1]||'');
+    const audience = params.get('audience');
+    if(audience && STAKEHOLDERS[audience]) selectStakeholder(audience);
+  }
+}
+
+function renderStakeholderSelector(){
+  const el = document.getElementById('stakeholderSelector');
+  if(!el) return;
+  el.innerHTML = Object.entries(STAKEHOLDERS).map(([id, s])=>{
+    const active = id===currentStakeholder;
+    return `<button onclick="selectStakeholder('${id}')" class="card card-interactive p-3 text-center ${active?'ring-2 ring-indigo-500 shadow-lg':''}">
+      <div class="text-3xl mb-1">${s.icon}</div>
+      <div class="font-bold text-sm">${s.name}</div>
+      <p class="text-[10px] text-slate-500 mt-1 leading-tight">${s.title}</p>
+    </button>`;
+  }).join('');
+}
+
+function selectStakeholder(id){
+  currentStakeholder = id;
+  renderStakeholderSelector();
+  renderStakeholderView();
+  // Clear any previous AI brief
+  document.getElementById('aiBriefOutput').classList.add('hidden');
+}
+
+function renderStakeholderView(){
+  const s = STAKEHOLDERS[currentStakeholder];
+  const kpis = s.kpis({});
+  const colorMap = {emerald:'text-emerald-700 bg-emerald-50', amber:'text-amber-700 bg-amber-50', red:'text-red-700 bg-red-50', blue:'text-blue-700 bg-blue-50', slate:'text-slate-700 bg-slate-50'};
+  const html = `
+    <div class="card p-6">
+      <div class="flex items-start gap-4">
+        <div class="text-5xl">${s.icon}</div>
+        <div>
+          <h2 class="text-headline">${s.title} View</h2>
+          <p class="text-body text-slate-600">${s.desc}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
+      ${kpis.map(k=>`<div class="kpi-card border-l-4 ${colorMap[k.color]||'border-slate-300'}" style="border-left-color:${k.color==='emerald'?'#10B981':k.color==='amber'?'#F59E0B':k.color==='red'?'#DC2626':k.color==='blue'?'#3B82F6':'#94A3B8'}">
+        <div class="text-xs text-slate-500 uppercase tracking-wider">${k.label}</div>
+        <div class="text-2xl font-extrabold mt-1 ${k.color==='emerald'?'text-emerald-700':k.color==='amber'?'text-amber-700':k.color==='red'?'text-red-700':k.color==='blue'?'text-blue-700':'text-slate-800'}">${k.value}</div>
+        <div class="text-xs text-slate-600 mt-1">${k.sub}</div>
+      </div>`).join('')}
+    </div>
+
+    <div class="card p-6">
+      <h3 class="text-title mb-3">Recommendations for ${s.name}</h3>
+      <ol class="space-y-2">
+        ${s.recommendations.map((r,i)=>`<li class="flex items-start gap-3">
+          <div class="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">${i+1}</div>
+          <p class="text-body text-slate-700">${r}</p>
+        </li>`).join('')}
+      </ol>
+    </div>
+
+    <div class="card p-5 bg-gradient-to-br from-slate-50 to-blue-50 border border-blue-100">
+      <div class="flex items-start gap-3">
+        <div class="text-2xl">💡</div>
+        <div>
+          <h4 class="font-bold text-sm mb-1">Why this view matters</h4>
+          <p class="text-xs text-slate-700">${currentStakeholder==='cfo'?'Procurement and Finance traditionally don\\'t share a system of truth. With this view, your CFO can see exactly where the $24.8M is going, what\\'s in the savings pipeline, and how working capital can be freed up — without you having to build a separate report.':
+            currentStakeholder==='ceo'?'CEOs want one-pagers, not dashboards. This view shows them the strategic posture in 60 seconds — total spend, savings, risks, opportunities — without procurement jargon.':
+            currentStakeholder==='engineering'?'Design For Cost (DFC) is where the biggest savings live, but engineering and procurement rarely collaborate well. This view lets your design lead see which components are negotiation-resistant vs which are pure cost-engineering opportunities.':
+            currentStakeholder==='sales'?'Sales and procurement need each other for cost-to-quote on new business. This view turns procurement data into a sales-ready bid prep tool.':
+            currentStakeholder==='plant'?'Operations cares about lead times, not unit prices. This view shows them the reliability metrics that matter for keeping production lines running.':
+            currentStakeholder==='sustainability'?'Scope 3 emissions sit 70%+ in procurement\\'s supply base. This view gives the CSO a procurement-level handle on the corporate carbon strategy.':
+            currentStakeholder==='legal'?'Legal needs lead-time on contract renewals and risk exposure. This view surfaces those flags before they become crises.':
+            'Quality and procurement need to evaluate suppliers jointly — the cheapest is rarely the best. This view shows defect cost across the supplier base.'}</p>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('stakeholderView').innerHTML = html;
+}
+
+async function generateAIBrief(){
+  if(!AI.enabled){
+    document.getElementById('aiBriefOutput').classList.remove('hidden');
+    document.getElementById('aiBriefOutput').innerHTML = '<div class="text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">⚠️ Connect Live AI in the header to generate AI briefs. Until then, the static recommendations above are tailored to ' + STAKEHOLDERS[currentStakeholder].name + '.</div>';
+    return;
+  }
+  const s = STAKEHOLDERS[currentStakeholder];
+  const ctx = getCurrentContext();
+  const out = document.getElementById('aiBriefOutput');
+  out.classList.remove('hidden');
+  out.innerHTML = '<div class="flex items-center gap-2"><span class="ai-thinking font-semibold">AI is writing the brief…</span></div>';
+  const prompt = `You are writing a 1-page executive brief for a ${s.title} on procurement performance.
+
+Current procurement context: ${JSON.stringify(ctx)}
+
+Should-Cost AI tool company-wide portfolio:
+- Total addressable spend: $24.8M
+- Realized savings YTD: $2.14M (8.6% of spend)
+- Supplier OTIF: 94.2%
+- Variance to should-cost: +11.3%
+- Active suppliers: 15
+- Top 5 supplier variances: Acme Copper +15.9%, Globex Steel +9.2%, NorthBearing +21.0%, Polymer Plus +8.5%, OmegaChem +9.5%
+
+Write the brief in HTML with these sections (use <h3>, <p>, <ul>, <li>, <b>):
+1. Executive Summary (2 sentences targeted to ${s.name}'s priorities)
+2. Top 3 Wins
+3. Top 3 Risks
+4. Top 3 Recommended Actions (with specific numbers)
+5. Next Steps (1 sentence)
+
+Tone: confident, numeric, action-oriented. Length: under 350 words. Stakeholder cares about: ${s.desc}.`;
+  try {
+    const reply = await aiCall(prompt, {maxTokens: 800, system: 'You are a senior procurement strategist preparing a brief for a C-level audience. Match the language and concerns of the specific role.'});
+    out.innerHTML = `
+      <div class="flex justify-between items-start mb-3 pb-3 border-b border-slate-200">
+        <div>
+          <div class="text-xs text-slate-500 uppercase tracking-wider">Procurement Brief</div>
+          <h2 class="text-xl font-bold">For: ${s.icon} ${s.title}</h2>
+          <p class="text-xs text-slate-500 mt-1">Generated ${new Date().toLocaleString()} · by Should Cost AI · Mohammed Zumar Ali Hassan</p>
+        </div>
+        <button onclick="window.print()" class="btn btn-secondary text-xs">🖨️ Print/PDF</button>
+      </div>
+      <div class="prose prose-sm max-w-none">${reply}</div>
+      <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-400 text-center">© 2026 Should Cost AI · Generated by AI for ${s.title} review</div>`;
+  } catch(err){
+    out.innerHTML = '<div class="text-red-700 bg-red-50 border border-red-200 rounded-lg p-3 text-sm">⚠️ AI brief generation failed: '+err.message+'</div>';
+  }
+}
+
+/* ---------- LIVING BRIEF — Shareable URL ---------- */
+function openShareBriefModal(){
+  document.getElementById('shareAudience').value = currentStakeholder || 'cfo';
+  generateShareUrl();
+  document.getElementById('shareBriefModal').classList.remove('hidden');
+}
+
+function generateShareUrl(){
+  const audience = document.getElementById('shareAudience').value;
+  const product = document.getElementById('productName').value || '';
+  const region = document.getElementById('region').value || '';
+  const qty = document.getElementById('orderQty').value || '';
+  const cur = document.getElementById('currency').value || 'USD';
+  const kpis = document.getElementById('shareIncludeKPIs').checked ? '1':'0';
+  const ai = document.getElementById('shareIncludeAI').checked ? '1':'0';
+  const calc = document.getElementById('shareIncludeCalc').checked ? '1':'0';
+  const sups = document.getElementById('shareIncludeSuppliers').checked ? '1':'0';
+  const params = new URLSearchParams({audience, product, region, qty, cur, k:kpis, a:ai, c:calc, s:sups});
+  const url = window.location.origin + window.location.pathname + '#brief?' + params.toString();
+  document.getElementById('shareUrl').value = url;
+}
+['shareAudience','shareIncludeKPIs','shareIncludeAI','shareIncludeCalc','shareIncludeSuppliers'].forEach(id=>{
+  document.addEventListener('change', e => { if(e.target.id===id) generateShareUrl(); });
+});
+
+function copyShareUrl(){
+  const url = document.getElementById('shareUrl').value;
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn = event.target;
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Copied!';
+    setTimeout(()=>btn.innerHTML = orig, 1500);
+  });
+}
+
+// On page load, check for shared brief URL
+if(window.location.hash.includes('brief')){
+  setTimeout(()=>switchTab('stakeholders'), 100);
 }
 
 /* ============== LIVE COMMODITY PRICES ============== */
