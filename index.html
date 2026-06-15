@@ -257,6 +257,7 @@
       <button class="tab-btn tab-inactive" data-tab="stakeholders" onclick="switchTab('stakeholders')">🎯 Stakeholder Hub</button>
       <button class="tab-btn tab-inactive" data-tab="aidash" onclick="switchTab('aidash')">🎨 AI Dashboard Builder</button>
       <button class="tab-btn tab-inactive" data-tab="vendor" onclick="switchTab('vendor')">🤝 Vendor Onboarding</button>
+      <button class="tab-btn tab-inactive" data-tab="srm" onclick="switchTab('srm')">⭐ SRM Hub</button>
     </nav>
   </div>
   <div class="bg-slate-900/40 text-center text-[11px] py-1.5 text-teal-100">
@@ -1611,6 +1612,291 @@
   </div>
 </div>
 
+<!-- ============== SRM HUB ============== -->
+<section id="tab-srm-content" class="tab-content hidden" style="margin-top:1.5rem;">
+
+  <!-- HERO -->
+  <div class="bg-gradient-to-r from-rose-700 via-pink-700 to-purple-700 text-white rounded-2xl p-6 mb-6">
+    <div class="flex justify-between items-start flex-wrap gap-3">
+      <div>
+        <h2 class="text-2xl font-bold flex items-center gap-2">Supplier Relationship Manager (SRM)
+          <span class="text-xs bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full font-bold">360° VISIBILITY</span></h2>
+        <p class="text-pink-100 text-sm mt-1">Supplier 360 · Compliance issues · Lead time monitor · CRM field data integration · Communication log</p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="seedSampleSRM()" class="btn btn-secondary text-xs">⚡ Load sample data</button>
+        <button onclick="openSRMIssueModal()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 rounded-lg text-sm font-semibold">🚨 Raise Issue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SRM KPI BAR -->
+  <div class="grid md:grid-cols-5 gap-3 mb-6">
+    <div class="kpi-card border-l-4" style="border-left-color:#0F766E">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">Active Suppliers</div>
+      <div class="text-2xl font-extrabold mt-1 text-teal-700" id="srmKPItotal">0</div>
+      <div class="text-xs text-slate-500 mt-1">Tracked relationships</div>
+    </div>
+    <div class="kpi-card border-l-4" style="border-left-color:#DC2626">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">Critical Issues</div>
+      <div class="text-2xl font-extrabold mt-1 text-red-700" id="srmKPIcritical">0</div>
+      <div class="text-xs text-slate-500 mt-1">Open + High severity</div>
+    </div>
+    <div class="kpi-card border-l-4" style="border-left-color:#F59E0B">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">Lead Time Changes</div>
+      <div class="text-2xl font-extrabold mt-1 text-amber-700" id="srmKPIltchanges">0</div>
+      <div class="text-xs text-slate-500 mt-1">Flagged this week</div>
+    </div>
+    <div class="kpi-card border-l-4" style="border-left-color:#8B5CF6">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">Field Reports</div>
+      <div class="text-2xl font-extrabold mt-1 text-purple-700" id="srmKPIfield">0</div>
+      <div class="text-xs text-slate-500 mt-1">CRM-driven flags</div>
+    </div>
+    <div class="kpi-card border-l-4" style="border-left-color:#10B981">
+      <div class="text-xs text-slate-500 uppercase tracking-wider">Follow-ups Due</div>
+      <div class="text-2xl font-extrabold mt-1 text-emerald-700" id="srmKPIfollowup">0</div>
+      <div class="text-xs text-slate-500 mt-1">This week</div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: SUPPLIER 360 -->
+  <div class="card p-5 mb-6">
+    <div class="flex justify-between items-center flex-wrap gap-3 mb-4">
+      <h3 class="text-headline">⭐ Supplier 360 View</h3>
+      <div class="flex gap-2 flex-wrap">
+        <select id="srmFilterTier" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm" onchange="renderSRM360()">
+          <option value="all">All Tiers</option><option value="Strategic">Strategic</option>
+          <option value="Preferred">Preferred</option><option value="Tactical">Tactical</option>
+        </select>
+        <select id="srmSortBy" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm" onchange="renderSRM360()">
+          <option value="score">Sort by Relationship Score</option>
+          <option value="spend">Sort by Spend</option>
+          <option value="issues">Sort by Open Issues</option>
+          <option value="otif">Sort by OTIF</option>
+        </select>
+        <input id="srmSearch" type="text" placeholder="Search supplier…" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm" oninput="renderSRM360()"/>
+      </div>
+    </div>
+    <div id="srm360Grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+  </div>
+
+  <!-- SECTION 2: COMPLIANCE ISSUES -->
+  <div class="card p-5 mb-6">
+    <div class="flex justify-between items-center flex-wrap gap-3 mb-4">
+      <h3 class="text-headline">🚨 Compliance & Issue Tracker</h3>
+      <div class="flex gap-2 flex-wrap">
+        <select id="issueFilterStatus" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm" onchange="renderSRMIssues()">
+          <option value="all">All statuses</option><option value="Reported">Reported</option>
+          <option value="Acknowledged">Acknowledged</option><option value="Investigating">Investigating</option>
+          <option value="Resolved">Resolved</option><option value="Escalated">Escalated</option>
+        </select>
+        <select id="issueFilterSev" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm" onchange="renderSRMIssues()">
+          <option value="all">All severities</option><option value="Critical">Critical</option>
+          <option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option>
+        </select>
+        <button onclick="openSRMIssueModal()" class="btn btn-primary text-xs">+ New Issue</button>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-xs text-slate-600 uppercase">
+          <tr>
+            <th class="text-left p-2">ID</th>
+            <th class="text-left p-2">Supplier</th>
+            <th class="text-left p-2">Issue</th>
+            <th class="text-left p-2">Type</th>
+            <th class="text-left p-2">Severity</th>
+            <th class="text-left p-2">Status</th>
+            <th class="text-left p-2">Owner</th>
+            <th class="text-left p-2">Due</th>
+            <th class="p-2"></th>
+          </tr>
+        </thead>
+        <tbody id="srmIssuesTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 3: LEAD TIME ASSISTANT -->
+  <div class="card p-5 mb-6">
+    <div class="flex justify-between items-center flex-wrap gap-3 mb-4">
+      <div>
+        <h3 class="text-headline">⏱️ Lead Time Assistant</h3>
+        <p class="text-body text-slate-600">Watches supplier lead times. When baseline changes &gt; threshold, auto-flags and sets follow-up reminders.</p>
+      </div>
+      <div class="flex gap-2 items-center">
+        <label class="text-xs">Flag threshold:</label>
+        <input id="ltThreshold" type="number" value="15" min="5" max="50" class="w-16 border border-slate-300 rounded px-2 py-1 text-xs" onchange="renderLeadTimeWatch()"/>
+        <span class="text-xs">%</span>
+        <button onclick="simulateLeadTimeUpdate()" class="btn btn-secondary text-xs ml-2">↻ Simulate ERP update</button>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-xs text-slate-600 uppercase">
+          <tr>
+            <th class="text-left p-2">Supplier · Component</th>
+            <th class="p-2 text-right">Baseline (days)</th>
+            <th class="p-2 text-right">Current</th>
+            <th class="p-2 text-right">Δ Change</th>
+            <th class="text-left p-2">Status</th>
+            <th class="text-left p-2">Last Update</th>
+            <th class="text-left p-2">Next Follow-up</th>
+            <th class="p-2"></th>
+          </tr>
+        </thead>
+        <tbody id="ltWatchTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 4: CRM FIELD DATA INTEGRATION -->
+  <div class="card p-5 mb-6">
+    <div class="flex justify-between items-center flex-wrap gap-3 mb-4">
+      <div>
+        <h3 class="text-headline">📡 CRM-Driven Field Data Integration</h3>
+        <p class="text-body text-slate-600">Customer field reports flow in. When failure rate &gt; threshold, auto-trigger compliance issue + link to source supplier.</p>
+      </div>
+      <div class="flex gap-2 items-center flex-wrap">
+        <label class="text-xs">Auto-flag failure rate &gt;</label>
+        <input id="crmThreshold" type="number" value="10" min="1" max="50" class="w-16 border border-slate-300 rounded px-2 py-1 text-xs" onchange="renderCRMReports()"/>
+        <span class="text-xs">%</span>
+        <button onclick="openCRMReportModal()" class="btn btn-primary text-xs">+ Log Field Report</button>
+        <button onclick="askAICRMRootCause()" class="btn btn-secondary text-xs">🤖 AI Root-Cause</button>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-2 gap-4 mb-4">
+      <div class="card p-3 bg-slate-50">
+        <h4 class="font-bold text-sm mb-2">📊 Field Failure Rate by Component (last 90d)</h4>
+        <div class="h-48"><canvas id="crmRateChart"></canvas></div>
+      </div>
+      <div class="card p-3 bg-slate-50">
+        <h4 class="font-bold text-sm mb-2">🚦 Trigger Status by Supplier</h4>
+        <div id="crmTriggerStatus" class="space-y-2 text-xs"></div>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-xs text-slate-600 uppercase">
+          <tr>
+            <th class="text-left p-2">Report ID</th>
+            <th class="text-left p-2">Customer</th>
+            <th class="text-left p-2">Product / Component</th>
+            <th class="text-left p-2">Issue</th>
+            <th class="text-left p-2">Severity</th>
+            <th class="text-left p-2">Linked Supplier</th>
+            <th class="text-left p-2">Auto-Flag</th>
+            <th class="text-left p-2">Reported</th>
+          </tr>
+        </thead>
+        <tbody id="crmReportsTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 5: COMMUNICATION LOG -->
+  <div class="card p-5 mb-6">
+    <h3 class="text-headline mb-3">📨 Communication & Follow-up Center</h3>
+    <p class="text-body text-slate-600 mb-3">All touches across suppliers in one feed. AI summarizes themes &amp; action items.</p>
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="card p-3 md:col-span-2 bg-slate-50">
+        <h4 class="font-bold text-sm mb-2">Recent Touches</h4>
+        <div id="srmCommLog" class="space-y-2 max-h-72 overflow-y-auto text-xs"></div>
+      </div>
+      <div class="card p-3 bg-amber-50 border-amber-200">
+        <h4 class="font-bold text-sm mb-2">⏰ Follow-ups Due</h4>
+        <div id="srmFollowups" class="space-y-2 text-xs"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: SUPPLIER DETAIL DRAWER PLACEHOLDER -->
+  <div id="supplierDetailDrawer" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-5xl w-full overflow-auto" style="max-height:90vh;">
+      <div id="supplierDetailContent"></div>
+    </div>
+  </div>
+</section>
+
+<!-- RAISE ISSUE MODAL -->
+<div id="srmIssueModal" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-xl w-full overflow-auto" style="max-height:90vh;">
+    <div class="bg-gradient-to-r from-red-700 to-rose-700 text-white p-5 rounded-t-2xl flex justify-between items-start">
+      <div>
+        <h2 class="text-xl font-bold">🚨 Raise Supplier Issue</h2>
+        <p class="text-red-100 text-xs mt-1">Logged, owner notified, tracked through resolution</p>
+      </div>
+      <button onclick="document.getElementById('srmIssueModal').classList.add('hidden')" class="text-white/70 hover:text-white text-2xl leading-none">&times;</button>
+    </div>
+    <div class="p-5 space-y-3">
+      <div><label class="block text-xs font-bold mb-1">Supplier</label>
+        <select id="iSupplier" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></select></div>
+      <div><label class="block text-xs font-bold mb-1">Issue Title</label>
+        <input id="iTitle" type="text" placeholder="e.g. Late delivery 5 days on PO-12847" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"/></div>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="block text-xs font-bold mb-1">Type</label>
+          <select id="iType" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            <option>Quality</option><option>Safety</option><option>Delivery</option><option>Regulatory / Compliance</option>
+            <option>ESG / Sustainability</option><option>Financial</option><option>Cyber / Data</option><option>Other</option>
+          </select></div>
+        <div><label class="block text-xs font-bold mb-1">Severity</label>
+          <select id="iSeverity" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            <option>Critical</option><option>High</option><option selected>Medium</option><option>Low</option>
+          </select></div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="block text-xs font-bold mb-1">Owner</label>
+          <input id="iOwner" type="text" placeholder="e.g. Zumar Ali (Procurement)" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"/></div>
+        <div><label class="block text-xs font-bold mb-1">Resolution Due</label>
+          <input id="iDue" type="date" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"/></div>
+      </div>
+      <div><label class="block text-xs font-bold mb-1">Description</label>
+        <textarea id="iDesc" rows="3" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" placeholder="What happened, impact, evidence"></textarea></div>
+      <div class="flex gap-2 pt-2 border-t">
+        <button onclick="createSRMIssue()" class="btn btn-primary">Log Issue</button>
+        <button onclick="document.getElementById('srmIssueModal').classList.add('hidden')" class="btn btn-ghost ml-auto">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CRM REPORT MODAL -->
+<div id="crmReportModal" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-xl w-full overflow-auto" style="max-height:90vh;">
+    <div class="bg-gradient-to-r from-purple-700 to-fuchsia-700 text-white p-5 rounded-t-2xl flex justify-between items-start">
+      <div>
+        <h2 class="text-xl font-bold">📡 Log Customer Field Report</h2>
+        <p class="text-purple-100 text-xs mt-1">Auto-link to source supplier · auto-flag if threshold breached</p>
+      </div>
+      <button onclick="document.getElementById('crmReportModal').classList.add('hidden')" class="text-white/70 hover:text-white text-2xl leading-none">&times;</button>
+    </div>
+    <div class="p-5 space-y-3">
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="block text-xs font-bold mb-1">Customer Name</label>
+          <input id="crmCust" type="text" placeholder="e.g. AcmeCorp" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"/></div>
+        <div><label class="block text-xs font-bold mb-1">Product / Component</label>
+          <input id="crmProduct" type="text" placeholder="e.g. Compressor model X5" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"/></div>
+      </div>
+      <div><label class="block text-xs font-bold mb-1">Issue Description</label>
+        <textarea id="crmIssue" rows="2" placeholder="e.g. Compressor failed at 8 months — bearing seizure" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea></div>
+      <div class="grid grid-cols-3 gap-2">
+        <div><label class="block text-xs font-bold mb-1">Severity</label>
+          <select id="crmSev" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            <option>Critical (safety)</option><option>High</option><option selected>Medium</option><option>Low</option>
+          </select></div>
+        <div><label class="block text-xs font-bold mb-1">Failure Rate %</label>
+          <input id="crmRate" type="number" placeholder="e.g. 12" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"/></div>
+        <div><label class="block text-xs font-bold mb-1">Linked Supplier</label>
+          <select id="crmLinkedSupplier" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></select></div>
+      </div>
+      <div class="flex gap-2 pt-2 border-t">
+        <button onclick="createCRMReport()" class="btn btn-primary">Log Report</button>
+        <button onclick="document.getElementById('crmReportModal').classList.add('hidden')" class="btn btn-ghost ml-auto">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- VENDOR DETAIL DRAWER -->
 <div id="vendorDetailDrawer" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-4xl w-full overflow-auto" style="max-height:90vh;">
@@ -2300,6 +2586,7 @@ function switchTab(name){
   if(name==='stakeholders') initStakeholders();
   if(name==='aidash') initAIDash();
   if(name==='vendor') initVendor();
+  if(name==='srm') initSRM();
 }
 
 const TEMPLATES = {
@@ -5212,6 +5499,472 @@ function moveVendorStage(id, newStage){
   saveVendors();
   document.getElementById('vendorDetailDrawer').classList.add('hidden');
   initVendor();
+}
+
+/* =================================================================
+   SRM HUB — Supplier 360 · Issues · Lead Time · CRM Field Data
+================================================================= */
+let SRM_SUPPLIERS = JSON.parse(localStorage.getItem('srmSuppliersV1')||'[]');
+let SRM_ISSUES = JSON.parse(localStorage.getItem('srmIssuesV1')||'[]');
+let LT_WATCH = JSON.parse(localStorage.getItem('ltWatchV1')||'[]');
+let CRM_REPORTS = JSON.parse(localStorage.getItem('crmReportsV1')||'[]');
+let COMM_LOG = JSON.parse(localStorage.getItem('commLogV1')||'[]');
+
+function saveSRM(){
+  localStorage.setItem('srmSuppliersV1', JSON.stringify(SRM_SUPPLIERS));
+  localStorage.setItem('srmIssuesV1', JSON.stringify(SRM_ISSUES));
+  localStorage.setItem('ltWatchV1', JSON.stringify(LT_WATCH));
+  localStorage.setItem('crmReportsV1', JSON.stringify(CRM_REPORTS));
+  localStorage.setItem('commLogV1', JSON.stringify(COMM_LOG));
+}
+
+function initSRM(){
+  populateSupplierDropdowns();
+  renderSRM360();
+  renderSRMIssues();
+  renderLeadTimeWatch();
+  renderCRMReports();
+  renderCommLog();
+  renderSRMKPIs();
+}
+
+function populateSupplierDropdowns(){
+  const opts = SRM_SUPPLIERS.length > 0
+    ? SRM_SUPPLIERS.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')
+    : MOCK_SUPPLIERS.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  const iSup = document.getElementById('iSupplier');
+  const crmSup = document.getElementById('crmLinkedSupplier');
+  if(iSup) iSup.innerHTML = opts;
+  if(crmSup) crmSup.innerHTML = opts;
+}
+
+function seedSampleSRM(){
+  // Suppliers with tier + scores
+  SRM_SUPPLIERS = MOCK_SUPPLIERS.map((s,i)=>({
+    ...s,
+    tier: i<4?'Strategic':i<8?'Preferred':'Tactical',
+    relationship_score: Math.max(45, 100-Math.floor(Math.random()*40)),
+    contract_expiry: new Date(Date.now() + (180+i*30)*864e5).toISOString().slice(0,10),
+    last_touch: new Date(Date.now() - Math.floor(Math.random()*30)*864e5).toLocaleDateString(),
+    baseline_lt: 14 + i*3
+  }));
+  // Issues
+  SRM_ISSUES = [
+    {id:'ISS-001', supplierId:'S001', title:'Late delivery 5 days on PO-12847', type:'Delivery', severity:'High', status:'Investigating', owner:'Zumar Ali (Proc)', dueDate:new Date(Date.now()+7*864e5).toISOString().slice(0,10), reportedDate:new Date(Date.now()-3*864e5).toISOString(), desc:'Acme Copper Works missed delivery by 5 days. Production impact: 2 lines paused.', log:[]},
+    {id:'ISS-002', supplierId:'S004', title:'Bearing 6204 PPM spike — 220 PPM defects (vs 80 baseline)', type:'Quality', severity:'Critical', status:'Investigating', owner:'Quality Eng', dueDate:new Date(Date.now()+5*864e5).toISOString().slice(0,10), reportedDate:new Date(Date.now()-5*864e5).toISOString(), desc:'NorthMetal Co bearing defect rate tripled. Field returns increased 18%.', log:[]},
+    {id:'ISS-003', supplierId:'S005', title:'REACH non-compliance — banned additive detected', type:'Regulatory / Compliance', severity:'Critical', status:'Acknowledged', owner:'Legal + Sustainability', dueDate:new Date(Date.now()+14*864e5).toISOString().slice(0,10), reportedDate:new Date(Date.now()-1*864e5).toISOString(), desc:'Polymer Plus material contains banned phthalate. Triggers EU import block.', log:[]},
+    {id:'ISS-004', supplierId:'S012', title:'Working capital concern — DSO extended to 90d', type:'Financial', severity:'Medium', status:'Reported', owner:'Finance', dueDate:new Date(Date.now()+21*864e5).toISOString().slice(0,10), reportedDate:new Date(Date.now()-2*864e5).toISOString(), desc:'Hi-Power Magnetics extending payment terms unilaterally.', log:[]},
+    {id:'ISS-005', supplierId:'S008', title:'Spring fatigue test failure — 3/100 samples', type:'Safety', severity:'High', status:'Investigating', owner:'Quality + Eng', dueDate:new Date(Date.now()+10*864e5).toISOString().slice(0,10), reportedDate:new Date(Date.now()-4*864e5).toISOString(), desc:'Quanta Springs lot QS-2026-1840 failed 1M cycle test. Field exposure under investigation.', log:[]}
+  ];
+  // Lead time watch
+  LT_WATCH = [
+    {supplierId:'S001', component:'Copper conductor 4mm²', baselineDays:21, currentDays:28, lastUpdate:new Date(Date.now()-2*864e5).toLocaleDateString(), flagged:true, followup:'2026-06-25'},
+    {supplierId:'S002', component:'Steel chassis bracket', baselineDays:14, currentDays:14, lastUpdate:new Date().toLocaleDateString(), flagged:false, followup:'-'},
+    {supplierId:'S004', component:'6204 ball bearing', baselineDays:24, currentDays:31, lastUpdate:new Date(Date.now()-1*864e5).toLocaleDateString(), flagged:true, followup:'2026-06-22'},
+    {supplierId:'S008', component:'Coil spring 10mm OD', baselineDays:18, currentDays:18, lastUpdate:new Date(Date.now()-7*864e5).toLocaleDateString(), flagged:false, followup:'-'},
+    {supplierId:'S011', component:'Wire harness ASM-04', baselineDays:35, currentDays:48, lastUpdate:new Date(Date.now()-1*864e5).toLocaleDateString(), flagged:true, followup:'2026-06-20'},
+    {supplierId:'S014', component:'4-layer PCBA mid-complex', baselineDays:42, currentDays:39, lastUpdate:new Date(Date.now()-3*864e5).toLocaleDateString(), flagged:false, followup:'-'}
+  ];
+  // CRM field reports
+  CRM_REPORTS = [
+    {id:'FLD-001', customer:'TKE Service NJ', product:'Hoist motor (220V)', issue:'Premature brush wear at 9 months', severity:'High', rate:14, linkedSupplierId:'S012', reportedDate:new Date(Date.now()-6*864e5).toLocaleDateString(), autoFlagged:true},
+    {id:'FLD-002', customer:'Otis Field Tech', product:'Bearing housing assembly', issue:'Failed bearing at 14 months (3 incidents)', severity:'Critical (safety)', rate:18, linkedSupplierId:'S004', reportedDate:new Date(Date.now()-3*864e5).toLocaleDateString(), autoFlagged:true},
+    {id:'FLD-003', customer:'AcmeCorp HVAC', product:'Compressor model X5', issue:'Compressor failure 8 months — bearing seizure', severity:'Critical (safety)', rate:11, linkedSupplierId:'S004', reportedDate:new Date(Date.now()-10*864e5).toLocaleDateString(), autoFlagged:true},
+    {id:'FLD-004', customer:'Honeywell Field', product:'Control board CPU-04', issue:'Random reboots in cold weather', severity:'Medium', rate:6, linkedSupplierId:'S014', reportedDate:new Date(Date.now()-12*864e5).toLocaleDateString(), autoFlagged:false},
+    {id:'FLD-005', customer:'AcmeCorp HVAC', product:'Compressor model X5', issue:'Coolant leak at brazing joint', severity:'High', rate:8, linkedSupplierId:'S002', reportedDate:new Date(Date.now()-8*864e5).toLocaleDateString(), autoFlagged:false},
+    {id:'FLD-006', customer:'Tesla Service', product:'EV battery 21700 pack', issue:'Cell imbalance after 18 cycles', severity:'High', rate:12, linkedSupplierId:'S012', reportedDate:new Date(Date.now()-5*864e5).toLocaleDateString(), autoFlagged:true}
+  ];
+  // Communication log
+  COMM_LOG = [
+    {date:new Date(Date.now()-1*864e5).toLocaleDateString(), supplierId:'S001', type:'email', summary:'Sent escalation re: PO-12847 late delivery. Awaiting supplier response.', followup:'2026-06-25'},
+    {date:new Date(Date.now()-2*864e5).toLocaleDateString(), supplierId:'S004', type:'call', summary:'Quality call w/ NorthMetal — agreed root cause investigation due in 7 days.', followup:'2026-06-22'},
+    {date:new Date(Date.now()-3*864e5).toLocaleDateString(), supplierId:'S005', type:'meeting', summary:'Emergency on-site meeting re: REACH non-compliance. Containment plan in place.', followup:'2026-07-05'},
+    {date:new Date(Date.now()-5*864e5).toLocaleDateString(), supplierId:'S014', type:'qbr', summary:'Q2 QBR — discussed roadmap. PCB cost reduction proposal received.', followup:'2026-09-01'},
+    {date:new Date(Date.now()-7*864e5).toLocaleDateString(), supplierId:'S012', type:'email', summary:'Requested updated payment terms documentation. Pending Legal review.', followup:'2026-06-30'}
+  ];
+  saveSRM();
+  initSRM();
+  alert('✅ Sample SRM data loaded — 15 suppliers, 5 issues, 6 lead-time watches, 6 field reports, 5 communications.');
+}
+
+function getSupplier(id){
+  return SRM_SUPPLIERS.find(s=>s.id===id) || MOCK_SUPPLIERS.find(s=>s.id===id) || {name:'Unknown', cat:'-', region:'-'};
+}
+
+function renderSRMKPIs(){
+  document.getElementById('srmKPItotal').textContent = SRM_SUPPLIERS.length || MOCK_SUPPLIERS.length;
+  const critical = SRM_ISSUES.filter(i => (i.severity==='Critical'||i.severity==='High') && i.status !== 'Resolved').length;
+  document.getElementById('srmKPIcritical').textContent = critical;
+  const ltFlagged = LT_WATCH.filter(l => l.flagged).length;
+  document.getElementById('srmKPIltchanges').textContent = ltFlagged;
+  const fieldFlagged = CRM_REPORTS.filter(r => r.autoFlagged).length;
+  document.getElementById('srmKPIfield').textContent = fieldFlagged;
+  document.getElementById('srmKPIfollowup').textContent = COMM_LOG.filter(c => c.followup && c.followup !== '-').length;
+}
+
+function renderSRM360(){
+  const grid = document.getElementById('srm360Grid'); if(!grid) return;
+  const tier = document.getElementById('srmFilterTier')?.value || 'all';
+  const sortBy = document.getElementById('srmSortBy')?.value || 'score';
+  const q = (document.getElementById('srmSearch')?.value || '').toLowerCase();
+  let list = SRM_SUPPLIERS.length>0 ? [...SRM_SUPPLIERS] : MOCK_SUPPLIERS.map(s=>({...s, tier:'Tactical', relationship_score:s.score||70}));
+  if(tier !== 'all') list = list.filter(s => s.tier === tier);
+  if(q) list = list.filter(s => s.name.toLowerCase().includes(q));
+  list.sort((a,b)=>{
+    if(sortBy==='spend') return (b.spend||0)-(a.spend||0);
+    if(sortBy==='otif') return (b.otif||0)-(a.otif||0);
+    if(sortBy==='issues') return openIssuesCount(b.id)-openIssuesCount(a.id);
+    return (b.relationship_score||0)-(a.relationship_score||0);
+  });
+  if(list.length===0){ grid.innerHTML = '<p class="text-sm text-slate-400 italic col-span-3 text-center py-6">No suppliers yet — click "⚡ Load sample data" above</p>'; return; }
+  grid.innerHTML = list.map(s=>{
+    const tierColor = {Strategic:'bg-purple-100 text-purple-800', Preferred:'bg-blue-100 text-blue-800', Tactical:'bg-slate-100 text-slate-700'}[s.tier]||'bg-slate-100';
+    const scoreColor = (s.relationship_score||0)>=80?'text-emerald-700':(s.relationship_score||0)>=60?'text-blue-700':'text-amber-700';
+    const issues = openIssuesCount(s.id);
+    return `<div class="card card-interactive p-4" onclick="openSupplierDetail('${s.id}')">
+      <div class="flex justify-between items-start mb-2">
+        <div>
+          <div class="font-bold text-sm">${s.name}</div>
+          <div class="text-xs text-slate-500">${s.cat} · ${s.region}</div>
+        </div>
+        <span class="chip text-[10px] ${tierColor}">${s.tier||'Tactical'}</span>
+      </div>
+      <div class="grid grid-cols-3 gap-2 my-2 text-center">
+        <div><div class="text-[10px] text-slate-500 uppercase">Score</div><div class="font-bold ${scoreColor}">${s.relationship_score||0}</div></div>
+        <div><div class="text-[10px] text-slate-500 uppercase">OTIF</div><div class="font-bold">${s.otif||'-'}%</div></div>
+        <div><div class="text-[10px] text-slate-500 uppercase">PPM</div><div class="font-bold">${s.ppm||'-'}</div></div>
+      </div>
+      <div class="flex justify-between items-center text-xs">
+        <span class="text-slate-600">Spend: <b>$${((s.spend||0)/1000).toFixed(0)}K</b></span>
+        ${issues>0?`<span class="chip bg-red-100 text-red-800 text-[10px]">⚠️ ${issues} issue${issues>1?'s':''}</span>`:'<span class="text-emerald-600 text-[10px]">✓ no issues</span>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openIssuesCount(supplierId){
+  return SRM_ISSUES.filter(i => i.supplierId === supplierId && i.status !== 'Resolved').length;
+}
+
+function openSupplierDetail(id){
+  const s = getSupplier(id);
+  const issues = SRM_ISSUES.filter(i => i.supplierId === id);
+  const lts = LT_WATCH.filter(l => l.supplierId === id);
+  const crms = CRM_REPORTS.filter(r => r.linkedSupplierId === id);
+  const comms = COMM_LOG.filter(c => c.supplierId === id);
+  document.getElementById('supplierDetailContent').innerHTML = `
+    <div class="bg-gradient-to-r from-rose-700 to-pink-700 text-white p-5 rounded-t-2xl flex justify-between items-start">
+      <div>
+        <h2 class="text-xl font-bold">${s.name}</h2>
+        <p class="text-pink-100 text-xs mt-1">${s.cat||'-'} · ${s.region||'-'} · ${s.tier||'Tactical'} tier</p>
+      </div>
+      <button onclick="document.getElementById('supplierDetailDrawer').classList.add('hidden')" class="text-white/70 hover:text-white text-2xl leading-none">&times;</button>
+    </div>
+    <div class="p-5 space-y-4">
+      <div class="grid grid-cols-4 gap-3">
+        <div class="kpi-card"><div class="text-[10px] text-slate-500 uppercase">Score</div><div class="text-xl font-bold">${s.relationship_score||0}</div></div>
+        <div class="kpi-card"><div class="text-[10px] text-slate-500 uppercase">Spend</div><div class="text-xl font-bold">$${((s.spend||0)/1000).toFixed(0)}K</div></div>
+        <div class="kpi-card"><div class="text-[10px] text-slate-500 uppercase">OTIF</div><div class="text-xl font-bold">${s.otif||'-'}%</div></div>
+        <div class="kpi-card"><div class="text-[10px] text-slate-500 uppercase">Open Issues</div><div class="text-xl font-bold text-red-700">${issues.filter(i=>i.status!=='Resolved').length}</div></div>
+      </div>
+      <div class="card p-3"><h3 class="font-bold text-sm mb-2">🚨 Issues (${issues.length})</h3>
+        ${issues.length===0?'<p class="text-xs text-slate-400 italic">No issues logged</p>':issues.map(i=>`<div class="border-l-4 border-${i.severity==='Critical'?'red':'amber'}-500 bg-slate-50 p-2 mb-2 rounded text-xs"><b>${i.title}</b><div class="text-slate-600">${i.type} · ${i.severity} · ${i.status} · due ${i.dueDate}</div></div>`).join('')}
+      </div>
+      <div class="card p-3"><h3 class="font-bold text-sm mb-2">⏱️ Lead Time Watch (${lts.length})</h3>
+        ${lts.length===0?'<p class="text-xs text-slate-400 italic">Not on watch list</p>':lts.map(l=>{const ch=((l.currentDays-l.baselineDays)/l.baselineDays*100).toFixed(0); return `<div class="text-xs p-2 mb-1 bg-slate-50 rounded"><b>${l.component}</b> · baseline ${l.baselineDays}d → current ${l.currentDays}d <span class="${ch>15?'text-red-700':ch>0?'text-amber-700':'text-emerald-700'} font-bold">(${ch>0?'+':''}${ch}%)</span></div>`}).join('')}
+      </div>
+      <div class="card p-3"><h3 class="font-bold text-sm mb-2">📡 CRM Field Reports (${crms.length})</h3>
+        ${crms.length===0?'<p class="text-xs text-slate-400 italic">No field reports linked</p>':crms.map(c=>`<div class="text-xs p-2 mb-1 bg-purple-50 rounded"><b>${c.product}</b> · ${c.customer} · ${c.issue} <span class="${c.autoFlagged?'text-red-700':'text-slate-500'} font-bold">[${c.rate}% rate]</span></div>`).join('')}
+      </div>
+      <div class="card p-3"><h3 class="font-bold text-sm mb-2">📨 Communication Log (${comms.length})</h3>
+        ${comms.length===0?'<p class="text-xs text-slate-400 italic">No touches logged</p>':comms.map(c=>`<div class="text-xs p-2 mb-1 bg-blue-50 rounded"><span class="chip bg-blue-200 text-blue-800 text-[9px] mr-1">${c.type}</span><b>${c.date}</b> — ${c.summary}</div>`).join('')}
+      </div>
+    </div>`;
+  document.getElementById('supplierDetailDrawer').classList.remove('hidden');
+}
+
+function renderSRMIssues(){
+  const tbody = document.getElementById('srmIssuesTable'); if(!tbody) return;
+  const status = document.getElementById('issueFilterStatus')?.value || 'all';
+  const sev = document.getElementById('issueFilterSev')?.value || 'all';
+  let list = SRM_ISSUES.filter(i => (status==='all'||i.status===status) && (sev==='all'||i.severity===sev));
+  if(list.length===0){ tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-slate-400 italic text-sm">No issues match filters</td></tr>'; renderSRMKPIs(); return; }
+  tbody.innerHTML = list.map(i=>{
+    const sup = getSupplier(i.supplierId);
+    const sevColor = {Critical:'bg-red-100 text-red-800', High:'bg-orange-100 text-orange-800', Medium:'bg-amber-100 text-amber-800', Low:'bg-slate-100 text-slate-700'}[i.severity];
+    const statColor = {Reported:'bg-slate-100 text-slate-700', Acknowledged:'bg-blue-100 text-blue-800', Investigating:'bg-purple-100 text-purple-800', Resolved:'bg-emerald-100 text-emerald-800', Escalated:'bg-red-100 text-red-800'}[i.status];
+    return `<tr class="border-t border-slate-100 hover:bg-slate-50">
+      <td class="p-2 font-mono text-xs">${i.id}</td>
+      <td class="p-2 text-xs"><b>${sup.name}</b></td>
+      <td class="p-2 text-xs">${i.title}</td>
+      <td class="p-2 text-xs">${i.type}</td>
+      <td class="p-2"><span class="chip text-[10px] ${sevColor}">${i.severity}</span></td>
+      <td class="p-2"><span class="chip text-[10px] ${statColor}">${i.status}</span></td>
+      <td class="p-2 text-xs">${i.owner}</td>
+      <td class="p-2 text-xs">${i.dueDate}</td>
+      <td class="p-2"><button onclick="advanceIssue('${i.id}')" class="text-xs text-teal-700 hover:underline">advance →</button></td>
+    </tr>`;
+  }).join('');
+  renderSRMKPIs();
+}
+
+function advanceIssue(id){
+  const i = SRM_ISSUES.find(x=>x.id===id); if(!i) return;
+  const order = ['Reported','Acknowledged','Investigating','Resolved'];
+  const idx = order.indexOf(i.status);
+  if(idx >= 0 && idx < order.length-1) i.status = order[idx+1];
+  saveSRM(); renderSRMIssues();
+}
+
+function openSRMIssueModal(){
+  populateSupplierDropdowns();
+  ['iTitle','iOwner','iDesc'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+  document.getElementById('iDue').value = new Date(Date.now()+14*864e5).toISOString().slice(0,10);
+  document.getElementById('srmIssueModal').classList.remove('hidden');
+}
+
+function createSRMIssue(){
+  const title = document.getElementById('iTitle').value.trim();
+  if(!title){ alert('Title required'); return; }
+  const issue = {
+    id: 'ISS-' + String(SRM_ISSUES.length+1).padStart(3,'0'),
+    supplierId: document.getElementById('iSupplier').value,
+    title,
+    type: document.getElementById('iType').value,
+    severity: document.getElementById('iSeverity').value,
+    status: 'Reported',
+    owner: document.getElementById('iOwner').value || 'Unassigned',
+    dueDate: document.getElementById('iDue').value,
+    reportedDate: new Date().toISOString(),
+    desc: document.getElementById('iDesc').value,
+    log: []
+  };
+  SRM_ISSUES.unshift(issue);
+  saveSRM();
+  document.getElementById('srmIssueModal').classList.add('hidden');
+  renderSRMIssues();
+  alert('✅ Issue '+issue.id+' logged. Owner notified.');
+}
+
+function renderLeadTimeWatch(){
+  const tbody = document.getElementById('ltWatchTable'); if(!tbody) return;
+  const threshold = parseFloat(document.getElementById('ltThreshold')?.value || 15);
+  // Re-evaluate flags
+  LT_WATCH.forEach(l=>{
+    const change = (l.currentDays-l.baselineDays)/l.baselineDays*100;
+    l.flagged = Math.abs(change) >= threshold;
+  });
+  if(LT_WATCH.length===0){ tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400 italic text-sm">No lead times being tracked</td></tr>'; renderSRMKPIs(); return; }
+  tbody.innerHTML = LT_WATCH.map((l,idx)=>{
+    const sup = getSupplier(l.supplierId);
+    const change = ((l.currentDays - l.baselineDays)/l.baselineDays*100);
+    const status = l.flagged ? (change>0?'🚨 INCREASED':'🟢 DECREASED') : '🟢 STABLE';
+    const color = l.flagged ? (change>0?'text-red-700 font-bold':'text-emerald-700 font-bold') : 'text-slate-600';
+    return `<tr class="border-t border-slate-100 hover:bg-slate-50 ${l.flagged?'bg-red-50/40':''}">
+      <td class="p-2"><div class="font-semibold text-sm">${sup.name}</div><div class="text-xs text-slate-500">${l.component}</div></td>
+      <td class="p-2 text-right font-mono">${l.baselineDays}</td>
+      <td class="p-2 text-right font-mono"><b>${l.currentDays}</b></td>
+      <td class="p-2 text-right ${color}">${change>0?'+':''}${change.toFixed(1)}%</td>
+      <td class="p-2 text-xs">${status}</td>
+      <td class="p-2 text-xs">${l.lastUpdate}</td>
+      <td class="p-2 text-xs">${l.followup||'-'}</td>
+      <td class="p-2 text-right"><button onclick="setLTBaseline(${idx})" class="text-xs text-teal-700 hover:underline">accept new</button></td>
+    </tr>`;
+  }).join('');
+  renderSRMKPIs();
+}
+
+function setLTBaseline(idx){
+  LT_WATCH[idx].baselineDays = LT_WATCH[idx].currentDays;
+  LT_WATCH[idx].flagged = false;
+  saveSRM(); renderLeadTimeWatch();
+}
+
+function simulateLeadTimeUpdate(){
+  // Simulate ERP-driven random lead time changes on watched items
+  LT_WATCH.forEach(l=>{
+    const delta = Math.floor((Math.random()-0.5)*10);
+    l.currentDays = Math.max(3, l.currentDays + delta);
+    l.lastUpdate = new Date().toLocaleDateString();
+    if(Math.abs((l.currentDays-l.baselineDays)/l.baselineDays*100) >= 15){
+      l.followup = new Date(Date.now()+5*864e5).toISOString().slice(0,10);
+      // Log a comm
+      COMM_LOG.unshift({
+        date: new Date().toLocaleDateString(),
+        supplierId: l.supplierId,
+        type: 'ERP-trigger',
+        summary: 'Lead time changed: '+l.component+' (baseline '+l.baselineDays+'d → current '+l.currentDays+'d)',
+        followup: l.followup
+      });
+    }
+  });
+  saveSRM();
+  renderLeadTimeWatch();
+  renderCommLog();
+  alert('✅ Simulated ERP refresh — see lead-time updates and new follow-ups logged');
+}
+
+function renderCRMReports(){
+  const tbody = document.getElementById('crmReportsTable'); if(!tbody) return;
+  const threshold = parseFloat(document.getElementById('crmThreshold')?.value || 10);
+  // Re-evaluate flags
+  CRM_REPORTS.forEach(r => r.autoFlagged = r.rate >= threshold);
+  if(CRM_REPORTS.length===0){ tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400 italic text-sm">No field reports yet</td></tr>'; renderSRMKPIs(); renderCRMChart(); renderCRMTriggerStatus(); return; }
+  tbody.innerHTML = CRM_REPORTS.map(r=>{
+    const sup = getSupplier(r.linkedSupplierId);
+    const sevColor = r.severity.includes('Critical') ? 'bg-red-100 text-red-800' : r.severity==='High' ? 'bg-orange-100 text-orange-800' : 'bg-amber-100 text-amber-800';
+    return `<tr class="border-t border-slate-100 hover:bg-slate-50 ${r.autoFlagged?'bg-red-50/30':''}">
+      <td class="p-2 font-mono text-xs">${r.id}</td>
+      <td class="p-2 text-xs">${r.customer}</td>
+      <td class="p-2 text-xs">${r.product}</td>
+      <td class="p-2 text-xs">${r.issue}</td>
+      <td class="p-2"><span class="chip text-[10px] ${sevColor}">${r.severity}</span></td>
+      <td class="p-2 text-xs"><b>${sup.name}</b><div class="text-slate-500">${r.rate}% rate</div></td>
+      <td class="p-2">${r.autoFlagged ? '<span class="chip bg-red-100 text-red-800 text-[10px]">🚨 AUTO-FLAG → Issue triggered</span>' : '<span class="text-xs text-slate-400">below threshold</span>'}</td>
+      <td class="p-2 text-xs">${r.reportedDate}</td>
+    </tr>`;
+  }).join('');
+  renderSRMKPIs();
+  renderCRMChart();
+  renderCRMTriggerStatus();
+}
+
+function renderCRMChart(){
+  const ctx = document.getElementById('crmRateChart'); if(!ctx) return;
+  if(charts.crmRate) charts.crmRate.destroy();
+  const labels = CRM_REPORTS.slice(0,8).map(r => r.product.slice(0,16));
+  const data = CRM_REPORTS.slice(0,8).map(r => r.rate);
+  const colors = CRM_REPORTS.slice(0,8).map(r => r.autoFlagged ? '#DC2626' : '#94A3B8');
+  charts.crmRate = new Chart(ctx, {
+    type:'bar', data:{labels, datasets:[{label:'Failure rate %', data, backgroundColor:colors}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},indexAxis:'y'}
+  });
+}
+
+function renderCRMTriggerStatus(){
+  const el = document.getElementById('crmTriggerStatus'); if(!el) return;
+  const grouped = {};
+  CRM_REPORTS.forEach(r => {
+    if(!grouped[r.linkedSupplierId]) grouped[r.linkedSupplierId] = {count:0, flagged:0, totalRate:0};
+    grouped[r.linkedSupplierId].count++;
+    grouped[r.linkedSupplierId].totalRate += r.rate;
+    if(r.autoFlagged) grouped[r.linkedSupplierId].flagged++;
+  });
+  el.innerHTML = Object.entries(grouped).slice(0,8).map(([id, stats])=>{
+    const sup = getSupplier(id);
+    const avg = (stats.totalRate / stats.count).toFixed(1);
+    const status = stats.flagged > 0 ? '<span class="chip bg-red-100 text-red-800 text-[10px]">⚠️ Triggered</span>' : '<span class="chip bg-emerald-100 text-emerald-800 text-[10px]">✓ Clear</span>';
+    return `<div class="flex justify-between items-center p-2 bg-white rounded border border-slate-200">
+      <div><b>${sup.name}</b><div class="text-slate-500 text-[10px]">${stats.count} reports · ${avg}% avg rate</div></div>
+      ${status}
+    </div>`;
+  }).join('') || '<p class="text-xs text-slate-400 italic">No field data yet</p>';
+}
+
+function openCRMReportModal(){
+  populateSupplierDropdowns();
+  ['crmCust','crmProduct','crmIssue','crmRate'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+  document.getElementById('crmReportModal').classList.remove('hidden');
+}
+
+function createCRMReport(){
+  const rep = {
+    id: 'FLD-' + String(CRM_REPORTS.length+1).padStart(3,'0'),
+    customer: document.getElementById('crmCust').value || 'Unknown',
+    product: document.getElementById('crmProduct').value || 'Unspecified',
+    issue: document.getElementById('crmIssue').value || '',
+    severity: document.getElementById('crmSev').value,
+    rate: parseFloat(document.getElementById('crmRate').value) || 0,
+    linkedSupplierId: document.getElementById('crmLinkedSupplier').value,
+    reportedDate: new Date().toLocaleDateString(),
+    autoFlagged: false
+  };
+  const threshold = parseFloat(document.getElementById('crmThreshold')?.value || 10);
+  rep.autoFlagged = rep.rate >= threshold;
+  CRM_REPORTS.unshift(rep);
+  // If flagged → auto-create an SRM issue
+  if(rep.autoFlagged){
+    const sup = getSupplier(rep.linkedSupplierId);
+    const issue = {
+      id: 'ISS-' + String(SRM_ISSUES.length+1).padStart(3,'0'),
+      supplierId: rep.linkedSupplierId,
+      title: 'CRM auto-trigger: '+rep.product+' field failure rate '+rep.rate+'%',
+      type: rep.severity.includes('safety') ? 'Safety' : 'Quality',
+      severity: rep.severity.includes('Critical') ? 'Critical' : rep.severity==='High' ? 'High' : 'Medium',
+      status: 'Reported',
+      owner: 'Quality (auto-assigned)',
+      dueDate: new Date(Date.now()+7*864e5).toISOString().slice(0,10),
+      reportedDate: new Date().toISOString(),
+      desc: 'Auto-triggered from CRM field report '+rep.id+'. Customer: '+rep.customer+'. Issue: '+rep.issue,
+      log: [{date:new Date().toLocaleDateString(), action:'Auto-created from CRM trigger (rate '+rep.rate+'% ≥ '+threshold+'% threshold)'}]
+    };
+    SRM_ISSUES.unshift(issue);
+  }
+  saveSRM();
+  document.getElementById('crmReportModal').classList.add('hidden');
+  renderCRMReports();
+  renderSRMIssues();
+  if(rep.autoFlagged) alert('✅ Report '+rep.id+' logged. Auto-triggered SRM issue (failure rate '+rep.rate+'% above threshold).');
+  else alert('✅ Report '+rep.id+' logged. Below auto-flag threshold ('+document.getElementById('crmThreshold').value+'%).');
+}
+
+async function askAICRMRootCause(){
+  if(!AI.enabled){ alert('Connect Live AI to use root-cause analysis'); return; }
+  if(CRM_REPORTS.length===0){ alert('Log some field reports first'); return; }
+  const prompt = `Analyze these customer field failure reports and identify the most likely root cause and recommended actions.
+
+Reports:
+${CRM_REPORTS.slice(0,8).map(r=>`- ${r.product} (Customer: ${r.customer}) — ${r.issue} — failure rate ${r.rate}%, supplier ${getSupplier(r.linkedSupplierId).name}`).join('\n')}
+
+In <300 words with HTML formatting:
+1. Most likely root cause(s)
+2. Pattern across suppliers/components
+3. Recommended actions (3 with priority)`;
+  const out = await aiCall(prompt, {maxTokens: 600});
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4';
+  modal.onclick = (e)=>{ if(e.target===modal) modal.remove(); };
+  modal.innerHTML = `<div class="bg-white rounded-2xl max-w-2xl w-full p-6 max-h-[85vh] overflow-auto">
+    <div class="flex justify-between items-start mb-4">
+      <h2 class="text-xl font-bold">🤖 AI Root-Cause Analysis</h2>
+      <button onclick="this.closest('.fixed').remove()" class="text-slate-400 text-2xl leading-none">&times;</button>
+    </div>
+    <div class="prose prose-sm max-w-none">${out}</div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+function renderCommLog(){
+  const el = document.getElementById('srmCommLog'); if(!el) return;
+  if(COMM_LOG.length===0){ el.innerHTML = '<p class="text-xs text-slate-400 italic">No communications logged</p>'; }
+  else {
+    el.innerHTML = COMM_LOG.slice(0,10).map(c=>{
+      const sup = getSupplier(c.supplierId);
+      const typeColor = {email:'bg-blue-100 text-blue-800', call:'bg-emerald-100 text-emerald-800', meeting:'bg-purple-100 text-purple-800', qbr:'bg-amber-100 text-amber-800', 'ERP-trigger':'bg-pink-100 text-pink-800'}[c.type]||'bg-slate-100';
+      return `<div class="p-2 bg-white rounded border border-slate-200">
+        <div class="flex items-center justify-between mb-1">
+          <span class="chip text-[9px] ${typeColor}">${c.type}</span>
+          <span class="text-[10px] text-slate-400">${c.date}</span>
+        </div>
+        <div class="font-semibold">${sup.name}</div>
+        <div class="text-slate-600">${c.summary}</div>
+        ${c.followup&&c.followup!=='-'?`<div class="text-[10px] text-amber-700 mt-1">⏰ Follow-up: ${c.followup}</div>`:''}
+      </div>`;
+    }).join('');
+  }
+  // Follow-ups due
+  const fEl = document.getElementById('srmFollowups');
+  const followups = COMM_LOG.filter(c => c.followup && c.followup !== '-').slice(0,8);
+  fEl.innerHTML = followups.length===0 ? '<p class="text-xs text-slate-400 italic">No follow-ups</p>' :
+    followups.map(c => {
+      const sup = getSupplier(c.supplierId);
+      return `<div class="p-2 bg-white rounded border border-amber-200">
+        <div class="font-semibold">${sup.name}</div>
+        <div class="text-slate-600 text-[10px]">${c.summary.slice(0,50)}…</div>
+        <div class="text-amber-700 font-bold mt-1">⏰ ${c.followup}</div>
+      </div>`;
+    }).join('');
+  renderSRMKPIs();
 }
 
 /* ============== LIVE COMMODITY PRICES ============== */
