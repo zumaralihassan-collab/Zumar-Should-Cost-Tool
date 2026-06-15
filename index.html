@@ -76,12 +76,19 @@
   .chip-interactive{ cursor:pointer; }
   .chip-interactive:hover{ transform:scale(1.05); }
 
-  /* ========== TAB SYSTEM (legacy — used for sidebar buttons) ========== */
-  .tab-btn{ padding:.5rem .7rem; border-radius:.5rem; font-weight:500; font-size:.8rem;
+  /* ========== TAB SYSTEM (sidebar buttons) ========== */
+  .tab-btn{ padding:.5rem .65rem; border-radius:.5rem; font-weight:500; font-size:.8rem;
             transition:var(--transition); cursor:pointer; border:none; text-align:left;
-            display:flex; align-items:center; gap:.5rem; width:100%; }
+            display:flex; align-items:center; gap:.55rem; width:100%;
+            white-space:nowrap; overflow:hidden; min-height:32px; }
+  .tab-btn > span:first-child {
+    flex-shrink:0; width:18px; text-align:center; font-size:14px; line-height:1;
+  }
+  .tab-btn > span:last-child {
+    flex:1; overflow:hidden; text-overflow:ellipsis; line-height:1.25;
+  }
   .tab-active{ background:#0F766E; color:white; box-shadow:0 2px 6px rgba(15,118,110,.3); }
-  .tab-inactive{ background:transparent; color:#475569; }
+  .tab-inactive{ background:transparent; color:#334155; }
   .tab-inactive:hover{ background:#F1F5F9; color:#0F766E; }
 
   /* ========== SIDEBAR LAYOUT ========== */
@@ -89,19 +96,48 @@
   .sidebar {
     width: 240px; flex-shrink: 0; background: white;
     border-right: 1px solid #E2E8F0;
-    position: fixed; left: 0; top: 64px; bottom: 0; overflow-y: auto;
-    padding: 16px 12px; z-index: 20;
-    transition: transform .25s;
+    position: fixed; left: 0; top: 64px; bottom: 0; overflow-y: auto; overflow-x:hidden;
+    padding: 12px 10px; z-index: 20;
+    transition: width .25s cubic-bezier(.4,0,.2,1), transform .25s;
   }
   .sidebar::-webkit-scrollbar { width: 4px; }
   .sidebar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 2px; }
-  .sidebar-bucket { margin-bottom: 12px; }
+  .sidebar-bucket { margin-bottom: 10px; }
   .sidebar-bucket-label {
     display: flex; align-items: center; gap: 6px;
     font-size: 10px; font-weight: 800; letter-spacing: 1.2px;
     color: #94A3B8; padding: 8px 8px 4px; text-transform: uppercase;
+    white-space:nowrap; overflow:hidden;
   }
-  .main-content { flex: 1; margin-left: 240px; min-width: 0; }
+  .main-content { flex: 1; margin-left: 240px; min-width: 0;
+                  transition: margin-left .25s cubic-bezier(.4,0,.2,1); }
+
+  /* ===== Sidebar collapsed (icon-only) — desktop ===== */
+  .sidebar.collapsed { width: 56px; padding: 12px 6px; }
+  .sidebar.collapsed .tab-btn > span:last-child,
+  .sidebar.collapsed .sidebar-bucket-label > *:not(:first-child),
+  .sidebar.collapsed .sidebar-footer-text { display: none; }
+  .sidebar.collapsed .sidebar-bucket-label {
+    justify-content: center; padding: 8px 0 4px; font-size: 11px;
+  }
+  .sidebar.collapsed .tab-btn {
+    justify-content: center; padding: .55rem 0; gap: 0;
+  }
+  .sidebar.collapsed + * + .main-content,
+  body.sidebar-collapsed .main-content { margin-left: 56px; }
+
+  /* Collapse toggle button — sits on the sidebar's right edge */
+  .sidebar-collapse-btn {
+    position: fixed; top: 76px; z-index: 21;
+    left: 228px; width: 22px; height: 22px;
+    background: white; border: 1px solid #E2E8F0; border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(15,23,42,.08);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: left .25s cubic-bezier(.4,0,.2,1);
+    font-size: 11px; color: #475569;
+  }
+  .sidebar-collapse-btn:hover { color: #0F766E; border-color: #0F766E; }
+  body.sidebar-collapsed .sidebar-collapse-btn { left: 44px; }
 
   /* Compact header */
   .gradient-header.compact {
@@ -113,19 +149,20 @@
   /* Mobile */
   .sidebar-toggle { display: none; }
   @media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); }
+    .sidebar { transform: translateX(-100%); width: 260px; }
     .sidebar.open { transform: translateX(0); }
-    .main-content { margin-left: 0; }
+    .main-content, body.sidebar-collapsed .main-content { margin-left: 0; }
+    .sidebar-collapse-btn { display: none; }
     .sidebar-toggle {
       display: flex; align-items: center; justify-content: center;
       background: rgba(255,255,255,.15); border: none; color: white;
-      padding: 8px; border-radius: 8px; cursor: pointer; font-size: 18px;
+      padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 18px;
     }
     .sidebar-backdrop {
       display: none; position: fixed; inset: 64px 0 0 0;
       background: rgba(15,23,42,.4); z-index: 18;
     }
-    .sidebar.open + .sidebar-backdrop { display: block; }
+    .sidebar.open ~ .sidebar-backdrop { display: block; }
   }
 
   /* ========== TAB CONTENT FADE-IN ========== */
@@ -320,11 +357,12 @@
     <button class="tab-btn tab-inactive" data-tab="srm" onclick="switchTab('srm')"><span>⭐</span><span>SRM Hub</span></button>
     <button class="tab-btn tab-inactive" data-tab="stakeholders" onclick="switchTab('stakeholders')"><span>🎯</span><span>Stakeholder Hub</span></button>
   </div>
-  <div class="mt-4 pt-3 border-t border-slate-200 text-center">
+  <div class="mt-4 pt-3 border-t border-slate-200 text-center sidebar-footer-text">
     <p class="text-[10px] text-slate-500">© Mohammed Zumar Ali Hassan</p>
     <a href="https://linkedin.com/in/zumarali15" target="_blank" class="text-[10px] text-teal-600 hover:underline">linkedin/zumarali15</a>
   </div>
 </aside>
+<button id="sidebarCollapseBtn" class="sidebar-collapse-btn no-print" onclick="collapseSidebar()" title="Collapse sidebar" aria-label="Collapse sidebar">◀</button>
 <div class="sidebar-backdrop" onclick="toggleSidebar()"></div>
 
 <main class="main-content px-6 py-6">
@@ -2632,6 +2670,30 @@ function toggleSidebar(){
   const sb = document.getElementById('appSidebar');
   if(sb) sb.classList.toggle('open');
 }
+
+function collapseSidebar(){
+  const sb = document.getElementById('appSidebar');
+  const btn = document.getElementById('sidebarCollapseBtn');
+  const body = document.body;
+  if(!sb) return;
+  const collapsed = sb.classList.toggle('collapsed');
+  body.classList.toggle('sidebar-collapsed', collapsed);
+  if(btn){
+    btn.textContent = collapsed ? '▶' : '◀';
+    btn.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+  }
+  localStorage.setItem('sidebarCollapsed', collapsed ? '1' : '0');
+}
+
+// Restore sidebar state on load
+window.addEventListener('DOMContentLoaded', () => {
+  if(localStorage.getItem('sidebarCollapsed') === '1'){
+    const sb = document.getElementById('appSidebar');
+    const btn = document.getElementById('sidebarCollapseBtn');
+    if(sb){ sb.classList.add('collapsed'); document.body.classList.add('sidebar-collapsed'); }
+    if(btn){ btn.textContent = '▶'; btn.title = 'Expand sidebar'; }
+  }
+});
 
 function switchTab(name){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
