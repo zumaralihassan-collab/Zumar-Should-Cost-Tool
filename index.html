@@ -530,7 +530,7 @@
           <div class="w-8 h-8 rounded-lg bg-orange-100 text-orange-700 flex items-center justify-center text-base">📊</div>
           <div class="font-semibold text-sm">Live Commodities</div>
         </div>
-        <p class="text-xs text-slate-600">LME copper, steel HRC, PET resin, lithium · 9 commodities · sync to calculator.</p>
+        <p class="text-xs text-slate-600">LME, NYMEX, ICE, PIX · 35 commodities · container size library (100ml→5L) · sync to calculator.</p>
       </div>
       <div class="card card-interactive p-4" onclick="switchTab('forecast')">
         <div class="flex items-center gap-3 mb-1">
@@ -1090,22 +1090,33 @@
     <div class="flex justify-between items-start flex-wrap gap-3">
       <div>
         <h2 class="text-2xl font-bold">Live Commodity Markets</h2>
-        <p class="text-orange-100 text-sm">LME &amp; spot prices for raw materials that drive your should-cost</p>
+        <p class="text-orange-100 text-sm">35 LME &amp; spot benchmarks across metals, polymers, energy, battery, agri, paper, building &amp; food — driving your should-cost</p>
       </div>
       <button onclick="refreshCommodityPrices()" class="px-4 py-2 bg-white/15 hover:bg-white/25 rounded-lg font-semibold text-sm">↻ Refresh from API</button>
     </div>
   </div>
-  <div id="commodityCards" class="grid md:grid-cols-3 gap-4 mb-6"></div>
+  <div id="commodityCards" class="mb-6"></div>
   <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
     <h3 class="font-bold text-sm mb-3">12-Month Commodity Trend (cost index, base = Jan 2025)</h3>
-    <div class="h-72"><canvas id="commodityTrendChart"></canvas></div>
+    <div class="h-80"><canvas id="commodityTrendChart"></canvas></div>
+  </div>
+  <!-- Container-size quick-picks (PET / HDPE / Glass / Aluminum across 100 ml to 5 L) -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <div class="flex justify-between items-start flex-wrap gap-2 mb-2">
+      <div>
+        <h3 class="font-bold text-sm">Container Size Library — Material Cost by Size</h3>
+        <p class="text-xs text-slate-500 mt-0.5">Click any size to load it into the Should Cost Calculator. Material cost is computed from live resin / metal / glass prices above.</p>
+      </div>
+      <span class="text-[10px] bg-orange-100 text-orange-800 rounded-full px-2 py-1 font-semibold">100 ml → 5 L</span>
+    </div>
+    <div id="containerSizeTable"></div>
   </div>
   <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
     <div class="flex justify-between items-center flex-wrap gap-2 mb-3">
       <h3 class="font-bold text-sm">Apply to Current Should-Cost</h3>
       <button onclick="applyCommodityRates()" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-semibold">↺ Sync Rates to Calculator</button>
     </div>
-    <p class="text-xs text-slate-500">Auto-updates raw material rates in your current Should Cost analysis based on the latest commodity prices below. Useful after market shifts.</p>
+    <p class="text-xs text-slate-500">Auto-updates raw material rates in your current Should Cost analysis based on the latest commodity prices above. Useful after market shifts.</p>
   </div>
 </section>
 
@@ -6110,43 +6121,186 @@ function renderCommLog(){
 /* ============== LIVE COMMODITY PRICES ============== */
 // 2026 baseline prices — refreshable via API if user provides one
 const COMMODITIES = [
-  {id:'cu', name:'Copper (LME)', symbol:'CU', unit:'$/MT', basePrice:8650, current:8920, change:3.1, source:'LME 3-month', linksTo:['Copper rod','Copper coil winding','Steel armature']},
-  {id:'al', name:'Aluminum (LME)', symbol:'AL', unit:'$/MT', basePrice:2380, current:2520, change:5.9, source:'LME 3-month', linksTo:['Aluminum billet']},
-  {id:'fe', name:'Steel HRC', symbol:'FE', unit:'$/MT', basePrice:745, current:780, change:4.7, source:'Platts US Midwest', linksTo:['Cold-rolled steel sheet','Bearing steel rings']},
-  {id:'au', name:'Silver (LBMA)', symbol:'AG', unit:'$/oz', basePrice:24.5, current:31.2, change:27.3, source:'LBMA spot', linksTo:['Silver-cadmium contact tips','Tin plating']},
-  {id:'pet', name:'PET Resin', symbol:'PET', unit:'$/MT', basePrice:1180, current:1290, change:9.3, source:'IHS Markit', linksTo:['PET resin']},
-  {id:'pe', name:'HDPE Resin', symbol:'PE', unit:'$/MT', basePrice:1140, current:1220, change:7.0, source:'IHS Markit', linksTo:['HDPE cap resin']},
-  {id:'cotton', name:'Cotton', symbol:'CT', unit:'$/lb', basePrice:0.78, current:0.84, change:7.7, source:'ICE Futures', linksTo:['Combed cotton yarn']},
-  {id:'li2co3', name:'Lithium Carbonate', symbol:'LI', unit:'$/MT', basePrice:14200, current:11800, change:-16.9, source:'Fastmarkets', linksTo:['Cathode active material']},
-  {id:'crude', name:'Brent Crude', symbol:'BZ', unit:'$/bbl', basePrice:82, current:88.5, change:7.9, source:'ICE Futures', linksTo:['PVC / XLPE insulation','Lubricant']}
+  // ── Base / industrial metals ──────────────────────────────────
+  {id:'cu',      name:'Copper (LME)',          symbol:'CU',   unit:'$/MT',   basePrice:8650,   current:8920,   change:3.1,   group:'Metals',   source:'LME 3-month',           linksTo:['Copper rod','Copper coil winding','Steel armature']},
+  {id:'al',      name:'Aluminum (LME)',        symbol:'AL',   unit:'$/MT',   basePrice:2380,   current:2520,   change:5.9,   group:'Metals',   source:'LME 3-month',           linksTo:['Aluminum billet','Aluminum can stock','Aluminum extrusion']},
+  {id:'fe',      name:'Steel HRC',             symbol:'FE',   unit:'$/MT',   basePrice:745,    current:780,    change:4.7,   group:'Metals',   source:'Platts US Midwest',     linksTo:['Cold-rolled steel sheet','Bearing steel rings','Hot-rolled coil']},
+  {id:'rebar',   name:'Steel Rebar',           symbol:'RB',   unit:'$/MT',   basePrice:560,    current:595,    change:6.3,   group:'Metals',   source:'SHFE / Platts',         linksTo:['Rebar','Construction steel']},
+  {id:'zn',      name:'Zinc (LME)',            symbol:'ZN',   unit:'$/MT',   basePrice:2640,   current:2810,   change:6.4,   group:'Metals',   source:'LME 3-month',           linksTo:['Galvanized steel','Die-cast zinc']},
+  {id:'ni',      name:'Nickel (LME)',          symbol:'NI',   unit:'$/MT',   basePrice:17800,  current:16400,  change:-7.9,  group:'Metals',   source:'LME 3-month',           linksTo:['Stainless steel 304','Battery nickel sulfate']},
+  {id:'sn',      name:'Tin (LME)',             symbol:'SN',   unit:'$/MT',   basePrice:26500,  current:31200,  change:17.7,  group:'Metals',   source:'LME 3-month',           linksTo:['Solder','Tin plating','Bronze bushings']},
+  {id:'pb',      name:'Lead (LME)',            symbol:'PB',   unit:'$/MT',   basePrice:2050,   current:2180,   change:6.3,   group:'Metals',   source:'LME 3-month',           linksTo:['Lead-acid battery plates','Radiation shielding']},
+  // ── Precious metals ───────────────────────────────────────────
+  {id:'au',      name:'Silver (LBMA)',         symbol:'AG',   unit:'$/oz',   basePrice:24.5,   current:31.2,   change:27.3,  group:'Precious', source:'LBMA spot',             linksTo:['Silver-cadmium contact tips','Tin plating','Silver paste (PV cells)']},
+  {id:'gold',    name:'Gold (LBMA)',           symbol:'XAU',  unit:'$/oz',   basePrice:2050,   current:2640,   change:28.8,  group:'Precious', source:'LBMA spot',             linksTo:['Bond wire (semiconductor)','Plated connectors']},
+  {id:'pt',      name:'Platinum',              symbol:'XPT',  unit:'$/oz',   basePrice:945,    current:1020,   change:7.9,   group:'Precious', source:'NYMEX',                 linksTo:['Catalytic converters','Spark plug tips']},
+  {id:'pd',      name:'Palladium',             symbol:'XPD',  unit:'$/oz',   basePrice:1380,   current:990,    change:-28.3, group:'Precious', source:'NYMEX',                 linksTo:['Catalytic converters','MLCC electrodes']},
+  // ── Polymers / plastics ───────────────────────────────────────
+  {id:'pet',     name:'PET Resin',             symbol:'PET',  unit:'$/MT',   basePrice:1180,   current:1290,   change:9.3,   group:'Polymers', source:'IHS Markit',            linksTo:['PET resin','PET bottle preform','PET fibre']},
+  {id:'pe',      name:'HDPE Resin',            symbol:'HDPE', unit:'$/MT',   basePrice:1140,   current:1220,   change:7.0,   group:'Polymers', source:'IHS Markit',            linksTo:['HDPE cap resin','HDPE pipe','Milk jug']},
+  {id:'ldpe',    name:'LDPE Resin',            symbol:'LDPE', unit:'$/MT',   basePrice:1240,   current:1310,   change:5.6,   group:'Polymers', source:'IHS Markit',            linksTo:['LDPE film','Shrink wrap']},
+  {id:'pp',      name:'Polypropylene (PP)',    symbol:'PP',   unit:'$/MT',   basePrice:1190,   current:1275,   change:7.1,   group:'Polymers', source:'IHS Markit',            linksTo:['PP closure','Auto bumper','BOPP film']},
+  {id:'ps',      name:'Polystyrene (GPPS)',    symbol:'PS',   unit:'$/MT',   basePrice:1480,   current:1560,   change:5.4,   group:'Polymers', source:'IHS Markit',            linksTo:['Yogurt cup','Insulation foam']},
+  {id:'pvc',     name:'PVC Resin',             symbol:'PVC',  unit:'$/MT',   basePrice:920,    current:985,    change:7.1,   group:'Polymers', source:'IHS Markit',            linksTo:['PVC pipe','Wire jacketing','Vinyl flooring']},
+  {id:'abs',     name:'ABS Resin',             symbol:'ABS',  unit:'$/MT',   basePrice:1840,   current:1955,   change:6.3,   group:'Polymers', source:'IHS Markit',            linksTo:['Appliance housing','Toys','Auto interior']},
+  // ── Energy ────────────────────────────────────────────────────
+  {id:'crude',   name:'Brent Crude',           symbol:'BZ',   unit:'$/bbl',  basePrice:82,     current:88.5,   change:7.9,   group:'Energy',   source:'ICE Futures',           linksTo:['PVC / XLPE insulation','Lubricant','Bitumen']},
+  {id:'ng',      name:'Natural Gas (Henry Hub)', symbol:'NG', unit:'$/MMBtu',basePrice:2.85,   current:3.40,   change:19.3,  group:'Energy',   source:'NYMEX',                 linksTo:['Process heat','Ammonia / fertilizer feed']},
+  {id:'diesel',  name:'Diesel (ULSD)',         symbol:'HO',   unit:'$/gal',  basePrice:2.65,   current:2.95,   change:11.3,  group:'Energy',   source:'NYMEX',                 linksTo:['Inbound freight','Outbound trucking']},
+  // ── Battery / EV chemicals ────────────────────────────────────
+  {id:'li2co3',  name:'Lithium Carbonate',     symbol:'LI',   unit:'$/MT',   basePrice:14200,  current:11800,  change:-16.9, group:'Battery',  source:'Fastmarkets',           linksTo:['Cathode active material','Li-ion cell']},
+  {id:'co',      name:'Cobalt (LME)',          symbol:'CO',   unit:'$/MT',   basePrice:33500,  current:28900,  change:-13.7, group:'Battery',  source:'LME',                   linksTo:['NMC cathode','Magnetic alloys']},
+  {id:'graphite',name:'Graphite (Spherical)',  symbol:'GR',   unit:'$/MT',   basePrice:4800,   current:5350,   change:11.5,  group:'Battery',  source:'Benchmark Mineral Intel',linksTo:['Battery anode']},
+  // ── Agri / soft commodities ───────────────────────────────────
+  {id:'cotton',  name:'Cotton',                symbol:'CT',   unit:'$/lb',   basePrice:0.78,   current:0.84,   change:7.7,   group:'Agri',     source:'ICE Futures',           linksTo:['Combed cotton yarn','T-shirt fabric','Denim']},
+  {id:'rubber',  name:'Natural Rubber',        symbol:'RU',   unit:'$/MT',   basePrice:1750,   current:1920,   change:9.7,   group:'Agri',     source:'SICOM (Singapore)',     linksTo:['Tire rubber','Rubber gaskets','Latex gloves']},
+  {id:'pulp',    name:'NBSK Pulp',             symbol:'PUL',  unit:'$/MT',   basePrice:1480,   current:1620,   change:9.5,   group:'Paper',    source:'PIX Index',             linksTo:['Corrugated box','Office paper','Tissue']},
+  {id:'kraft',   name:'Kraftliner',            symbol:'KRA',  unit:'$/MT',   basePrice:780,    current:855,    change:9.6,   group:'Paper',    source:'PIX Index',             linksTo:['Outer carton','Shipping case']},
+  // ── Building / commodity inputs ───────────────────────────────
+  {id:'cement',  name:'Cement (US bulk)',      symbol:'CEM',  unit:'$/MT',   basePrice:135,    current:148,    change:9.6,   group:'Building', source:'PCA',                   linksTo:['Concrete','Ready-mix']},
+  {id:'glass',   name:'Glass Cullet',          symbol:'GLA',  unit:'$/MT',   basePrice:115,    current:128,    change:11.3,  group:'Building', source:'GMIC',                  linksTo:['Glass bottle','Container glass']},
+  // ── Food / ag (procurement-relevant) ──────────────────────────
+  {id:'sugar',   name:'Sugar (Raw No.11)',     symbol:'SB',   unit:'$/lb',   basePrice:0.22,   current:0.20,   change:-9.1,  group:'Food',     source:'ICE Futures',           linksTo:['Soft drink','Confectionery']},
+  {id:'coffee',  name:'Coffee (Arabica)',      symbol:'KC',   unit:'$/lb',   basePrice:1.95,   current:3.45,   change:76.9,  group:'Food',     source:'ICE Futures',           linksTo:['Roasted coffee','RTD coffee']},
+  {id:'wheat',   name:'Wheat (HRW)',           symbol:'KE',   unit:'$/bu',   basePrice:6.40,   current:5.85,   change:-8.6,  group:'Food',     source:'CBOT',                  linksTo:['Bread flour','Bakery']}
 ];
+
+// Group commodities for the card layout
+const COMMODITY_GROUPS = ['Metals','Precious','Polymers','Energy','Battery','Agri','Paper','Building','Food'];
+
 const COMMODITY_TREND_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const COMMODITY_TRENDS = {
-  cu: [100,102,105,108,107,110,112,115,117,119,121,124],
-  al: [100,101,103,106,109,112,114,116,118,121,124,126],
-  fe: [100,102,103,105,106,107,108,109,111,112,113,115],
-  pet: [100,103,105,108,110,113,115,117,120,123,126,128]
+  cu:     [100,102,105,108,107,110,112,115,117,119,121,124],
+  al:     [100,101,103,106,109,112,114,116,118,121,124,126],
+  fe:     [100,102,103,105,106,107,108,109,111,112,113,115],
+  pet:    [100,103,105,108,110,113,115,117,120,123,126,128],
+  ni:     [100, 98, 96, 95, 94, 93, 91, 92, 93, 92, 91, 92],
+  pp:     [100,101,103,105,106,108,110,112,113,114,116,117],
+  crude:  [100,103,106,108,107,109,110,112,114,116,117,118],
+  li2co3: [100, 95, 90, 88, 86, 84, 83, 82, 80, 81, 80, 78],
+  gold:   [100,104,108,112,116,118,121,123,125,127,128,129],
+  coffee: [100,108,118,128,138,148,158,165,170,172,175,177]
 };
+
+/* ============== CONTAINER SIZE QUICK-PICKS ============== */
+// Common bottle / container sizes used for FMCG, beverage, personal-care, lubricants procurement.
+// PET bottle weight scales sub-linearly with volume — gw is grams of PET per bottle (empirical).
+const CONTAINER_SIZES = [
+  // PET bottles (water / soft drink / personal care)
+  {sku:'PET-100',  family:'PET Bottle', size:'100 ml',  vol_ml:100,  weight_g:7,   resin:'pet',  useCase:'Travel-size, hotel amenities'},
+  {sku:'PET-250',  family:'PET Bottle', size:'250 ml',  vol_ml:250,  weight_g:13,  resin:'pet',  useCase:'Juice, smoothie single-serve'},
+  {sku:'PET-330',  family:'PET Bottle', size:'330 ml',  vol_ml:330,  weight_g:15,  resin:'pet',  useCase:'Soft drink can-equivalent'},
+  {sku:'PET-500',  family:'PET Bottle', size:'500 ml',  vol_ml:500,  weight_g:21,  resin:'pet',  useCase:'Standard water / soda'},
+  {sku:'PET-750',  family:'PET Bottle', size:'750 ml',  vol_ml:750,  weight_g:28,  resin:'pet',  useCase:'Wine / sport drink'},
+  {sku:'PET-1000', family:'PET Bottle', size:'1 L',     vol_ml:1000, weight_g:35,  resin:'pet',  useCase:'Family pack water'},
+  {sku:'PET-1500', family:'PET Bottle', size:'1.5 L',   vol_ml:1500, weight_g:42,  resin:'pet',  useCase:'Multi-serve soft drink'},
+  {sku:'PET-2000', family:'PET Bottle', size:'2 L',     vol_ml:2000, weight_g:52,  resin:'pet',  useCase:'Soda multi-serve'},
+  {sku:'PET-5000', family:'PET Bottle', size:'5 L',     vol_ml:5000, weight_g:115, resin:'pet',  useCase:'Bulk water / detergent'},
+  // HDPE bottles (dairy / chemical / lube)
+  {sku:'HDPE-500', family:'HDPE Bottle',size:'500 ml',  vol_ml:500,  weight_g:24,  resin:'pe',   useCase:'Shampoo, dairy'},
+  {sku:'HDPE-1000',family:'HDPE Bottle',size:'1 L',     vol_ml:1000, weight_g:40,  resin:'pe',   useCase:'Engine oil, milk'},
+  {sku:'HDPE-4000',family:'HDPE Bottle',size:'4 L',     vol_ml:4000, weight_g:120, resin:'pe',   useCase:'Detergent, lubricant jerry'},
+  // Glass bottles (beverage / perfume)
+  {sku:'GLS-50',   family:'Glass Bottle',size:'50 ml',  vol_ml:50,   weight_g:55,  resin:'glass',useCase:'Perfume, sample'},
+  {sku:'GLS-200',  family:'Glass Bottle',size:'200 ml', vol_ml:200,  weight_g:170, resin:'glass',useCase:'Spirits miniature'},
+  {sku:'GLS-330',  family:'Glass Bottle',size:'330 ml', vol_ml:330,  weight_g:200, resin:'glass',useCase:'Beer bottle (long-neck)'},
+  {sku:'GLS-500',  family:'Glass Bottle',size:'500 ml', vol_ml:500,  weight_g:300, resin:'glass',useCase:'Premium beverage'},
+  {sku:'GLS-750',  family:'Glass Bottle',size:'750 ml', vol_ml:750,  weight_g:450, resin:'glass',useCase:'Wine, spirits standard'},
+  // Aluminum cans / bottles
+  {sku:'ALU-250',  family:'Aluminum Can', size:'250 ml',vol_ml:250,  weight_g:11,  resin:'al',   useCase:'Slim energy drink'},
+  {sku:'ALU-330',  family:'Aluminum Can', size:'330 ml',vol_ml:330,  weight_g:13,  resin:'al',   useCase:'Standard soda can'},
+  {sku:'ALU-500',  family:'Aluminum Can', size:'500 ml',vol_ml:500,  weight_g:17,  resin:'al',   useCase:'Beer / energy drink'}
+];
+function containerMaterialCost(c){
+  // Look up the resin commodity price and convert g → $ per piece
+  const map = {pet:'pet', pe:'pe', glass:'glass', al:'al'};
+  const com = COMMODITIES.find(x=>x.id===map[c.resin]);
+  if(!com) return 0;
+  // $/MT → $/g  /  $/oz → $/g (for glass cullet which is $/MT too)
+  const perGram = com.current / 1_000_000; // $/MT to $/g
+  return c.weight_g * perGram;
+}
+function drawContainerSizes(){
+  const el = document.getElementById('containerSizeTable');
+  if(!el) return;
+  const byFamily = {};
+  CONTAINER_SIZES.forEach(c=>{ (byFamily[c.family] = byFamily[c.family]||[]).push(c); });
+  el.innerHTML = Object.entries(byFamily).map(([fam,items])=>{
+    return `<div class="mb-4">
+      <div class="text-xs uppercase tracking-wider font-bold text-slate-500 mb-2">${fam}</div>
+      <div class="grid md:grid-cols-3 gap-2">
+        ${items.map(c=>{
+          const cost = containerMaterialCost(c);
+          return `<div class="border border-slate-200 rounded-lg p-3 hover:border-orange-400 hover:shadow-sm transition cursor-pointer" onclick="useContainerInCalc('${c.sku}')">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="font-bold text-sm text-slate-800">${c.size}</div>
+                <div class="text-[10px] text-slate-500">${c.sku} · ${c.weight_g} g</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-bold text-orange-700">$${cost.toFixed(4)}</div>
+                <div class="text-[9px] text-slate-400">material only</div>
+              </div>
+            </div>
+            <div class="text-[10px] text-slate-600 mt-1">${c.useCase}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+function useContainerInCalc(sku){
+  const c = CONTAINER_SIZES.find(x=>x.sku===sku);
+  if(!c) return;
+  const familyName = c.family.toLowerCase().includes('pet') ? 'PET bottle'
+                   : c.family.toLowerCase().includes('hdpe') ? 'HDPE bottle'
+                   : c.family.toLowerCase().includes('glass') ? 'Glass bottle'
+                   : c.family.toLowerCase().includes('aluminum') ? 'Aluminum can'
+                   : c.family;
+  const productInput = document.getElementById('productName');
+  if(productInput){
+    productInput.value = `${familyName} ${c.size}`;
+    switchTab('calc');
+    setTimeout(()=>{ if(typeof analyzeProduct==='function') analyzeProduct(); }, 400);
+  }
+}
 function initCommodity(){
   drawCommodityCards();
   drawCommodityTrendChart();
+  drawContainerSizes();
 }
 function drawCommodityCards(){
   const el = document.getElementById('commodityCards');
-  el.innerHTML = COMMODITIES.map(c=>{
-    const isUp = c.change>=0;
-    const arrow = isUp?'▲':'▼';
-    const color = isUp?'text-red-600':'text-emerald-600'; // for procurement, up = bad
-    return `<div class="bg-white rounded-2xl card-shadow p-4">
-      <div class="flex justify-between items-start">
-        <div>
-          <div class="text-xs text-slate-500 uppercase tracking-wider">${c.name}</div>
-          <div class="text-2xl font-bold text-slate-800 mt-1">${c.current.toLocaleString()}<span class="text-sm font-normal text-slate-500"> ${c.unit}</span></div>
-        </div>
-        <div class="text-xs font-bold ${color}">${arrow} ${Math.abs(c.change).toFixed(1)}%</div>
+  // Group by category, render a header + grid for each
+  const grouped = {};
+  COMMODITIES.forEach(c=>{ (grouped[c.group] = grouped[c.group]||[]).push(c); });
+  const order = COMMODITY_GROUPS.filter(g=>grouped[g]);
+  const groupIcon = {Metals:'🪙',Precious:'💎',Polymers:'🧴',Energy:'⛽',Battery:'🔋',Agri:'🌾',Paper:'📦',Building:'🏗️',Food:'☕'};
+  el.innerHTML = order.map(g=>{
+    return `<div class="commodity-group-block mb-4">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-lg">${groupIcon[g]||'•'}</span>
+        <span class="text-xs uppercase tracking-wider font-bold text-slate-600">${g}</span>
+        <span class="text-[10px] text-slate-400">· ${grouped[g].length} item${grouped[g].length>1?'s':''}</span>
       </div>
-      <div class="text-[10px] text-slate-400 mt-2">Source: ${c.source}</div>
-      <div class="text-[10px] text-slate-500 mt-1">Used in: ${c.linksTo.slice(0,2).join(', ')}</div>
+      <div class="grid md:grid-cols-3 gap-3">
+        ${grouped[g].map(c=>{
+          const isUp = c.change>=0;
+          const arrow = isUp?'▲':'▼';
+          const color = isUp?'text-red-600':'text-emerald-600';
+          return `<div class="bg-white rounded-xl card-shadow p-3">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="text-[10px] text-slate-500 uppercase tracking-wider">${c.name}</div>
+                <div class="text-xl font-bold text-slate-800 mt-0.5">${c.current.toLocaleString()}<span class="text-xs font-normal text-slate-500"> ${c.unit}</span></div>
+              </div>
+              <div class="text-[11px] font-bold ${color}">${arrow} ${Math.abs(c.change).toFixed(1)}%</div>
+            </div>
+            <div class="text-[9px] text-slate-400 mt-1">Src: ${c.source}</div>
+            <div class="text-[9px] text-slate-500 mt-0.5">→ ${c.linksTo.slice(0,2).join(', ')}</div>
+          </div>`;
+        }).join('')}
+      </div>
     </div>`;
   }).join('');
 }
@@ -6156,12 +6310,18 @@ function drawCommodityTrendChart(){
   charts.commTrend = new Chart(ctx, {
     type:'line',
     data:{labels: COMMODITY_TREND_MONTHS, datasets:[
-      {label:'Copper', data:COMMODITY_TRENDS.cu, borderColor:'#B45309', tension:0.3, fill:false},
-      {label:'Aluminum', data:COMMODITY_TRENDS.al, borderColor:'#94A3B8', tension:0.3, fill:false},
-      {label:'Steel HRC', data:COMMODITY_TRENDS.fe, borderColor:'#1E3A8A', tension:0.3, fill:false},
-      {label:'PET Resin', data:COMMODITY_TRENDS.pet, borderColor:'#0F766E', tension:0.3, fill:false}
+      {label:'Copper',     data:COMMODITY_TRENDS.cu,     borderColor:'#B45309', tension:0.3, fill:false},
+      {label:'Aluminum',   data:COMMODITY_TRENDS.al,     borderColor:'#94A3B8', tension:0.3, fill:false},
+      {label:'Steel HRC',  data:COMMODITY_TRENDS.fe,     borderColor:'#1E3A8A', tension:0.3, fill:false},
+      {label:'Nickel',     data:COMMODITY_TRENDS.ni,     borderColor:'#475569', tension:0.3, fill:false},
+      {label:'PET Resin',  data:COMMODITY_TRENDS.pet,    borderColor:'#0F766E', tension:0.3, fill:false},
+      {label:'PP',         data:COMMODITY_TRENDS.pp,     borderColor:'#0EA5E9', tension:0.3, fill:false},
+      {label:'Brent Crude',data:COMMODITY_TRENDS.crude,  borderColor:'#000000', tension:0.3, fill:false},
+      {label:'Lithium',    data:COMMODITY_TRENDS.li2co3, borderColor:'#A855F7', tension:0.3, fill:false},
+      {label:'Gold',       data:COMMODITY_TRENDS.gold,   borderColor:'#EAB308', tension:0.3, fill:false},
+      {label:'Coffee',     data:COMMODITY_TRENDS.coffee, borderColor:'#7C2D12', tension:0.3, fill:false}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:8}}},
       scales:{y:{title:{display:true,text:'Index (Jan 2025 = 100)'}}}}
   });
 }
