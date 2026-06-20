@@ -340,6 +340,7 @@
     <div class="sidebar-bucket-label">📊 Analyze</div>
     <button class="tab-btn tab-inactive" data-tab="calc" onclick="switchTab('calc')"><span>🧮</span><span>Should Cost Calculator</span></button>
     <button class="tab-btn tab-inactive" data-tab="tco" onclick="switchTab('tco')"><span>💼</span><span>TCO Optimization</span></button>
+    <button class="tab-btn tab-inactive" data-tab="capex" onclick="switchTab('capex')"><span>💵</span><span>CapEx &amp; Investment</span></button>
     <button class="tab-btn tab-inactive" data-tab="dash" onclick="switchTab('dash')"><span>📈</span><span>Executive Dashboard</span></button>
     <button class="tab-btn tab-inactive" data-tab="sca" onclick="switchTab('sca')"><span>🎯</span><span>Supply Chain Analytics</span></button>
     <button class="tab-btn tab-inactive" data-tab="forecast" onclick="switchTab('forecast')"><span>🔮</span><span>Demand Forecasting</span></button>
@@ -1231,6 +1232,211 @@
 
   <!-- Recommendation -->
   <div id="tcoRecommendation" class="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-2xl p-5 mb-6"></div>
+</section>
+
+<!-- ========= CAPEX & INVESTMENT ANALYSIS ========= -->
+<section id="tab-capex-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-emerald-700 to-teal-700 text-white rounded-2xl p-6 mb-6">
+    <div class="flex justify-between items-start flex-wrap gap-3">
+      <div>
+        <h2 class="text-2xl font-bold">CapEx &amp; Investment Analysis</h2>
+        <p class="text-emerald-100 text-sm">NPV · IRR · MIRR · Payback · Profitability Index · EAC · ROI — single-project &amp; multi-project capital portfolio under budget constraint.</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="exportCapexExcel()" class="px-3 py-2 bg-white/15 hover:bg-white/25 rounded-lg text-xs font-semibold">⬇ Export Excel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode tabs -->
+  <div class="bg-white rounded-xl card-shadow p-2 mb-4 inline-flex gap-1">
+    <button id="capexModeProjBtn" onclick="setCapexMode('project')" class="px-4 py-2 rounded-lg text-xs font-semibold bg-emerald-600 text-white">📊 Single Project</button>
+    <button id="capexModePortBtn" onclick="setCapexMode('portfolio')" class="px-4 py-2 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700">📁 Portfolio (multi-project)</button>
+    <button id="capexModeConBtn"  onclick="setCapexMode('concepts')" class="px-4 py-2 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700">📚 Metrics Reference</button>
+  </div>
+
+  <!-- ==== MODE 1: SINGLE PROJECT ==== -->
+  <div id="capexProjectPane">
+
+    <!-- Setup row -->
+    <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+      <div class="grid md:grid-cols-12 gap-4 items-end">
+        <div class="md:col-span-3">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Project name</label>
+          <input id="cxName" type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" placeholder="e.g. Automation Robot Cell"/>
+        </div>
+        <div class="md:col-span-3">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Pre-built template</label>
+          <select id="cxTemplate" onchange="loadCapexTemplate(this.value)" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            <option value="">— pick a template —</option>
+            <option value="robot">Automation Robot Cell</option>
+            <option value="led">LED / Energy Efficiency Retrofit</option>
+            <option value="line">New Production Line</option>
+            <option value="erp">ERP Implementation</option>
+            <option value="warehouse">Warehouse Expansion</option>
+            <option value="ev_fleet">Fleet Electrification</option>
+            <option value="solar">Solar PV Installation</option>
+            <option value="pdm">Predictive Maintenance Platform</option>
+          </select>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">CapEx scope</label>
+          <select id="cxScope" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" onchange="computeCapex()">
+            <option value="growth">Growth (revenue ↑)</option>
+            <option value="maintenance">Maintenance (sustaining)</option>
+            <option value="replacement">Replacement (like-for-like)</option>
+            <option value="regulatory">Regulatory / Compliance</option>
+            <option value="cost-out">Cost-out (OpEx savings)</option>
+          </select>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Discount rate / WACC %</label>
+          <input id="cxWacc" type="number" value="10" min="0" max="30" step="0.5" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="computeCapex()"/>
+        </div>
+        <div class="md:col-span-1">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Tax %</label>
+          <input id="cxTax" type="number" value="25" min="0" max="50" step="1" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="computeCapex()"/>
+        </div>
+        <div class="md:col-span-1">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Life (yrs)</label>
+          <input id="cxLife" type="number" value="7" min="1" max="20" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="rebuildCapexCashFlow();computeCapex()"/>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-4 gap-4 mt-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Initial CapEx (Year 0) $</label>
+          <input id="cxCapex" type="number" value="500000" min="0" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="computeCapex()"/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Working capital $</label>
+          <input id="cxWC" type="number" value="25000" min="0" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="computeCapex()"/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Salvage value at EOL $</label>
+          <input id="cxSalvage" type="number" value="40000" min="0" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="computeCapex()"/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Depreciation method</label>
+          <select id="cxDep" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" onchange="computeCapex()">
+            <option value="sl">Straight-line</option>
+            <option value="macrs5">MACRS 5-year</option>
+            <option value="macrs7">MACRS 7-year</option>
+            <option value="none">None (cash-only model)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cash-flow table -->
+    <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-bold text-sm text-slate-800">Year-by-Year Cash Flow Inputs</h3>
+        <p class="text-[10px] text-slate-500">Enter annual revenue / OpEx savings (inflow) and annual operating cost (outflow). Tax shield from depreciation is computed automatically.</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs" id="cxCashTable">
+          <thead><tr class="border-b-2 border-slate-200 bg-slate-50">
+            <th class="text-left py-2 px-2 text-slate-600">Year</th>
+            <th class="text-right py-2 px-2 text-emerald-700">Revenue / OpEx savings ($)</th>
+            <th class="text-right py-2 px-2 text-red-700">Operating cost ($)</th>
+            <th class="text-right py-2 px-2 text-slate-600">Depreciation ($)</th>
+            <th class="text-right py-2 px-2 text-slate-600">Pre-tax CF ($)</th>
+            <th class="text-right py-2 px-2 text-slate-700 font-bold">After-tax CF ($)</th>
+            <th class="text-right py-2 px-2 text-emerald-700">Discounted CF ($)</th>
+          </tr></thead>
+          <tbody id="cxCashBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- KPI cards (NPV, IRR, MIRR, Payback, Discounted Payback, PI, EAC, ROI) -->
+    <div id="cxMetricGrid" class="grid md:grid-cols-4 gap-3 mb-6"></div>
+
+    <!-- Decision card -->
+    <div id="cxDecision" class="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-5 mb-6"></div>
+
+    <!-- Charts -->
+    <div class="grid md:grid-cols-2 gap-4 mb-6">
+      <div class="bg-white rounded-2xl card-shadow p-5">
+        <h3 class="font-bold text-sm mb-2">Cumulative Discounted Cash Flow</h3>
+        <div class="h-72"><canvas id="cxCumChart"></canvas></div>
+      </div>
+      <div class="bg-white rounded-2xl card-shadow p-5">
+        <h3 class="font-bold text-sm mb-2">NPV Sensitivity to Discount Rate (NPV Profile)</h3>
+        <div class="h-72"><canvas id="cxNpvProfileChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==== MODE 2: PORTFOLIO ==== -->
+  <div id="capexPortfolioPane" class="hidden">
+    <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+      <div class="grid md:grid-cols-4 gap-4 items-end">
+        <div class="md:col-span-2">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Annual CapEx budget $</label>
+          <input id="cxBudget" type="number" value="3000000" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="rankPortfolio()"/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Discount rate / WACC %</label>
+          <input id="cxPortWacc" type="number" value="10" min="0" step="0.5" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="rankPortfolio()"/>
+        </div>
+        <div>
+          <button onclick="loadDemoPortfolio()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg py-2 text-xs font-semibold">📋 Load 8-Project Demo</button>
+        </div>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-3">Optimization ranks projects by <b>Profitability Index (PI = NPV ÷ CapEx)</b> and selects projects from top-down until the budget is exhausted — finance-team standard for capital rationing.</p>
+    </div>
+
+    <!-- Project list table -->
+    <div class="bg-white rounded-2xl card-shadow p-5 mb-6 overflow-x-auto">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-bold text-sm">Project Slate</h3>
+        <button onclick="addPortfolioProject()" class="px-3 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg text-xs font-semibold">+ Add project</button>
+      </div>
+      <table class="w-full text-xs">
+        <thead><tr class="border-b-2 border-slate-200 bg-slate-50 text-slate-600">
+          <th class="text-left py-2 px-2">Project</th>
+          <th class="text-left py-2 px-2">Scope</th>
+          <th class="text-right py-2 px-2">CapEx $</th>
+          <th class="text-right py-2 px-2">Annual cash $</th>
+          <th class="text-right py-2 px-2">Life (yrs)</th>
+          <th class="text-right py-2 px-2 bg-emerald-50">NPV $</th>
+          <th class="text-right py-2 px-2 bg-emerald-50">IRR %</th>
+          <th class="text-right py-2 px-2 bg-emerald-50">PI</th>
+          <th class="text-right py-2 px-2 bg-emerald-50">Payback (yrs)</th>
+          <th class="text-center py-2 px-2"></th>
+        </tr></thead>
+        <tbody id="cxPortBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Recommendation -->
+    <div id="cxPortRecommendation" class="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-5 mb-6"></div>
+
+    <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+      <h3 class="font-bold text-sm mb-2">Selected Portfolio · NPV vs CapEx</h3>
+      <div class="h-72"><canvas id="cxPortChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ==== MODE 3: CONCEPTS REFERENCE ==== -->
+  <div id="capexConceptsPane" class="hidden">
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="bg-white rounded-xl card-shadow p-5"><div class="text-sm font-bold text-emerald-800 mb-1">Net Present Value (NPV)</div><div class="text-xs text-slate-600">Sum of all cash flows discounted back to today at the cost of capital. <b>Rule:</b> NPV &gt; 0 → accept (project creates value). Negative NPV destroys shareholder value even if the project looks profitable on a cash basis. Always project's primary screening metric.</div></div>
+      <div class="bg-white rounded-xl card-shadow p-5"><div class="text-sm font-bold text-emerald-800 mb-1">Internal Rate of Return (IRR)</div><div class="text-xs text-slate-600">The discount rate at which NPV = 0. Compare to WACC: <b>IRR &gt; WACC → accept</b>. Easy to communicate to finance/exec. Pitfall: assumes reinvestment of intermediate cash flows at the IRR itself (often unrealistic) and breaks down with non-conventional cash flows (multiple sign changes).</div></div>
+      <div class="bg-white rounded-xl card-shadow p-5"><div class="text-sm font-bold text-emerald-800 mb-1">Modified IRR (MIRR)</div><div class="text-xs text-slate-600">Fixes the IRR reinvestment assumption by assuming positive cash flows are reinvested at the cost of capital (not IRR). More realistic for capital budgeting. <b>Decision rule:</b> same as IRR — compare to WACC.</div></div>
+      <div class="bg-white rounded-xl card-shadow p-5"><div class="text-sm font-bold text-emerald-800 mb-1">Payback Period</div><div class="text-xs text-slate-600">Years to recover the initial CapEx from undiscounted cash flows. Simple but ignores time value of money &amp; cash flows after payback. Use as a <b>liquidity</b> filter, not the primary decision metric.</div></div>
+      <div class="bg-white rounded-xl card-shadow p-5"><div class="text-sm font-bold text-emerald-800 mb-1">Discounted Payback</div><div class="text-xs text-slate-600">Same as Payback but uses discounted cash flows. Better than plain Payback; still ignores post-payback cash flows.</div></div>
+      <div class="bg-white rounded-xl card-shadow p-5"><div class="text-sm font-bold text-emerald-800 mb-1">Profitability Index (PI)</div><div class="text-xs text-slate-600">PI = (PV of future cash flows) / Initial CapEx. <b>PI &gt; 1.0</b> means each $1 of CapEx returns more than $1 in present value. <b>Critical for capital rationing</b> — when budget is constrained, rank projects by PI to maximize total NPV per dollar of CapEx.</div></div>
+      <div class="bg-white rounded-xl card-shadow p-5"><div class="text-sm font-bold text-emerald-800 mb-1">Equivalent Annual Cost (EAC)</div><div class="text-xs text-slate-600">Spreads NPV across the project life as an equivalent constant annuity. <b>Essential when comparing assets with different useful lives</b> (e.g. 5-yr machine vs 10-yr machine) — NPV alone is misleading there.</div></div>
+      <div class="bg-white rounded-xl card-shadow p-5"><div class="text-sm font-bold text-emerald-800 mb-1">Return on Investment (ROI)</div><div class="text-xs text-slate-600">Total undiscounted gain ÷ initial CapEx, expressed as %. Easy to communicate but ignores time value of money and the timing of cash flows. Acceptable as a back-of-envelope screen, never as a final decision metric.</div></div>
+      <div class="bg-white rounded-xl card-shadow p-5"><div class="text-sm font-bold text-emerald-800 mb-1">CapEx vs OpEx</div><div class="text-xs text-slate-600"><b>CapEx</b> = capitalized one-time spend on assets &gt; useful-life threshold (typically &gt;1 yr, &gt; $1k–5k); depreciated over life. <b>OpEx</b> = ongoing operating expenditure, fully expensed in the year incurred. CapEx affects balance sheet + P&amp;L via depreciation; OpEx hits P&amp;L directly. Procurement decisions often involve a CapEx-vs-OpEx tradeoff (buy vs lease vs subscribe).</div></div>
+      <div class="bg-white rounded-xl card-shadow p-5"><div class="text-sm font-bold text-emerald-800 mb-1">CapEx Scope categories</div><div class="text-xs text-slate-600"><b>Growth</b> (capacity expansion, new products) · <b>Maintenance</b> (sustaining existing capability) · <b>Replacement</b> (like-for-like end-of-life) · <b>Regulatory / Compliance</b> (mandated, no NPV — risk-adjusted) · <b>Cost-out</b> (savings-driven). Finance teams allocate annual CapEx budget across these buckets with different hurdle rates.</div></div>
+      <div class="bg-white rounded-xl card-shadow p-5"><div class="text-sm font-bold text-emerald-800 mb-1">Depreciation tax shield</div><div class="text-xs text-slate-600">Depreciation reduces taxable income → reduces tax → effectively returns cash. <b>Tax shield = Depreciation × Tax rate</b>. <b>MACRS</b> (Modified Accelerated Cost Recovery System) is the US tax depreciation schedule — front-loaded, increases early-year cash and NPV vs straight-line.</div></div>
+      <div class="bg-white rounded-xl card-shadow p-5"><div class="text-sm font-bold text-emerald-800 mb-1">WACC — Weighted Avg Cost of Capital</div><div class="text-xs text-slate-600">The blended cost of debt + equity, used as the discount rate / hurdle rate. <b>Typical WACC: 7–12%</b> for industrial firms. Always discount with after-tax WACC for after-tax cash flows. Project-specific risk may justify a premium above corporate WACC.</div></div>
+    </div>
+  </div>
 </section>
 
 <!-- ========= DEMAND FORECASTING ========= -->
@@ -2852,6 +3058,7 @@ function switchTab(name){
   if(name==='vendor') initVendor();
   if(name==='srm') initSRM();
   if(name==='tco') initTCO();
+  if(name==='capex') initCapex();
 }
 
 const TEMPLATES = {
@@ -6808,6 +7015,514 @@ function exportTCOExcel(){
   for(let y=0;y<=t.years;y++) cfRows.push([y, Math.round(t.A.cumYears[y]), Math.round(t.B.cumYears[y]), Math.round(t.C.cumYears[y])]);
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cfRows), 'Cum_CashFlow');
   XLSX.writeFile(wb, `TCO_${(t.asset||'analysis').replace(/[^a-z0-9]/gi,'_')}.xlsx`);
+}
+
+/* ============== CAPEX & INVESTMENT ANALYSIS ============== */
+// Financial primitives
+function NPV(rate, cashFlows){
+  return cashFlows.reduce((acc, cf, t) => acc + cf / Math.pow(1+rate, t), 0);
+}
+function IRR(cashFlows){
+  // Bisection between -0.99 and 5 (500%). Returns null if no sign change in NPV.
+  let lo = -0.9999, hi = 5;
+  const fLo = NPV(lo, cashFlows), fHi = NPV(hi, cashFlows);
+  if(fLo * fHi > 0) return null;
+  for(let i=0;i<200;i++){
+    const mid = (lo+hi)/2;
+    const fMid = NPV(mid, cashFlows);
+    if(Math.abs(fMid) < 0.01) return mid;
+    if(fLo * fMid < 0) hi = mid; else lo = mid;
+  }
+  return (lo+hi)/2;
+}
+function MIRR(cashFlows, financeRate, reinvestRate){
+  // Move negative CFs to t=0 at finance rate, positive CFs to t=N at reinvest rate
+  const n = cashFlows.length - 1;
+  let pvNeg = 0, fvPos = 0;
+  cashFlows.forEach((cf, t)=>{
+    if(cf < 0) pvNeg += cf / Math.pow(1+financeRate, t);
+    else if(cf > 0) fvPos += cf * Math.pow(1+reinvestRate, n-t);
+  });
+  if(pvNeg === 0 || fvPos === 0) return null;
+  return Math.pow(-fvPos/pvNeg, 1/n) - 1;
+}
+function PaybackPeriod(cashFlows){
+  // Returns fractional years to recover initial outlay (undiscounted)
+  let cum = 0;
+  for(let t=0;t<cashFlows.length;t++){
+    const prev = cum;
+    cum += cashFlows[t];
+    if(prev < 0 && cum >= 0){
+      const needed = -prev;
+      return (t-1) + needed / cashFlows[t];
+    }
+  }
+  return null; // never recovered
+}
+function DiscountedPayback(cashFlows, rate){
+  const dcf = cashFlows.map((cf,t)=>cf / Math.pow(1+rate, t));
+  return PaybackPeriod(dcf);
+}
+function ProfitabilityIndex(cashFlows, rate){
+  // PI = PV of inflows / |initial outflow|
+  if(cashFlows.length===0) return null;
+  const initial = -cashFlows[0];
+  if(initial <= 0) return null;
+  const pvIn = cashFlows.slice(1).reduce((s,cf,i)=>s + cf/Math.pow(1+rate, i+1), 0);
+  return pvIn / initial;
+}
+function EAC(npv, life, rate){
+  // Equivalent annual cost / annuity factor
+  if(rate === 0) return npv / life;
+  const af = (1 - Math.pow(1+rate, -life)) / rate;
+  if(af === 0) return null;
+  return npv / af;
+}
+
+// MACRS depreciation schedules (% by year, half-year convention)
+const MACRS = {
+  5: [0.20, 0.32, 0.192, 0.1152, 0.1152, 0.0576],
+  7: [0.1429, 0.2449, 0.1749, 0.1249, 0.0893, 0.0892, 0.0893, 0.0446]
+};
+
+const CAPEX_TEMPLATES = {
+  robot:     {name:'Automation Robot Cell',          scope:'cost-out',     capex:485000,  wc:18000,  salvage:42000,  life:8,  dep:'macrs7', wacc:10, tax:25, rev:[0,118000,168000,182000,194000,201000,205000,202000,196000], op:[0,18000,21000,22000,23000,24000,25000,26000,27000]},
+  led:       {name:'LED / Energy Efficiency Retrofit',scope:'cost-out',     capex:185000,  wc:0,      salvage:0,      life:10, dep:'sl',     wacc:8,  tax:25, rev:[0,42000,42000,42000,42000,42000,42000,42000,42000,42000,42000], op:[0,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500]},
+  line:      {name:'New Production Line',            scope:'growth',       capex:2400000, wc:180000, salvage:240000, life:10, dep:'macrs7', wacc:11, tax:25, rev:[0,520000,720000,840000,920000,950000,940000,910000,860000,800000,740000], op:[0,82000,112000,128000,138000,142000,145000,148000,152000,156000,160000]},
+  erp:       {name:'ERP Implementation',             scope:'cost-out',     capex:1200000, wc:60000,  salvage:0,      life:7,  dep:'sl',     wacc:10, tax:25, rev:[0,180000,310000,380000,420000,440000,440000,430000], op:[0,98000,82000,72000,68000,68000,70000,72000]},
+  warehouse: {name:'Warehouse Expansion',            scope:'growth',       capex:3800000, wc:120000, salvage:1900000,life:15, dep:'sl',     wacc:9,  tax:25, rev:[0,420000,540000,620000,680000,700000,710000,720000,730000,720000,710000,690000,670000,640000,620000,600000], op:[0,82000,108000,124000,135000,140000,144000,148000,152000,156000,160000,165000,170000,176000,182000,188000]},
+  ev_fleet:  {name:'Fleet Electrification',          scope:'replacement',  capex:825000,  wc:0,      salvage:185000, life:8,  dep:'macrs5', wacc:8,  tax:25, rev:[0,118000,128000,134000,138000,138000,134000,128000,118000], op:[0,18000,18000,19000,20000,22000,24000,26000,28000]},
+  solar:     {name:'Solar PV Installation',          scope:'cost-out',     capex:680000,  wc:0,      salvage:48000,  life:20, dep:'macrs5', wacc:7,  tax:25, rev:[0,82000,82000,80000,80000,78000,78000,76000,76000,74000,74000,72000,72000,70000,70000,68000,68000,66000,66000,64000,64000], op:[0,4500,4500,5000,5000,5500,5500,6000,6000,6500,6500,7000,7000,7500,7500,8000,8000,8500,8500,9000,9000]},
+  pdm:       {name:'Predictive Maintenance Platform',scope:'cost-out',     capex:380000,  wc:25000,  salvage:0,      life:6,  dep:'sl',     wacc:10, tax:25, rev:[0,98000,148000,182000,195000,198000,196000], op:[0,42000,38000,38000,40000,42000,44000]}
+};
+
+const DEMO_PORTFOLIO = [
+  {name:'Robot Cell',           scope:'cost-out',    capex:485000,  annual:120000, life:8},
+  {name:'LED Retrofit',         scope:'cost-out',    capex:185000,  annual:42000,  life:10},
+  {name:'Production Line',      scope:'growth',      capex:2400000, annual:580000, life:10},
+  {name:'ERP Implementation',   scope:'cost-out',    capex:1200000, annual:320000, life:7},
+  {name:'Warehouse Expansion',  scope:'growth',      capex:3800000, annual:560000, life:15},
+  {name:'Fleet Electrification',scope:'replacement', capex:825000,  annual:115000, life:8},
+  {name:'Solar PV',             scope:'cost-out',    capex:680000,  annual:75000,  life:20},
+  {name:'PdM Platform',         scope:'cost-out',    capex:380000,  annual:148000, life:6}
+];
+
+let _cxCharts = {cum:null, npv:null, port:null};
+
+function setCapexMode(mode){
+  ['Project','Portfolio','Concepts'].forEach(m=>{
+    const pane = document.getElementById('capex'+m+'Pane');
+    if(pane) pane.classList.add('hidden');
+  });
+  const map = {project:'capexProjectPane', portfolio:'capexPortfolioPane', concepts:'capexConceptsPane'};
+  document.getElementById(map[mode]).classList.remove('hidden');
+  // Reset button styles
+  ['Proj','Port','Con'].forEach(b=>{
+    const btn = document.getElementById('capexMode'+b+'Btn');
+    if(btn){ btn.className = 'px-4 py-2 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700'; }
+  });
+  const activeBtn = {project:'capexModeProjBtn',portfolio:'capexModePortBtn',concepts:'capexModeConBtn'}[mode];
+  if(activeBtn) document.getElementById(activeBtn).className = 'px-4 py-2 rounded-lg text-xs font-semibold bg-emerald-600 text-white';
+  if(mode === 'portfolio' && document.getElementById('cxPortBody').children.length===0) loadDemoPortfolio();
+}
+
+function initCapex(){
+  rebuildCapexCashFlow();
+  if(!document.getElementById('cxCashBody').dataset.loaded){
+    loadCapexTemplate('robot');
+    document.getElementById('cxCashBody').dataset.loaded = '1';
+  } else {
+    computeCapex();
+  }
+}
+
+function rebuildCapexCashFlow(){
+  const life = parseInt(document.getElementById('cxLife').value)||7;
+  const tbody = document.getElementById('cxCashBody');
+  let rows = '';
+  for(let y=0;y<=life;y++){
+    rows += `<tr class="border-b border-slate-100 ${y===0?'bg-emerald-50/30':''}">
+      <td class="py-1 px-2 font-semibold">Y${y}</td>
+      <td class="py-1 px-2"><input type="number" data-cx-row="rev" data-cx-yr="${y}" class="w-28 text-right border border-slate-200 rounded px-2 py-1 text-xs" value="${y===0?0:''}" oninput="computeCapex()"/></td>
+      <td class="py-1 px-2"><input type="number" data-cx-row="op"  data-cx-yr="${y}" class="w-28 text-right border border-slate-200 rounded px-2 py-1 text-xs" value="${y===0?0:''}" oninput="computeCapex()"/></td>
+      <td class="py-1 px-2 text-right text-slate-500" data-cx-dep="${y}">—</td>
+      <td class="py-1 px-2 text-right text-slate-500" data-cx-pre="${y}">—</td>
+      <td class="py-1 px-2 text-right font-semibold text-slate-800" data-cx-aft="${y}">—</td>
+      <td class="py-1 px-2 text-right text-emerald-700" data-cx-dcf="${y}">—</td>
+    </tr>`;
+  }
+  tbody.innerHTML = rows;
+}
+
+function _cxReadInputs(){
+  const life = parseInt(document.getElementById('cxLife').value)||7;
+  const rev=[], op=[];
+  for(let y=0;y<=life;y++){
+    rev.push(parseFloat((document.querySelector(`input[data-cx-row="rev"][data-cx-yr="${y}"]`)||{}).value)||0);
+    op.push(parseFloat((document.querySelector(`input[data-cx-row="op"][data-cx-yr="${y}"]`)||{}).value)||0);
+  }
+  return {
+    life,
+    name:    document.getElementById('cxName').value || 'Project',
+    scope:   document.getElementById('cxScope').value,
+    capex:   parseFloat(document.getElementById('cxCapex').value)||0,
+    wc:      parseFloat(document.getElementById('cxWC').value)||0,
+    salvage: parseFloat(document.getElementById('cxSalvage').value)||0,
+    wacc:    (parseFloat(document.getElementById('cxWacc').value)||0)/100,
+    tax:     (parseFloat(document.getElementById('cxTax').value)||0)/100,
+    dep:     document.getElementById('cxDep').value,
+    rev, op
+  };
+}
+
+function _depSchedule(method, capex, life){
+  const out = new Array(life+1).fill(0);
+  if(method === 'none'){ return out; }
+  if(method === 'sl'){
+    for(let y=1;y<=life;y++) out[y] = capex/life;
+    return out;
+  }
+  if(method.startsWith('macrs')){
+    const cls = method === 'macrs5' ? 5 : 7;
+    const pct = MACRS[cls];
+    for(let i=0;i<pct.length && i<=life;i++){
+      out[i+1] = capex * pct[i];
+    }
+    return out;
+  }
+  return out;
+}
+
+function loadCapexTemplate(key){
+  if(!key) return;
+  const t = CAPEX_TEMPLATES[key]; if(!t) return;
+  document.getElementById('cxName').value    = t.name;
+  document.getElementById('cxScope').value   = t.scope;
+  document.getElementById('cxCapex').value   = t.capex;
+  document.getElementById('cxWC').value      = t.wc;
+  document.getElementById('cxSalvage').value = t.salvage;
+  document.getElementById('cxLife').value    = t.life;
+  document.getElementById('cxDep').value     = t.dep;
+  document.getElementById('cxWacc').value    = t.wacc;
+  document.getElementById('cxTax').value     = t.tax;
+  rebuildCapexCashFlow();
+  // Fill years
+  for(let y=0;y<=t.life;y++){
+    const rEl = document.querySelector(`input[data-cx-row="rev"][data-cx-yr="${y}"]`);
+    const oEl = document.querySelector(`input[data-cx-row="op"][data-cx-yr="${y}"]`);
+    if(rEl) rEl.value = t.rev[y] ?? 0;
+    if(oEl) oEl.value = t.op[y]  ?? 0;
+  }
+  computeCapex();
+}
+
+function computeCapex(){
+  const v = _cxReadInputs();
+  const dep = _depSchedule(v.dep, v.capex, v.life);
+  // Build cash flows
+  const cf = [];
+  // Year 0: -CapEx -WorkingCapital
+  cf.push(-(v.capex + v.wc));
+  for(let y=1;y<=v.life;y++){
+    const gross = (v.rev[y]||0) - (v.op[y]||0);
+    const pretax = gross - dep[y];
+    const tax = pretax * v.tax;
+    let afterTax = gross - tax;            // depreciation is non-cash → addback effectively
+    if(y === v.life){
+      // Terminal year: recover WC + salvage (less tax on book gain)
+      // For simplicity assume book value at EOL = 0 if MACRS depreciated, else residual.
+      const cumDep = dep.reduce((a,b)=>a+b, 0);
+      const bookVal = Math.max(0, v.capex - cumDep);
+      const taxOnSale = (v.salvage - bookVal) * v.tax;
+      afterTax += v.wc + v.salvage - taxOnSale;
+    }
+    cf.push(afterTax);
+  }
+  // Discounted CFs and metrics
+  const npv = NPV(v.wacc, cf);
+  const irr = IRR(cf);
+  const mirr = MIRR(cf, v.wacc, v.wacc);
+  const pb = PaybackPeriod(cf);
+  const dpb = DiscountedPayback(cf, v.wacc);
+  const pi = ProfitabilityIndex(cf, v.wacc);
+  const eac = EAC(npv, v.life, v.wacc);
+  // ROI = total undiscounted CF / initial cost
+  const totalIn = cf.slice(1).reduce((s,c)=>s+c,0);
+  const roi = (v.capex+v.wc) > 0 ? (totalIn - (v.capex+v.wc)) / (v.capex+v.wc) : 0;
+
+  // Update table rows
+  let cum = 0, cumDisc = 0;
+  for(let y=0;y<=v.life;y++){
+    const gross = y===0 ? -(v.capex+v.wc) : (v.rev[y]||0) - (v.op[y]||0);
+    const d = dep[y];
+    const pre = y===0 ? gross : gross - d;
+    const aft = cf[y];
+    const dcf = aft / Math.pow(1+v.wacc, y);
+    const el = (sel)=>document.querySelector(`[data-cx-${sel}="${y}"]`);
+    if(el('dep')) el('dep').textContent = y===0?'—':'$'+Math.round(d).toLocaleString();
+    if(el('pre')) el('pre').textContent = y===0?'—':'$'+Math.round(pre).toLocaleString();
+    if(el('aft')) el('aft').textContent = '$'+Math.round(aft).toLocaleString();
+    if(el('dcf')) el('dcf').textContent = '$'+Math.round(dcf).toLocaleString();
+  }
+
+  // Render metric cards
+  const fmt$ = n => '$'+Math.round(n).toLocaleString();
+  const fmtPct = n => n===null||isNaN(n) ? 'n/a' : (n*100).toFixed(1)+'%';
+  const fmtYrs = n => n===null ? 'never' : n.toFixed(2)+' yrs';
+  const npvColor = npv >= 0 ? 'text-emerald-700' : 'text-red-700';
+  const irrColor = (irr!==null && irr >= v.wacc) ? 'text-emerald-700' : 'text-red-700';
+  const piColor  = (pi!==null && pi >= 1) ? 'text-emerald-700' : 'text-red-700';
+  document.getElementById('cxMetricGrid').innerHTML = `
+    <div class="bg-white rounded-2xl card-shadow p-4">
+      <div class="text-[10px] uppercase tracking-wider text-slate-500">NPV @ ${(v.wacc*100).toFixed(1)}%</div>
+      <div class="text-2xl font-extrabold ${npvColor}">${fmt$(npv)}</div>
+      <div class="text-[10px] text-slate-500 mt-1">${npv>=0?'✓ Project creates value':'✗ Destroys value at this WACC'}</div>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-4">
+      <div class="text-[10px] uppercase tracking-wider text-slate-500">IRR</div>
+      <div class="text-2xl font-extrabold ${irrColor}">${fmtPct(irr)}</div>
+      <div class="text-[10px] text-slate-500 mt-1">${irr===null?'No sign change':'Hurdle: '+(v.wacc*100).toFixed(1)+'%'}</div>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-4">
+      <div class="text-[10px] uppercase tracking-wider text-slate-500">MIRR</div>
+      <div class="text-2xl font-extrabold text-slate-800">${fmtPct(mirr)}</div>
+      <div class="text-[10px] text-slate-500 mt-1">Reinvest @ WACC</div>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-4">
+      <div class="text-[10px] uppercase tracking-wider text-slate-500">Profitability Index</div>
+      <div class="text-2xl font-extrabold ${piColor}">${pi===null?'n/a':pi.toFixed(2)}</div>
+      <div class="text-[10px] text-slate-500 mt-1">${pi!==null && pi>=1?'✓ &gt; 1.0':'✗ &lt; 1.0'}</div>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-4">
+      <div class="text-[10px] uppercase tracking-wider text-slate-500">Payback</div>
+      <div class="text-2xl font-extrabold text-slate-800">${fmtYrs(pb)}</div>
+      <div class="text-[10px] text-slate-500 mt-1">Undiscounted</div>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-4">
+      <div class="text-[10px] uppercase tracking-wider text-slate-500">Discounted Payback</div>
+      <div class="text-2xl font-extrabold text-slate-800">${fmtYrs(dpb)}</div>
+      <div class="text-[10px] text-slate-500 mt-1">Discounted</div>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-4">
+      <div class="text-[10px] uppercase tracking-wider text-slate-500">EAC (Equiv Annual)</div>
+      <div class="text-2xl font-extrabold text-slate-800">${eac===null?'n/a':fmt$(eac)}/yr</div>
+      <div class="text-[10px] text-slate-500 mt-1">Use for unequal-life comparisons</div>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-4">
+      <div class="text-[10px] uppercase tracking-wider text-slate-500">ROI (total)</div>
+      <div class="text-2xl font-extrabold text-slate-800">${(roi*100).toFixed(1)}%</div>
+      <div class="text-[10px] text-slate-500 mt-1">Undiscounted gain</div>
+    </div>
+  `;
+
+  // Decision card
+  const accept = npv > 0 && (irr===null || irr > v.wacc) && (pi===null || pi > 1);
+  const verdict = accept ? '✅ ACCEPT' : '❌ REJECT';
+  const verdictColor = accept ? 'text-emerald-800' : 'text-red-800';
+  const scopeNotes = {
+    'growth':      'Growth CapEx — primary lens is NPV/IRR. Validate revenue forecast with sales pipeline.',
+    'maintenance': 'Maintenance CapEx — required to sustain operations; compare against do-nothing scenario (downtime cost, repair cost).',
+    'replacement': 'Replacement CapEx — compare EAC against keeping the old asset. NPV alone is misleading when lives differ.',
+    'regulatory':  'Regulatory CapEx — usually mandatory. Optimize cost, not NPV; minimum-spend variant wins.',
+    'cost-out':    'Cost-out CapEx — savings ARE the revenue line. Validate that savings persist after the payback period.'
+  }[v.scope];
+  document.getElementById('cxDecision').innerHTML = `
+    <div class="flex items-start gap-3">
+      <div class="text-3xl">${accept?'🟢':'🔴'}</div>
+      <div class="flex-1">
+        <div class="text-lg font-bold ${verdictColor}">${verdict} — ${v.name}</div>
+        <p class="text-sm text-slate-700 mt-1">
+          Over a ${v.life}-year horizon at ${(v.wacc*100).toFixed(1)}% WACC, this project produces <b>${fmt$(npv)}</b> of net present value
+          ${irr!==null?'and an IRR of <b>'+(irr*100).toFixed(1)+'%</b>':''}.
+          ${accept ? 'It clears all three decision filters (NPV > 0, IRR > WACC, PI > 1.0).' : 'It fails at least one decision filter — re-examine assumptions before committing capital.'}
+        </p>
+        <div class="text-xs text-slate-600 mt-2"><b>Scope note (${v.scope}):</b> ${scopeNotes}</div>
+      </div>
+    </div>`;
+
+  // Cumulative discounted CF chart
+  const labels = ['Y0']; for(let y=1;y<=v.life;y++) labels.push('Y'+y);
+  const cumDcf = []; let acc=0;
+  cf.forEach((c,t)=>{ acc += c / Math.pow(1+v.wacc, t); cumDcf.push(acc); });
+  if(_cxCharts.cum) _cxCharts.cum.destroy();
+  _cxCharts.cum = new Chart(document.getElementById('cxCumChart'), {
+    type:'bar',
+    data:{labels, datasets:[
+      {label:'Cumulative discounted CF', data:cumDcf, backgroundColor: cumDcf.map(v=>v<0?'#FCA5A5':'#34D399')}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:(c)=>'$'+Math.round(c.parsed.y).toLocaleString()}}},
+      scales:{y:{ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k'}}}}
+  });
+  // NPV-vs-discount-rate profile
+  const rates = []; for(let r=0;r<=30;r+=1) rates.push(r);
+  const npvs = rates.map(r=>NPV(r/100, cf));
+  if(_cxCharts.npv) _cxCharts.npv.destroy();
+  _cxCharts.npv = new Chart(document.getElementById('cxNpvProfileChart'), {
+    type:'line',
+    data:{labels: rates.map(r=>r+'%'),
+      datasets:[
+        {label:'NPV by discount rate', data:npvs, borderColor:'#059669', tension:0.2, fill:false, pointRadius:0},
+        {label:'Project WACC ('+(v.wacc*100).toFixed(1)+'%)', data:rates.map(r=>Math.abs(r-v.wacc*100)<0.5?npvs[r]:null), borderColor:'#DC2626', pointRadius:5, pointStyle:'crossRot', showLine:false}
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom'},
+        tooltip:{callbacks:{label:(c)=>c.dataset.label+': $'+Math.round(c.parsed.y).toLocaleString()}}},
+      scales:{y:{ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k'},title:{display:true,text:'NPV ($)'}},
+              x:{title:{display:true,text:'Discount rate'}}}}
+  });
+
+  window._lastCapex = {v, cf, npv, irr, mirr, pb, dpb, pi, eac, roi, dep};
+}
+
+/* ----- Portfolio mode ----- */
+function loadDemoPortfolio(){
+  const tbody = document.getElementById('cxPortBody');
+  tbody.innerHTML = '';
+  DEMO_PORTFOLIO.forEach((p,i)=>addPortfolioProject(p));
+  rankPortfolio();
+}
+function addPortfolioProject(p){
+  if(!p) p = {name:'New project', scope:'growth', capex:500000, annual:120000, life:7};
+  const tbody = document.getElementById('cxPortBody');
+  const tr = document.createElement('tr');
+  tr.className = 'border-b border-slate-100 cx-port-row';
+  tr.innerHTML = `
+    <td class="py-1 px-2"><input class="w-40 border border-slate-200 rounded px-2 py-1 text-xs" value="${p.name}" oninput="rankPortfolio()"/></td>
+    <td class="py-1 px-2">
+      <select class="border border-slate-200 rounded px-2 py-1 text-xs" onchange="rankPortfolio()">
+        <option ${p.scope==='growth'?'selected':''}>growth</option>
+        <option ${p.scope==='cost-out'?'selected':''}>cost-out</option>
+        <option ${p.scope==='replacement'?'selected':''}>replacement</option>
+        <option ${p.scope==='maintenance'?'selected':''}>maintenance</option>
+        <option ${p.scope==='regulatory'?'selected':''}>regulatory</option>
+      </select>
+    </td>
+    <td class="py-1 px-2"><input type="number" class="w-28 text-right border border-slate-200 rounded px-2 py-1 text-xs" value="${p.capex}" oninput="rankPortfolio()"/></td>
+    <td class="py-1 px-2"><input type="number" class="w-28 text-right border border-slate-200 rounded px-2 py-1 text-xs" value="${p.annual}" oninput="rankPortfolio()"/></td>
+    <td class="py-1 px-2"><input type="number" class="w-16 text-right border border-slate-200 rounded px-2 py-1 text-xs" value="${p.life}" oninput="rankPortfolio()"/></td>
+    <td class="py-1 px-2 text-right font-semibold cx-port-npv">$0</td>
+    <td class="py-1 px-2 text-right font-semibold cx-port-irr">0%</td>
+    <td class="py-1 px-2 text-right font-semibold cx-port-pi">0.00</td>
+    <td class="py-1 px-2 text-right cx-port-pb">—</td>
+    <td class="py-1 px-2 text-center"><button onclick="this.closest('tr').remove();rankPortfolio()" class="text-red-600 hover:text-red-800 text-xs">×</button></td>
+  `;
+  tbody.appendChild(tr);
+  rankPortfolio();
+}
+function rankPortfolio(){
+  const wacc = (parseFloat(document.getElementById('cxPortWacc').value)||0)/100;
+  const budget = parseFloat(document.getElementById('cxBudget').value)||0;
+  const rows = [...document.querySelectorAll('.cx-port-row')];
+  const projects = rows.map(r=>{
+    const inputs = r.querySelectorAll('input');
+    const sel = r.querySelector('select');
+    const name = inputs[0].value;
+    const scope = sel.value;
+    const capex = parseFloat(inputs[1].value)||0;
+    const annual = parseFloat(inputs[2].value)||0;
+    const life = parseInt(inputs[3].value)||7;
+    const cf = [-capex]; for(let y=1;y<=life;y++) cf.push(annual);
+    const npv = NPV(wacc, cf);
+    const irr = IRR(cf);
+    const pi = ProfitabilityIndex(cf, wacc);
+    const pb = capex>0 && annual>0 ? capex/annual : null;
+    return {row:r, name, scope, capex, annual, life, npv, irr, pi, pb};
+  });
+  // Update row outputs
+  projects.forEach(p=>{
+    p.row.querySelector('.cx-port-npv').textContent = (p.npv>=0?'':'-') + '$' + Math.round(Math.abs(p.npv)).toLocaleString();
+    p.row.querySelector('.cx-port-npv').className   = 'py-1 px-2 text-right font-semibold ' + (p.npv>=0?'text-emerald-700':'text-red-700');
+    p.row.querySelector('.cx-port-irr').textContent = p.irr===null?'n/a':(p.irr*100).toFixed(1)+'%';
+    p.row.querySelector('.cx-port-pi').textContent  = p.pi===null?'n/a':p.pi.toFixed(2);
+    p.row.querySelector('.cx-port-pi').className    = 'py-1 px-2 text-right font-semibold ' + (p.pi!==null && p.pi>=1?'text-emerald-700':'text-red-700');
+    p.row.querySelector('.cx-port-pb').textContent  = p.pb===null?'—':p.pb.toFixed(2)+' yrs';
+  });
+  // Rank by PI desc and select within budget (greedy — standard for capital rationing approximation)
+  const ranked = projects.filter(p=>p.pi!==null && p.pi >= 1).slice().sort((a,b)=>b.pi-a.pi);
+  let spent = 0, selected = [];
+  ranked.forEach(p=>{
+    if(spent + p.capex <= budget){
+      selected.push(p);
+      spent += p.capex;
+    }
+  });
+  const remaining = budget - spent;
+  const totalNpv = selected.reduce((s,p)=>s+p.npv, 0);
+  // Highlight selected
+  projects.forEach(p=>{
+    if(selected.includes(p)) p.row.classList.add('bg-emerald-50/50');
+    else p.row.classList.remove('bg-emerald-50/50');
+  });
+  // Recommendation
+  document.getElementById('cxPortRecommendation').innerHTML = `
+    <div class="flex items-start gap-3">
+      <div class="text-3xl">📊</div>
+      <div class="flex-1">
+        <h3 class="font-bold text-base text-emerald-900">Optimal slate — ${selected.length} projects · spend $${spent.toLocaleString()} of $${budget.toLocaleString()} budget</h3>
+        <p class="text-sm text-slate-700 mt-1">
+          Total NPV produced: <b>$${Math.round(totalNpv).toLocaleString()}</b>.
+          Unallocated budget: <b>$${Math.round(remaining).toLocaleString()}</b>.
+          Capital rationing solved by greedy <b>PI ranking</b> (largest NPV per CapEx dollar selected first).
+        </p>
+        <div class="text-xs text-slate-600 mt-2">
+          <b>Selected:</b> ${selected.map(p=>p.name).join(', ') || '—'}<br/>
+          <b>Rejected (PI&lt;1 or won't fit budget):</b> ${projects.filter(p=>!selected.includes(p)).map(p=>p.name).join(', ') || '—'}
+        </div>
+        <ul class="text-xs text-slate-600 mt-2 list-disc pl-5 space-y-1">
+          <li>Regulatory projects should be added back regardless of NPV — they are mandatory, then optimize the remaining budget.</li>
+          <li>Re-run with WACC ± 2% to test sensitivity of the selected slate to cost-of-capital changes.</li>
+          <li>Beware: greedy PI selection is optimal only for divisible projects. For indivisible projects with very different sizes, use mixed-integer optimization for the true optimum.</li>
+        </ul>
+      </div>
+    </div>`;
+  // Bar chart
+  if(_cxCharts.port) _cxCharts.port.destroy();
+  _cxCharts.port = new Chart(document.getElementById('cxPortChart'), {
+    type:'bar',
+    data:{labels: projects.map(p=>p.name),
+      datasets:[
+        {label:'CapEx $', data:projects.map(p=>p.capex), backgroundColor: projects.map(p=>selected.includes(p)?'#10B981':'#CBD5E1')},
+        {label:'NPV $',   data:projects.map(p=>p.npv),   backgroundColor: projects.map(p=>selected.includes(p)?'#0F766E':'#94A3B8')}
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom'},
+        tooltip:{callbacks:{label:(c)=>c.dataset.label+': $'+Math.round(c.parsed.y).toLocaleString()}}},
+      scales:{y:{ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k'}}}}
+  });
+}
+
+function exportCapexExcel(){
+  if(typeof XLSX==='undefined'){ alert('XLSX library not loaded.'); return; }
+  const c = window._lastCapex; if(!c){ computeCapex(); return; }
+  const wb = XLSX.utils.book_new();
+  // Inputs + per-year CF
+  const rows = [
+    ['CapEx Investment Analysis — '+c.v.name],
+    ['Scope', c.v.scope], ['Initial CapEx', c.v.capex], ['Working capital', c.v.wc],
+    ['Salvage', c.v.salvage], ['Life (yrs)', c.v.life], ['WACC %', c.v.wacc*100], ['Tax %', c.v.tax*100], ['Depreciation', c.v.dep],
+    [],
+    ['Year','Revenue/savings','OpEx','Depreciation','Pre-tax CF','After-tax CF','Discounted CF'],
+  ];
+  let acc=0;
+  for(let y=0;y<=c.v.life;y++){
+    const gross = y===0?-(c.v.capex+c.v.wc):(c.v.rev[y]||0) - (c.v.op[y]||0);
+    const aft = c.cf[y];
+    const dcf = aft / Math.pow(1+c.v.wacc, y);
+    rows.push([y, c.v.rev[y]||0, c.v.op[y]||0, Math.round(c.dep[y]), Math.round(gross-(y===0?0:c.dep[y])), Math.round(aft), Math.round(dcf)]);
+  }
+  rows.push([]);
+  rows.push(['Metric','Value']);
+  rows.push(['NPV', Math.round(c.npv)]);
+  rows.push(['IRR %', c.irr===null?'n/a':(c.irr*100).toFixed(2)]);
+  rows.push(['MIRR %', c.mirr===null?'n/a':(c.mirr*100).toFixed(2)]);
+  rows.push(['Payback (yrs)', c.pb===null?'never':c.pb.toFixed(2)]);
+  rows.push(['Discounted Payback (yrs)', c.dpb===null?'never':c.dpb.toFixed(2)]);
+  rows.push(['Profitability Index', c.pi===null?'n/a':c.pi.toFixed(3)]);
+  rows.push(['EAC ($/yr)', c.eac===null?'n/a':Math.round(c.eac)]);
+  rows.push(['ROI %', (c.roi*100).toFixed(1)]);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'CapEx_Analysis');
+  XLSX.writeFile(wb, `CapEx_${(c.v.name||'analysis').replace(/[^a-z0-9]/gi,'_')}.xlsx`);
 }
 
 /* ============== DEMAND FORECASTING ============== */
