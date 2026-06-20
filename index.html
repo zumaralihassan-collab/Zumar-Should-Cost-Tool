@@ -7429,14 +7429,24 @@ function rankPortfolio(){
     const pb = capex>0 && annual>0 ? capex/annual : null;
     return {row:r, name, scope, capex, annual, life, npv, irr, pi, pb};
   });
-  // Update row outputs
+  // Update row outputs (preserve cx-port-* hook classes; toggle only color)
   projects.forEach(p=>{
-    p.row.querySelector('.cx-port-npv').textContent = (p.npv>=0?'':'-') + '$' + Math.round(Math.abs(p.npv)).toLocaleString();
-    p.row.querySelector('.cx-port-npv').className   = 'py-1 px-2 text-right font-semibold ' + (p.npv>=0?'text-emerald-700':'text-red-700');
-    p.row.querySelector('.cx-port-irr').textContent = p.irr===null?'n/a':(p.irr*100).toFixed(1)+'%';
-    p.row.querySelector('.cx-port-pi').textContent  = p.pi===null?'n/a':p.pi.toFixed(2);
-    p.row.querySelector('.cx-port-pi').className    = 'py-1 px-2 text-right font-semibold ' + (p.pi!==null && p.pi>=1?'text-emerald-700':'text-red-700');
-    p.row.querySelector('.cx-port-pb').textContent  = p.pb===null?'—':p.pb.toFixed(2)+' yrs';
+    const npvEl = p.row.querySelector('.cx-port-npv');
+    const irrEl = p.row.querySelector('.cx-port-irr');
+    const piEl  = p.row.querySelector('.cx-port-pi');
+    const pbEl  = p.row.querySelector('.cx-port-pb');
+    if(npvEl){
+      npvEl.textContent = (p.npv>=0?'':'-') + '$' + Math.round(Math.abs(p.npv)).toLocaleString();
+      npvEl.classList.toggle('text-emerald-700', p.npv>=0);
+      npvEl.classList.toggle('text-red-700',     p.npv<0);
+    }
+    if(irrEl) irrEl.textContent = p.irr===null?'n/a':(p.irr*100).toFixed(1)+'%';
+    if(piEl){
+      piEl.textContent = p.pi===null?'n/a':p.pi.toFixed(2);
+      piEl.classList.toggle('text-emerald-700', p.pi!==null && p.pi>=1);
+      piEl.classList.toggle('text-red-700',     !(p.pi!==null && p.pi>=1));
+    }
+    if(pbEl) pbEl.textContent = p.pb===null?'—':p.pb.toFixed(2)+' yrs';
   });
   // Rank by PI desc and select within budget (greedy — standard for capital rationing approximation)
   const ranked = projects.filter(p=>p.pi!==null && p.pi >= 1).slice().sort((a,b)=>b.pi-a.pi);
