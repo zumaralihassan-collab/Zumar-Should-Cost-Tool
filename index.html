@@ -339,6 +339,7 @@
   <div class="sidebar-bucket">
     <div class="sidebar-bucket-label">📊 Analyze</div>
     <button class="tab-btn tab-inactive" data-tab="calc" onclick="switchTab('calc')"><span>🧮</span><span>Should Cost Calculator</span></button>
+    <button class="tab-btn tab-inactive" data-tab="tco" onclick="switchTab('tco')"><span>💼</span><span>TCO Optimization</span></button>
     <button class="tab-btn tab-inactive" data-tab="dash" onclick="switchTab('dash')"><span>📈</span><span>Executive Dashboard</span></button>
     <button class="tab-btn tab-inactive" data-tab="sca" onclick="switchTab('sca')"><span>🎯</span><span>Supply Chain Analytics</span></button>
     <button class="tab-btn tab-inactive" data-tab="forecast" onclick="switchTab('forecast')"><span>🔮</span><span>Demand Forecasting</span></button>
@@ -1118,6 +1119,118 @@
     </div>
     <p class="text-xs text-slate-500">Auto-updates raw material rates in your current Should Cost analysis based on the latest commodity prices above. Useful after market shifts.</p>
   </div>
+</section>
+
+<!-- ========= TCO OPTIMIZATION ========= -->
+<section id="tab-tco-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-indigo-700 to-purple-700 text-white rounded-2xl p-6 mb-6">
+    <div class="flex justify-between items-start flex-wrap gap-3">
+      <div>
+        <h2 class="text-2xl font-bold">Total Cost of Ownership — Optimization Hub</h2>
+        <p class="text-indigo-100 text-sm">Compare suppliers across the full ownership lifecycle, not just purchase price. NPV-based · multi-year · sensitivity-tested.</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="exportTCOExcel()" class="px-3 py-2 bg-white/15 hover:bg-white/25 rounded-lg text-xs font-semibold">⬇ Export Excel</button>
+        <button onclick="resetTCO()" class="px-3 py-2 bg-white/15 hover:bg-white/25 rounded-lg text-xs font-semibold">↻ Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TCO methodology — 9 cost layers explained -->
+  <div class="grid md:grid-cols-3 gap-3 mb-6">
+    <div class="bg-white rounded-xl card-shadow p-3"><div class="text-xs font-bold text-indigo-700 mb-1">1 · Acquisition</div><div class="text-[11px] text-slate-600">Unit price × qty + freight + duties + installation + commissioning.</div></div>
+    <div class="bg-white rounded-xl card-shadow p-3"><div class="text-xs font-bold text-indigo-700 mb-1">2 · Operating</div><div class="text-[11px] text-slate-600">Energy (kWh × tariff) + consumables + operator labor + utilities.</div></div>
+    <div class="bg-white rounded-xl card-shadow p-3"><div class="text-xs font-bold text-indigo-700 mb-1">3 · Maintenance</div><div class="text-[11px] text-slate-600">Preventive + corrective + spares + service contract.</div></div>
+    <div class="bg-white rounded-xl card-shadow p-3"><div class="text-xs font-bold text-indigo-700 mb-1">4 · Quality / Warranty</div><div class="text-[11px] text-slate-600">Defect cost + rework + returns + warranty reserve.</div></div>
+    <div class="bg-white rounded-xl card-shadow p-3"><div class="text-xs font-bold text-indigo-700 mb-1">5 · Downtime</div><div class="text-[11px] text-slate-600">Unavailability hours × hourly opportunity cost.</div></div>
+    <div class="bg-white rounded-xl card-shadow p-3"><div class="text-xs font-bold text-indigo-700 mb-1">6 · Financing</div><div class="text-[11px] text-slate-600">Working-capital cost from payment terms (NET 30/60/90).</div></div>
+    <div class="bg-white rounded-xl card-shadow p-3"><div class="text-xs font-bold text-indigo-700 mb-1">7 · End-of-life</div><div class="text-[11px] text-slate-600">Disposal / decommissioning cost — salvage value credit.</div></div>
+    <div class="bg-white rounded-xl card-shadow p-3"><div class="text-xs font-bold text-indigo-700 mb-1">8 · Risk Premium</div><div class="text-[11px] text-slate-600">Supply continuity, FX, compliance, single-source surcharge.</div></div>
+    <div class="bg-white rounded-xl card-shadow p-3"><div class="text-xs font-bold text-indigo-700 mb-1">9 · Hidden / Switching</div><div class="text-[11px] text-slate-600">Training, integration, change management, audit cost.</div></div>
+  </div>
+
+  <!-- Setup row -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <div class="grid md:grid-cols-12 gap-4 items-end">
+      <div class="md:col-span-4">
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Asset / Category</label>
+        <input id="tcoAsset" type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" placeholder="e.g. Centrifugal pump 75 kW"/>
+      </div>
+      <div class="md:col-span-3">
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Pre-built template</label>
+        <select id="tcoTemplate" onchange="loadTCOTemplate(this.value)" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+          <option value="">— pick a template —</option>
+          <option value="pump">Industrial Pump (75 kW)</option>
+          <option value="forklift">Electric Forklift (3 T)</option>
+          <option value="machine">CNC Machine Tool</option>
+          <option value="laptop">Enterprise Laptop Fleet</option>
+          <option value="mfp">Multifunction Printer</option>
+          <option value="hvac">HVAC Chiller (200 TR)</option>
+          <option value="fleet">Light Commercial Vehicle</option>
+          <option value="server">Rack Server</option>
+          <option value="packaging">Filling / Packaging Line</option>
+        </select>
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Horizon (yrs)</label>
+        <input id="tcoYears" type="number" value="7" min="1" max="20" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="computeTCO()"/>
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Discount rate %</label>
+        <input id="tcoDiscount" type="number" value="8" min="0" max="25" step="0.5" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="computeTCO()"/>
+      </div>
+      <div class="md:col-span-1">
+        <button onclick="computeTCO()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-2 text-sm font-semibold">▶ Run</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario inputs (3 suppliers) -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-bold text-sm text-slate-800">Scenario Inputs — three suppliers, all 9 cost layers</h3>
+      <p class="text-[10px] text-slate-500">Annual figures unless marked one-time. NPV uses discount rate above.</p>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs" id="tcoInputsTable">
+        <thead>
+          <tr class="border-b-2 border-slate-200">
+            <th class="text-left py-2 px-2 text-slate-600 font-semibold">Cost Driver</th>
+            <th class="text-left py-2 px-1 text-slate-500 text-[10px]">Unit</th>
+            <th class="text-left py-2 px-2 text-slate-600 font-semibold">Frequency</th>
+            <th class="text-right py-2 px-2 text-indigo-700 font-bold bg-indigo-50">Supplier A</th>
+            <th class="text-right py-2 px-2 text-violet-700 font-bold bg-violet-50">Supplier B</th>
+            <th class="text-right py-2 px-2 text-purple-700 font-bold bg-purple-50">Supplier C</th>
+          </tr>
+        </thead>
+        <tbody id="tcoInputsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Results KPI cards -->
+  <div id="tcoKpiCards" class="grid md:grid-cols-3 gap-3 mb-6"></div>
+
+  <!-- Cost-stack chart + breakdown table -->
+  <div class="grid md:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white rounded-2xl card-shadow p-5">
+      <h3 class="font-bold text-sm mb-2">TCO Stack — by Cost Category (NPV $)</h3>
+      <div class="h-72"><canvas id="tcoStackChart"></canvas></div>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-5">
+      <h3 class="font-bold text-sm mb-2">Cumulative Cash Outflow over Horizon</h3>
+      <div class="h-72"><canvas id="tcoCumChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Sensitivity -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <h3 class="font-bold text-sm mb-3">Sensitivity — ± 20% swing on key drivers (winner / loser swap risk)</h3>
+    <div id="tcoSensitivity" class="text-xs"></div>
+  </div>
+
+  <!-- Recommendation -->
+  <div id="tcoRecommendation" class="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-2xl p-5 mb-6"></div>
 </section>
 
 <!-- ========= DEMAND FORECASTING ========= -->
@@ -2738,6 +2851,7 @@ function switchTab(name){
   if(name==='aidash') initAIDash();
   if(name==='vendor') initVendor();
   if(name==='srm') initSRM();
+  if(name==='tco') initTCO();
 }
 
 const TEMPLATES = {
@@ -6365,6 +6479,335 @@ function applyCommodityRates(){
     alert(`Updated ${updated} cost driver(s) based on current commodity prices. Switch to the Should Cost Calculator tab to see the impact.`);
     switchTab('calc');
   } else alert('No matching commodity-linked drivers found in current analysis.');
+}
+
+/* ============== TCO OPTIMIZATION ============== */
+// 9-layer Total Cost of Ownership model with 3-supplier comparison, NPV discounting, sensitivity.
+// Each driver has: freq ('one-time'|'annual'|'per-year-growth'), unit, value per scenario, hint.
+const TCO_DRIVERS = [
+  // 1 · Acquisition (one-time)
+  {key:'acq_price',    cat:'1 Acquisition',     label:'Unit price',                unit:'$',     freq:'one-time'},
+  {key:'acq_qty',      cat:'1 Acquisition',     label:'Quantity',                  unit:'units', freq:'one-time'},
+  {key:'acq_freight',  cat:'1 Acquisition',     label:'Inbound freight + duty',    unit:'$',     freq:'one-time'},
+  {key:'acq_install',  cat:'1 Acquisition',     label:'Installation / commissioning', unit:'$',  freq:'one-time'},
+  // 2 · Operating (annual)
+  {key:'op_energy_kwh', cat:'2 Operating',      label:'Energy consumption',        unit:'kWh/yr',freq:'annual'},
+  {key:'op_energy_rate',cat:'2 Operating',      label:'Energy tariff',             unit:'$/kWh', freq:'rate'},
+  {key:'op_consume',   cat:'2 Operating',       label:'Consumables / fluids',      unit:'$/yr',  freq:'annual'},
+  {key:'op_labor',     cat:'2 Operating',       label:'Operator labor',            unit:'$/yr',  freq:'annual'},
+  // 3 · Maintenance (annual)
+  {key:'mt_pm',        cat:'3 Maintenance',     label:'Preventive maintenance',    unit:'$/yr',  freq:'annual'},
+  {key:'mt_spares',    cat:'3 Maintenance',     label:'Spare parts',               unit:'$/yr',  freq:'annual'},
+  {key:'mt_service',   cat:'3 Maintenance',     label:'Service contract',          unit:'$/yr',  freq:'annual'},
+  // 4 · Quality / Warranty (annual)
+  {key:'q_defect_pct', cat:'4 Quality',         label:'Defect rate',               unit:'%',     freq:'rate'},
+  {key:'q_warranty',   cat:'4 Quality',         label:'Warranty reserve',          unit:'$/yr',  freq:'annual'},
+  // 5 · Downtime (annual)
+  {key:'dt_hours',     cat:'5 Downtime',        label:'Downtime hours',            unit:'hrs/yr',freq:'annual'},
+  {key:'dt_cost_hour', cat:'5 Downtime',        label:'Cost per downtime hour',    unit:'$/hr',  freq:'rate'},
+  // 6 · Financing
+  {key:'fin_terms_days',cat:'6 Financing',      label:'Payment terms',             unit:'days',  freq:'rate'},
+  {key:'fin_wacc_pct', cat:'6 Financing',       label:'Cost of capital',           unit:'%',     freq:'rate'},
+  // 7 · End-of-life (one-time)
+  {key:'eol_disposal', cat:'7 End-of-life',     label:'Disposal cost',             unit:'$',     freq:'one-time'},
+  {key:'eol_salvage',  cat:'7 End-of-life',     label:'Salvage value (credit)',    unit:'$',     freq:'one-time'},
+  // 8 · Risk premium (annual)
+  {key:'risk_premium', cat:'8 Risk Premium',    label:'Risk surcharge (FX/supply)',unit:'$/yr',  freq:'annual'},
+  // 9 · Hidden / switching (one-time)
+  {key:'hidden_switch',cat:'9 Hidden / Switching',label:'Training + integration',  unit:'$',     freq:'one-time'}
+];
+const TCO_TEMPLATES = {
+  pump: {asset:'Industrial centrifugal pump 75 kW', years:10, A:{acq_price:18500,acq_qty:1,acq_freight:1200,acq_install:2800,op_energy_kwh:480000,op_energy_rate:0.09,op_consume:600,op_labor:4200,mt_pm:2400,mt_spares:1800,mt_service:3200,q_defect_pct:1.0,q_warranty:0,dt_hours:24,dt_cost_hour:850,fin_terms_days:30,fin_wacc_pct:8,eol_disposal:600,eol_salvage:1200,risk_premium:0,hidden_switch:1500},
+                                                     B:{acq_price:14200,acq_qty:1,acq_freight:2400,acq_install:3500,op_energy_kwh:545000,op_energy_rate:0.09,op_consume:900,op_labor:4500,mt_pm:3800,mt_spares:2900,mt_service:0,    q_defect_pct:3.5,q_warranty:1800,dt_hours:65,dt_cost_hour:850,fin_terms_days:45,fin_wacc_pct:8,eol_disposal:900,eol_salvage:600, risk_premium:1200,hidden_switch:3500},
+                                                     C:{acq_price:22000,acq_qty:1,acq_freight:600, acq_install:1800,op_energy_kwh:425000,op_energy_rate:0.09,op_consume:400,op_labor:4000,mt_pm:1800,mt_spares:1200,mt_service:4200,q_defect_pct:0.4,q_warranty:0,    dt_hours:12,dt_cost_hour:850,fin_terms_days:60,fin_wacc_pct:8,eol_disposal:450,eol_salvage:1800,risk_premium:0,   hidden_switch:1200}},
+  forklift:{asset:'Electric forklift 3 T (lithium)', years:7,  A:{acq_price:42000,acq_qty:4,acq_freight:4000,acq_install:0,op_energy_kwh:14000,op_energy_rate:0.11,op_consume:1200,op_labor:0,mt_pm:1800,mt_spares:1400,mt_service:2400,q_defect_pct:0.5,q_warranty:0,dt_hours:18,dt_cost_hour:420,fin_terms_days:30,fin_wacc_pct:8,eol_disposal:600,eol_salvage:5500,risk_premium:0,hidden_switch:2000},
+                                                     B:{acq_price:35500,acq_qty:4,acq_freight:6500,acq_install:0,op_energy_kwh:16200,op_energy_rate:0.11,op_consume:1500,op_labor:0,mt_pm:2400,mt_spares:2200,mt_service:0,   q_defect_pct:1.5,q_warranty:1200,dt_hours:45,dt_cost_hour:420,fin_terms_days:60,fin_wacc_pct:8,eol_disposal:900,eol_salvage:3800,risk_premium:1500,hidden_switch:4500},
+                                                     C:{acq_price:48500,acq_qty:4,acq_freight:2200,acq_install:0,op_energy_kwh:12500,op_energy_rate:0.11,op_consume:1000,op_labor:0,mt_pm:1400,mt_spares:1000,mt_service:3200,q_defect_pct:0.2,q_warranty:0,   dt_hours:10,dt_cost_hour:420,fin_terms_days:45,fin_wacc_pct:8,eol_disposal:500,eol_salvage:7200,risk_premium:0,   hidden_switch:1800}},
+  machine:{asset:'CNC vertical machining center',    years:10, A:{acq_price:185000,acq_qty:1,acq_freight:9500,acq_install:18500,op_energy_kwh:62000,op_energy_rate:0.10,op_consume:4800,op_labor:55000,mt_pm:6800,mt_spares:9200,mt_service:14000,q_defect_pct:0.8,q_warranty:0,dt_hours:32,dt_cost_hour:2400,fin_terms_days:30,fin_wacc_pct:8,eol_disposal:4500,eol_salvage:14000,risk_premium:0,hidden_switch:8500},
+                                                     B:{acq_price:148000,acq_qty:1,acq_freight:14000,acq_install:22000,op_energy_kwh:72000,op_energy_rate:0.10,op_consume:5400,op_labor:55000,mt_pm:9500,mt_spares:14500,mt_service:0,   q_defect_pct:2.4,q_warranty:9500,dt_hours:85,dt_cost_hour:2400,fin_terms_days:60,fin_wacc_pct:8,eol_disposal:6800,eol_salvage:8500,risk_premium:6500,hidden_switch:18000},
+                                                     C:{acq_price:218000,acq_qty:1,acq_freight:7500,acq_install:14500,op_energy_kwh:55000,op_energy_rate:0.10,op_consume:4200,op_labor:55000,mt_pm:5400,mt_spares:6800,mt_service:18500,q_defect_pct:0.3,q_warranty:0,   dt_hours:14,dt_cost_hour:2400,fin_terms_days:90,fin_wacc_pct:8,eol_disposal:3500,eol_salvage:22000,risk_premium:0,hidden_switch:6500}},
+  laptop: {asset:'Enterprise laptop fleet (150 units)',years:4,A:{acq_price:1450,acq_qty:150,acq_freight:1800,acq_install:0,op_energy_kwh:9000,op_energy_rate:0.13,op_consume:0,op_labor:0,mt_pm:0,mt_spares:6800,mt_service:14000,q_defect_pct:1.8,q_warranty:0,dt_hours:340,dt_cost_hour:75,fin_terms_days:30,fin_wacc_pct:8,eol_disposal:1200,eol_salvage:16500,risk_premium:0,hidden_switch:8500},
+                                                     B:{acq_price:1180,acq_qty:150,acq_freight:2400,acq_install:0,op_energy_kwh:10500,op_energy_rate:0.13,op_consume:0,op_labor:0,mt_pm:0,mt_spares:11200,mt_service:0,   q_defect_pct:4.5,q_warranty:6500,dt_hours:780,dt_cost_hour:75,fin_terms_days:60,fin_wacc_pct:8,eol_disposal:2400,eol_salvage:8800,risk_premium:2400,hidden_switch:14500},
+                                                     C:{acq_price:1720,acq_qty:150,acq_freight:1200,acq_install:0,op_energy_kwh:8200,op_energy_rate:0.13,op_consume:0,op_labor:0,mt_pm:0,mt_spares:4200,mt_service:18500,q_defect_pct:0.8,q_warranty:0,   dt_hours:180,dt_cost_hour:75,fin_terms_days:45,fin_wacc_pct:8,eol_disposal:800,eol_salvage:24000,risk_premium:0,hidden_switch:6500}},
+  mfp:    {asset:'Multifunction printer (managed)',  years:5,  A:{acq_price:3200,acq_qty:8,acq_freight:480,acq_install:600,op_energy_kwh:1450,op_energy_rate:0.13,op_consume:9800,op_labor:0,mt_pm:0,mt_spares:1800,mt_service:4200,q_defect_pct:1.0,q_warranty:0,dt_hours:24,dt_cost_hour:240,fin_terms_days:30,fin_wacc_pct:8,eol_disposal:240,eol_salvage:480,risk_premium:0,hidden_switch:480},
+                                                     B:{acq_price:2100,acq_qty:8,acq_freight:880,acq_install:1200,op_energy_kwh:1850,op_energy_rate:0.13,op_consume:18500,op_labor:0,mt_pm:0,mt_spares:3400,mt_service:0,   q_defect_pct:3.5,q_warranty:1500,dt_hours:78,dt_cost_hour:240,fin_terms_days:60,fin_wacc_pct:8,eol_disposal:480,eol_salvage:240,risk_premium:980,hidden_switch:2200},
+                                                     C:{acq_price:4500,acq_qty:8,acq_freight:240,acq_install:380,op_energy_kwh:1180,op_energy_rate:0.13,op_consume:5400,op_labor:0,mt_pm:0,mt_spares:1200,mt_service:5800,q_defect_pct:0.4,q_warranty:0,   dt_hours:8,dt_cost_hour:240,fin_terms_days:45,fin_wacc_pct:8,eol_disposal:180,eol_salvage:980,risk_premium:0,hidden_switch:380}},
+  hvac:   {asset:'HVAC water-cooled chiller 200 TR', years:15, A:{acq_price:185000,acq_qty:1,acq_freight:8500,acq_install:24000,op_energy_kwh:580000,op_energy_rate:0.10,op_consume:1800,op_labor:0,mt_pm:8500,mt_spares:4200,mt_service:14000,q_defect_pct:0.5,q_warranty:0,dt_hours:18,dt_cost_hour:1800,fin_terms_days:30,fin_wacc_pct:8,eol_disposal:4800,eol_salvage:12000,risk_premium:0,hidden_switch:4500},
+                                                     B:{acq_price:142000,acq_qty:1,acq_freight:12500,acq_install:32000,op_energy_kwh:680000,op_energy_rate:0.10,op_consume:2400,op_labor:0,mt_pm:14000,mt_spares:6800,mt_service:0,    q_defect_pct:2.0,q_warranty:9800,dt_hours:65,dt_cost_hour:1800,fin_terms_days:60,fin_wacc_pct:8,eol_disposal:7200,eol_salvage:7500,risk_premium:6500,hidden_switch:9500},
+                                                     C:{acq_price:228000,acq_qty:1,acq_freight:6500,acq_install:18500,op_energy_kwh:515000,op_energy_rate:0.10,op_consume:1500,op_labor:0,mt_pm:6800,mt_spares:3400,mt_service:18500,q_defect_pct:0.3,q_warranty:0,    dt_hours:10,dt_cost_hour:1800,fin_terms_days:90,fin_wacc_pct:8,eol_disposal:3500,eol_salvage:18500,risk_premium:0,hidden_switch:3500}},
+  fleet:  {asset:'Light commercial van (10 units)',  years:6,  A:{acq_price:38500,acq_qty:10,acq_freight:6500,acq_install:0,op_energy_kwh:0,op_energy_rate:0,op_consume:42000,op_labor:0,mt_pm:8500,mt_spares:12500,mt_service:18500,q_defect_pct:0.8,q_warranty:0,dt_hours:240,dt_cost_hour:480,fin_terms_days:30,fin_wacc_pct:8,eol_disposal:4500,eol_salvage:78000,risk_premium:0,hidden_switch:6500},
+                                                     B:{acq_price:32500,acq_qty:10,acq_freight:9500,acq_install:0,op_energy_kwh:0,op_energy_rate:0,op_consume:52000,op_labor:0,mt_pm:14500,mt_spares:22000,mt_service:0,   q_defect_pct:2.5,q_warranty:8500,dt_hours:580,dt_cost_hour:480,fin_terms_days:60,fin_wacc_pct:8,eol_disposal:7500,eol_salvage:52000,risk_premium:4800,hidden_switch:14500},
+                                                     C:{acq_price:42500,acq_qty:10,acq_freight:4200,acq_install:0,op_energy_kwh:0,op_energy_rate:0,op_consume:34000,op_labor:0,mt_pm:6500,mt_spares:9500,mt_service:22000,q_defect_pct:0.4,q_warranty:0,   dt_hours:120,dt_cost_hour:480,fin_terms_days:45,fin_wacc_pct:8,eol_disposal:3500,eol_salvage:98000,risk_premium:0,hidden_switch:4800}},
+  server: {asset:'Rack server (data center, 20 nodes)',years:5,A:{acq_price:8500,acq_qty:20,acq_freight:1800,acq_install:3500,op_energy_kwh:4200,op_energy_rate:0.09,op_consume:0,op_labor:0,mt_pm:0,mt_spares:2400,mt_service:6800,q_defect_pct:0.4,q_warranty:0,dt_hours:8,dt_cost_hour:4500,fin_terms_days:30,fin_wacc_pct:8,eol_disposal:1200,eol_salvage:8500,risk_premium:0,hidden_switch:4500},
+                                                     B:{acq_price:6500,acq_qty:20,acq_freight:2800,acq_install:5500,op_energy_kwh:5200,op_energy_rate:0.09,op_consume:0,op_labor:0,mt_pm:0,mt_spares:4500,mt_service:0,   q_defect_pct:1.8,q_warranty:3500,dt_hours:48,dt_cost_hour:4500,fin_terms_days:60,fin_wacc_pct:8,eol_disposal:2400,eol_salvage:4200,risk_premium:3500,hidden_switch:14500},
+                                                     C:{acq_price:11500,acq_qty:20,acq_freight:1200,acq_install:2400,op_energy_kwh:3500,op_energy_rate:0.09,op_consume:0,op_labor:0,mt_pm:0,mt_spares:1500,mt_service:8500,q_defect_pct:0.1,q_warranty:0,   dt_hours:3,dt_cost_hour:4500,fin_terms_days:45,fin_wacc_pct:8,eol_disposal:800,eol_salvage:14500,risk_premium:0,hidden_switch:3500}},
+  packaging:{asset:'Filling / packaging line',       years:10, A:{acq_price:285000,acq_qty:1,acq_freight:14000,acq_install:38000,op_energy_kwh:185000,op_energy_rate:0.10,op_consume:14000,op_labor:85000,mt_pm:12000,mt_spares:18500,mt_service:24000,q_defect_pct:0.6,q_warranty:0,dt_hours:42,dt_cost_hour:3200,fin_terms_days:30,fin_wacc_pct:8,eol_disposal:8500,eol_salvage:24000,risk_premium:0,hidden_switch:12000},
+                                                     B:{acq_price:218000,acq_qty:1,acq_freight:22000,acq_install:48000,op_energy_kwh:225000,op_energy_rate:0.10,op_consume:18500,op_labor:85000,mt_pm:22000,mt_spares:32000,mt_service:0,    q_defect_pct:2.8,q_warranty:14500,dt_hours:165,dt_cost_hour:3200,fin_terms_days:60,fin_wacc_pct:8,eol_disposal:14000,eol_salvage:14000,risk_premium:9500,hidden_switch:28000},
+                                                     C:{acq_price:345000,acq_qty:1,acq_freight:9500,acq_install:28000,op_energy_kwh:165000,op_energy_rate:0.10,op_consume:11500,op_labor:85000,mt_pm:9500,mt_spares:14000,mt_service:32000,q_defect_pct:0.2,q_warranty:0,    dt_hours:18,dt_cost_hour:3200,fin_terms_days:90,fin_wacc_pct:8,eol_disposal:6500,eol_salvage:38500,risk_premium:0,hidden_switch:8500}}
+};
+
+let _tcoCharts = {stack:null, cum:null};
+
+function initTCO(){
+  renderTCOInputs();
+  // Load pump template by default for first-time render
+  if(!document.getElementById('tcoInputsBody').dataset.loaded){
+    loadTCOTemplate('pump');
+    document.getElementById('tcoInputsBody').dataset.loaded = '1';
+  } else {
+    computeTCO();
+  }
+}
+function renderTCOInputs(){
+  const tbody = document.getElementById('tcoInputsBody');
+  let prevCat = '';
+  tbody.innerHTML = TCO_DRIVERS.map(d=>{
+    const newCat = d.cat !== prevCat;
+    prevCat = d.cat;
+    const catRow = newCat ? `<tr class="bg-slate-50"><td colspan="6" class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600">${d.cat}</td></tr>` : '';
+    return `${catRow}<tr class="border-b border-slate-100">
+      <td class="py-1 px-2 text-slate-700">${d.label}</td>
+      <td class="py-1 px-1 text-[10px] text-slate-400">${d.unit}</td>
+      <td class="py-1 px-2 text-[10px] text-slate-500">${d.freq}</td>
+      <td class="py-1 px-2"><input type="number" step="0.01" data-key="${d.key}" data-sc="A" class="tco-in w-24 text-right border border-slate-200 rounded px-2 py-1 text-xs bg-indigo-50/40" oninput="computeTCO()"/></td>
+      <td class="py-1 px-2"><input type="number" step="0.01" data-key="${d.key}" data-sc="B" class="tco-in w-24 text-right border border-slate-200 rounded px-2 py-1 text-xs bg-violet-50/40" oninput="computeTCO()"/></td>
+      <td class="py-1 px-2"><input type="number" step="0.01" data-key="${d.key}" data-sc="C" class="tco-in w-24 text-right border border-slate-200 rounded px-2 py-1 text-xs bg-purple-50/40" oninput="computeTCO()"/></td>
+    </tr>`;
+  }).join('');
+}
+function loadTCOTemplate(key){
+  if(!key) return;
+  const t = TCO_TEMPLATES[key];
+  if(!t) return;
+  document.getElementById('tcoAsset').value = t.asset;
+  document.getElementById('tcoYears').value = t.years;
+  ['A','B','C'].forEach(sc=>{
+    Object.entries(t[sc]).forEach(([k,v])=>{
+      const el = document.querySelector(`.tco-in[data-key="${k}"][data-sc="${sc}"]`);
+      if(el) el.value = v;
+    });
+  });
+  computeTCO();
+}
+function resetTCO(){
+  document.querySelectorAll('.tco-in').forEach(el=>el.value='');
+  document.getElementById('tcoAsset').value='';
+  document.getElementById('tcoTemplate').value='';
+  computeTCO();
+}
+function _tcoRead(sc){
+  const o = {};
+  TCO_DRIVERS.forEach(d=>{
+    const el = document.querySelector(`.tco-in[data-key="${d.key}"][data-sc="${sc}"]`);
+    o[d.key] = el ? (parseFloat(el.value)||0) : 0;
+  });
+  return o;
+}
+function _tcoComputeScenario(v, years, discountPct){
+  const d = discountPct/100;
+  const disc = (yr) => 1 / Math.pow(1+d, yr); // discount factor at year-end
+  // ── one-time at year 0 ──
+  const acquisition = v.acq_price * v.acq_qty + v.acq_freight + v.acq_install;
+  const eol_net     = (v.eol_disposal - v.eol_salvage) * disc(years); // at end of horizon
+  const hidden      = v.hidden_switch; // year 0
+  // ── annual streams (NPV from year 1..years) ──
+  const annuityFactor = (function(){ let s=0; for(let y=1;y<=years;y++) s += disc(y); return s; })();
+  const operating   = (v.op_energy_kwh * v.op_energy_rate + v.op_consume + v.op_labor) * annuityFactor;
+  const maintenance = (v.mt_pm + v.mt_spares + v.mt_service) * annuityFactor;
+  const quality     = (v.q_warranty + (v.q_defect_pct/100) * (v.acq_price * v.acq_qty)) * annuityFactor;
+  const downtime    = (v.dt_hours * v.dt_cost_hour) * annuityFactor;
+  // Financing: working-capital cost = (terms_days/365) × wacc × annual spend
+  const annualSpend = v.op_energy_kwh * v.op_energy_rate + v.op_consume + v.op_labor + v.mt_pm + v.mt_spares + v.mt_service;
+  const financing   = (v.fin_terms_days/365) * (v.fin_wacc_pct/100) * annualSpend * annuityFactor;
+  const risk        = v.risk_premium * annuityFactor;
+  const breakdown = {
+    'Acquisition': acquisition,
+    'Operating':   operating,
+    'Maintenance': maintenance,
+    'Quality':     quality,
+    'Downtime':    downtime,
+    'Financing':   financing,
+    'End-of-life': eol_net,
+    'Risk':        risk,
+    'Hidden':      hidden
+  };
+  const tco = Object.values(breakdown).reduce((a,b)=>a+b, 0);
+  // Cumulative cash flow per year (undiscounted, for display)
+  const annualUndisc = v.op_energy_kwh * v.op_energy_rate + v.op_consume + v.op_labor +
+                       v.mt_pm + v.mt_spares + v.mt_service + v.q_warranty +
+                       (v.q_defect_pct/100) * (v.acq_price * v.acq_qty) +
+                       v.dt_hours * v.dt_cost_hour + v.risk_premium +
+                       (v.fin_terms_days/365) * (v.fin_wacc_pct/100) * annualSpend;
+  const cumYears = [];
+  let cum = acquisition + hidden;
+  cumYears.push(cum);
+  for(let y=1;y<=years;y++){
+    cum += annualUndisc;
+    if(y===years) cum += (v.eol_disposal - v.eol_salvage);
+    cumYears.push(cum);
+  }
+  return {breakdown, tco, cumYears};
+}
+function computeTCO(){
+  const years = parseInt(document.getElementById('tcoYears').value)||7;
+  const disc = parseFloat(document.getElementById('tcoDiscount').value)||0;
+  const A = _tcoComputeScenario(_tcoRead('A'), years, disc);
+  const B = _tcoComputeScenario(_tcoRead('B'), years, disc);
+  const C = _tcoComputeScenario(_tcoRead('C'), years, disc);
+  window._lastTCO = {A,B,C,years,disc,asset:document.getElementById('tcoAsset').value};
+  renderTCOResults(A,B,C,years);
+  drawTCOStackChart(A,B,C);
+  drawTCOCumChart(A,B,C,years);
+  renderTCOSensitivity(years,disc);
+  renderTCORecommendation(A,B,C);
+}
+function _fmt(n){ return '$'+(Math.round(n)).toLocaleString(); }
+function renderTCOResults(A,B,C,years){
+  const tcos = {A:A.tco,B:B.tco,C:C.tco};
+  const min = Math.min(...Object.values(tcos));
+  const winner = Object.keys(tcos).find(k=>tcos[k]===min);
+  const cards = [
+    {sc:'A', name:'Supplier A', color:'indigo', data:A},
+    {sc:'B', name:'Supplier B', color:'violet', data:B},
+    {sc:'C', name:'Supplier C', color:'purple', data:C}
+  ].map(s=>{
+    const isWin = s.sc===winner;
+    const delta = s.data.tco - min;
+    const deltaPct = min>0 ? (delta/min*100) : 0;
+    const acq = s.data.breakdown['Acquisition'];
+    const acqPct = s.data.tco>0 ? (acq/s.data.tco*100) : 0;
+    return `<div class="bg-white rounded-2xl card-shadow p-4 border-l-4 ${isWin?'border-emerald-500':'border-slate-200'}">
+      <div class="flex justify-between items-start mb-1">
+        <div class="font-bold text-sm text-${s.color}-700">${s.name} ${isWin?'<span class=\"text-emerald-600\">· winner</span>':''}</div>
+        <div class="text-[10px] ${isWin?'text-emerald-700 bg-emerald-50':'text-slate-500 bg-slate-100'} px-2 py-0.5 rounded">${isWin?'LOWEST TCO':'+'+_fmt(delta)+' ('+deltaPct.toFixed(1)+'%)'}</div>
+      </div>
+      <div class="text-2xl font-extrabold text-slate-800">${_fmt(s.data.tco)}</div>
+      <div class="text-[11px] text-slate-500 mb-2">${years}-yr NPV total cost of ownership</div>
+      <div class="text-[11px] text-slate-600">Purchase price share: <b>${acqPct.toFixed(0)}%</b> · post-purchase: <b>${(100-acqPct).toFixed(0)}%</b></div>
+    </div>`;
+  }).join('');
+  document.getElementById('tcoKpiCards').innerHTML = cards;
+}
+function drawTCOStackChart(A,B,C){
+  const ctx = document.getElementById('tcoStackChart'); if(!ctx) return;
+  if(_tcoCharts.stack) _tcoCharts.stack.destroy();
+  const cats = Object.keys(A.breakdown);
+  const palette = ['#4F46E5','#7C3AED','#A855F7','#EC4899','#F97316','#EAB308','#10B981','#06B6D4','#64748B'];
+  _tcoCharts.stack = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels:['Supplier A','Supplier B','Supplier C'],
+      datasets: cats.map((c,i)=>({
+        label:c,
+        data:[A.breakdown[c], B.breakdown[c], C.breakdown[c]],
+        backgroundColor: palette[i % palette.length]
+      }))
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:6}},
+        tooltip:{callbacks:{label:(c)=>c.dataset.label+': $'+Math.round(c.parsed.y).toLocaleString()}}},
+      scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k'}}}
+    }
+  });
+}
+function drawTCOCumChart(A,B,C,years){
+  const ctx = document.getElementById('tcoCumChart'); if(!ctx) return;
+  if(_tcoCharts.cum) _tcoCharts.cum.destroy();
+  const labels = ['Y0']; for(let y=1;y<=years;y++) labels.push('Y'+y);
+  _tcoCharts.cum = new Chart(ctx, {
+    type:'line',
+    data:{labels, datasets:[
+      {label:'Supplier A', data:A.cumYears, borderColor:'#4F46E5', tension:0.2, fill:false},
+      {label:'Supplier B', data:B.cumYears, borderColor:'#7C3AED', tension:0.2, fill:false},
+      {label:'Supplier C', data:C.cumYears, borderColor:'#A855F7', tension:0.2, fill:false}
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom'},
+        tooltip:{callbacks:{label:(c)=>c.dataset.label+': $'+Math.round(c.parsed.y).toLocaleString()}}},
+      scales:{y:{ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k'}}}
+    }
+  });
+}
+function renderTCOSensitivity(years, disc){
+  // Sensitize energy tariff, downtime hours, defect rate, terms days by ±20%
+  const sensVars = [
+    {k:'op_energy_rate', label:'Energy tariff'},
+    {k:'dt_hours',       label:'Downtime hours'},
+    {k:'q_defect_pct',   label:'Defect rate'},
+    {k:'fin_terms_days', label:'Payment terms'}
+  ];
+  const rows = sensVars.map(sv=>{
+    const cells = ['A','B','C'].map(sc=>{
+      const base = _tcoRead(sc);
+      const baseTCO = _tcoComputeScenario(base, years, disc).tco;
+      const up = {...base}; up[sv.k] = base[sv.k]*1.20;
+      const dn = {...base}; dn[sv.k] = base[sv.k]*0.80;
+      const upTCO = _tcoComputeScenario(up, years, disc).tco;
+      const dnTCO = _tcoComputeScenario(dn, years, disc).tco;
+      const upDelta = baseTCO>0 ? ((upTCO-baseTCO)/baseTCO*100) : 0;
+      const dnDelta = baseTCO>0 ? ((dnTCO-baseTCO)/baseTCO*100) : 0;
+      return `<td class="px-2 py-1 text-right"><span class="text-red-600">+${upDelta.toFixed(1)}%</span> / <span class="text-emerald-600">${dnDelta.toFixed(1)}%</span></td>`;
+    }).join('');
+    return `<tr class="border-b border-slate-100"><td class="px-2 py-1 text-slate-700">${sv.label} ±20%</td>${cells}</tr>`;
+  }).join('');
+  document.getElementById('tcoSensitivity').innerHTML =
+    `<table class="w-full">
+      <thead><tr class="bg-slate-50 text-[10px] uppercase text-slate-500"><th class="text-left px-2 py-1">Variable</th><th class="text-right px-2 py-1">Supplier A</th><th class="text-right px-2 py-1">Supplier B</th><th class="text-right px-2 py-1">Supplier C</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p class="text-[10px] text-slate-500 mt-2">Reads as <span class="text-red-600">+upside</span> / <span class="text-emerald-600">downside</span> impact on each supplier's TCO if that variable swings ± 20%. Largest swings are the ones to lock in contractually.</p>`;
+}
+function renderTCORecommendation(A,B,C){
+  const tcos = {A:A.tco,B:B.tco,C:C.tco};
+  const names = {A:'Supplier A',B:'Supplier B',C:'Supplier C'};
+  const sorted = Object.keys(tcos).sort((a,b)=>tcos[a]-tcos[b]);
+  const winner = sorted[0]; const runner = sorted[1]; const loser = sorted[2];
+  const W = ({A,B,C})[winner];
+  const acqShare = W.tco>0 ? (W.breakdown['Acquisition']/W.tco*100) : 0;
+  const biggestPost = Object.entries(W.breakdown).filter(([k])=>k!=='Acquisition').sort((a,b)=>b[1]-a[1])[0];
+  const savings = tcos[loser]-tcos[winner];
+  const savingsPct = tcos[loser]>0 ? (savings/tcos[loser]*100) : 0;
+  document.getElementById('tcoRecommendation').innerHTML = `
+    <div class="flex items-start gap-3">
+      <div class="text-3xl">🏆</div>
+      <div class="flex-1">
+        <h3 class="font-bold text-base text-indigo-900">Recommendation: award to ${names[winner]}</h3>
+        <p class="text-sm text-slate-700 mt-1">
+          Lowest ${window._lastTCO.years}-year NPV TCO at <b>${_fmt(W.tco)}</b> — that is <b>${_fmt(savings)} (${savingsPct.toFixed(1)}%)</b> below the highest bid (${names[loser]}).
+          Acquisition price is <b>${acqShare.toFixed(0)}%</b> of TCO; the dominant post-purchase cost layer is <b>${biggestPost[0]}</b> at <b>${_fmt(biggestPost[1])}</b>.
+        </p>
+        <ul class="text-xs text-slate-600 mt-2 space-y-1 list-disc pl-5">
+          <li>Lock <b>${biggestPost[0]}</b> in the contract with index-linked clauses or KPI penalties — that's where the cost is.</li>
+          <li>If ${names[loser]} drops sticker price by <b>${_fmt(savings)}</b>, the comparison flips — use this as a counter-offer benchmark.</li>
+          <li>Run the sensitivity table above before signing — if any variable's ±20% swing exceeds the gap to ${names[runner]}, your decision is fragile.</li>
+          <li>Push payment terms toward 60–90 days where the supplier accepts — financing cost is captured in this model.</li>
+        </ul>
+      </div>
+    </div>`;
+}
+function exportTCOExcel(){
+  if(typeof XLSX==='undefined'){ alert('XLSX library not loaded.'); return; }
+  const t = window._lastTCO; if(!t){ computeTCO(); return; }
+  const wb = XLSX.utils.book_new();
+  // Inputs sheet
+  const inputRows = [['TCO Optimization — '+t.asset], ['Horizon (yrs)', t.years], ['Discount rate %', t.disc], [], ['Category','Driver','Unit','Frequency','Supplier A','Supplier B','Supplier C']];
+  TCO_DRIVERS.forEach(d=>{
+    const a = _tcoRead('A')[d.key], b = _tcoRead('B')[d.key], c = _tcoRead('C')[d.key];
+    inputRows.push([d.cat, d.label, d.unit, d.freq, a, b, c]);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(inputRows), 'Inputs');
+  // Results sheet
+  const resRows = [['NPV TCO Breakdown ($)'], ['Cost Category','Supplier A','Supplier B','Supplier C']];
+  Object.keys(t.A.breakdown).forEach(c=>resRows.push([c, Math.round(t.A.breakdown[c]), Math.round(t.B.breakdown[c]), Math.round(t.C.breakdown[c])]));
+  resRows.push(['TCO total', Math.round(t.A.tco), Math.round(t.B.tco), Math.round(t.C.tco)]);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resRows), 'TCO_Results');
+  // Cash flow sheet
+  const cfRows = [['Year','Supplier A','Supplier B','Supplier C']];
+  for(let y=0;y<=t.years;y++) cfRows.push([y, Math.round(t.A.cumYears[y]), Math.round(t.B.cumYears[y]), Math.round(t.C.cumYears[y])]);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cfRows), 'Cum_CashFlow');
+  XLSX.writeFile(wb, `TCO_${(t.asset||'analysis').replace(/[^a-z0-9]/gi,'_')}.xlsx`);
 }
 
 /* ============== DEMAND FORECASTING ============== */
