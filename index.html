@@ -350,12 +350,14 @@
 <aside id="appSidebar" class="sidebar no-print">
   <div class="sidebar-bucket">
     <button class="tab-btn tab-active" data-tab="welcome" onclick="switchTab('welcome')"><span>✨</span><span>Welcome &amp; Tour</span></button>
+    <button class="tab-btn tab-inactive" data-tab="industry" onclick="switchTab('industry')"><span>🏭</span><span>Industry Vertical</span></button>
   </div>
   <div class="sidebar-bucket">
     <div class="sidebar-bucket-label">📊 Analyze</div>
     <button class="tab-btn tab-inactive" data-tab="calc" onclick="switchTab('calc')"><span>🧮</span><span>Should Cost Calculator</span></button>
     <button class="tab-btn tab-inactive" data-tab="tco" onclick="switchTab('tco')"><span>💼</span><span>TCO Optimization</span></button>
     <button class="tab-btn tab-inactive" data-tab="capex" onclick="switchTab('capex')"><span>💵</span><span>CapEx &amp; Investment</span></button>
+    <button class="tab-btn tab-inactive" data-tab="esg" onclick="switchTab('esg')"><span>🌱</span><span>Carbon &amp; ESG</span></button>
     <button class="tab-btn tab-inactive" data-tab="dash" onclick="switchTab('dash')"><span>📈</span><span>Executive Dashboard</span></button>
     <button class="tab-btn tab-inactive" data-tab="sca" onclick="switchTab('sca')"><span>🎯</span><span>Supply Chain Analytics</span></button>
     <button class="tab-btn tab-inactive" data-tab="forecast" onclick="switchTab('forecast')"><span>🔮</span><span>Demand Forecasting</span></button>
@@ -618,6 +620,89 @@
     </div>
   </div>
 
+</section>
+
+<!-- ========= INDUSTRY VERTICAL CONFIGURATOR ========= -->
+<section id="tab-industry-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-fuchsia-700 to-pink-700 text-white rounded-2xl p-6 mb-6">
+    <h2 class="text-2xl font-bold">Industry Vertical Configurator</h2>
+    <p class="text-pink-100 text-sm">Select your industry to load tailored cost templates, regulatory context, KPI weights and benchmark ranges across 12 verticals.</p>
+  </div>
+  <div id="industryGrid" class="grid md:grid-cols-3 gap-4 mb-6"></div>
+  <div id="industryDetail" class="bg-white rounded-2xl card-shadow p-6 hidden"></div>
+</section>
+
+<!-- ========= CARBON & ESG ========= -->
+<section id="tab-esg-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-emerald-600 to-green-700 text-white rounded-2xl p-6 mb-6">
+    <div class="flex justify-between items-start flex-wrap gap-3">
+      <div>
+        <h2 class="text-2xl font-bold">Carbon &amp; ESG Procurement</h2>
+        <p class="text-emerald-100 text-sm">Scope 1 / 2 / 3 categorization · embodied carbon per material · regional grid intensity · supplier ESG scoring.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concept cards -->
+  <div class="grid md:grid-cols-3 gap-3 mb-6">
+    <div class="bg-white rounded-xl card-shadow p-3"><div class="text-xs font-bold text-emerald-700 mb-1">Scope 1 — Direct</div><div class="text-[11px] text-slate-600">Emissions from sources you own (own fleet, on-site combustion). Procurement: usually small.</div></div>
+    <div class="bg-white rounded-xl card-shadow p-3"><div class="text-xs font-bold text-emerald-700 mb-1">Scope 2 — Energy</div><div class="text-[11px] text-slate-600">Indirect from purchased electricity, heat, steam. Procurement: PPAs, RECs, on-site generation.</div></div>
+    <div class="bg-white rounded-xl card-shadow p-3"><div class="text-xs font-bold text-emerald-700 mb-1">Scope 3 — Value chain</div><div class="text-[11px] text-slate-600">Everything else — usually <b>70-90% of corporate footprint</b>. Cat 1 (purchased goods) is the biggest procurement lever.</div></div>
+  </div>
+
+  <!-- Carbon-by-material table -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6 overflow-x-auto">
+    <h3 class="font-bold text-sm mb-3">Embodied Carbon by Material (kgCO₂e per unit)</h3>
+    <table class="w-full text-xs">
+      <thead><tr class="border-b-2 border-slate-200 bg-slate-50 text-slate-600">
+        <th class="text-left py-2 px-2">Material</th><th class="text-left py-2 px-2">Unit</th>
+        <th class="text-right py-2 px-2 bg-emerald-50">Virgin (kgCO₂e/unit)</th>
+        <th class="text-right py-2 px-2 bg-emerald-50">Recycled (kgCO₂e/unit)</th>
+        <th class="text-right py-2 px-2">Reduction %</th>
+        <th class="text-left py-2 px-2">Notes</th>
+      </tr></thead>
+      <tbody id="esgMaterialBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Grid intensity table -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6 overflow-x-auto">
+    <h3 class="font-bold text-sm mb-3">Regional Grid Carbon Intensity — Sourcing Decision Levers</h3>
+    <table class="w-full text-xs">
+      <thead><tr class="border-b-2 border-slate-200 bg-slate-50 text-slate-600">
+        <th class="text-left py-2 px-2">Country</th>
+        <th class="text-right py-2 px-2">Grid CO₂ (g/kWh)</th>
+        <th class="text-right py-2 px-2">Renewable %</th>
+        <th class="text-left py-2 px-2">Sourcing implication</th>
+      </tr></thead>
+      <tbody id="esgGridBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Cost-of-carbon scenario calculator -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <h3 class="font-bold text-sm mb-3">Internal Carbon Price — Cost-of-Emissions Calculator</h3>
+    <div class="grid md:grid-cols-4 gap-3 items-end">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Annual emissions (tCO₂e)</label>
+        <input id="esgEmiss" type="number" value="12000" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="computeEsgPrice()"/>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Carbon price ($/tCO₂e)</label>
+        <input id="esgPrice" type="number" value="85" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="computeEsgPrice()"/>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Reduction target %</label>
+        <input id="esgTarget" type="number" value="30" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="computeEsgPrice()"/>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Year horizon</label>
+        <input id="esgYears" type="number" value="5" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="computeEsgPrice()"/>
+      </div>
+    </div>
+    <div id="esgPriceOutput" class="mt-4"></div>
+    <p class="text-[10px] text-slate-500 mt-2">References: EU ETS allowance price (~€80/t late-2025), California Cap-and-Trade (~$30/t), CDP Internal Carbon Price survey median ($40-100/t depending on industry).</p>
+  </div>
 </section>
 
 <section id="tab-calc-content" class="tab-content hidden">
@@ -3132,6 +3217,8 @@ function switchTab(name){
   if(name==='tco') initTCO();
   if(name==='capex') initCapex();
   if(name==='globalmap') initGlobalMap();
+  if(name==='industry') initIndustry();
+  if(name==='esg') initESG();
 }
 
 const TEMPLATES = {
@@ -7740,7 +7827,28 @@ const TEST_SUITE = [
   {group:'Global Map', name:'FX engine round-trip USD→EUR→USD preserves value',
     fn:()=>{const v=100; const eur=v*FX_RATES.EUR.rate; const back=eur/FX_RATES.EUR.rate; return {pass:Math.abs(back-v)<0.0001, msg:`100 → €${eur.toFixed(2)} → $${back.toFixed(2)}`}; }},
   {group:'Global Map', name:'fxFormat() returns currency-symbol prefixed string',
-    fn:()=>{const prev=window.APP_CURRENCY; window.APP_CURRENCY='EUR'; const s=fxFormat(100); window.APP_CURRENCY=prev; return {pass:s.startsWith('€'), msg:`got "${s}"`}; }}
+    fn:()=>{const prev=window.APP_CURRENCY; window.APP_CURRENCY='EUR'; const s=fxFormat(100); window.APP_CURRENCY=prev; return {pass:s.startsWith('€'), msg:`got "${s}"`}; }},
+
+  // ── Industry verticals ──
+  {group:'Industry verticals', name:'INDUSTRY_VERTICALS has 12 entries',
+    fn:()=>({pass:INDUSTRY_VERTICALS.length===12, msg:`count: ${INDUSTRY_VERTICALS.length}`})},
+  {group:'Industry verticals', name:'Every vertical has icon, drivers, regs, kpis, benchmarks',
+    fn:()=>{const bad=INDUSTRY_VERTICALS.filter(v=>!v.icon||!v.keyDrivers||!v.regs||!v.kpis||!v.benchmarks);
+      return {pass:bad.length===0, msg:bad.length?`incomplete: ${bad.map(b=>b.id).join(',')}`:'all complete'}; }},
+  {group:'Industry verticals', name:'Every vertical has ≥5 cost drivers',
+    fn:()=>{const bad=INDUSTRY_VERTICALS.filter(v=>v.keyDrivers.length<5);
+      return {pass:bad.length===0, msg:bad.length?`thin: ${bad.map(b=>b.id).join(',')}`:'all comprehensive'}; }},
+
+  // ── Carbon / ESG ──
+  {group:'Carbon & ESG', name:'ESG_MATERIALS has ≥ 10 entries',
+    fn:()=>({pass:ESG_MATERIALS.length>=10, msg:`count: ${ESG_MATERIALS.length}`})},
+  {group:'Carbon & ESG', name:'Recycled always lower CO₂ than virgin',
+    fn:()=>{const bad=ESG_MATERIALS.filter(m=>m.recycled>=m.virgin);
+      return {pass:bad.length===0, msg:bad.length?`anomaly: ${bad.map(b=>b.mat).join(',')}`:'all consistent'}; }},
+  {group:'Carbon & ESG', name:'Among kg-unit materials, Aluminum has highest virgin intensity',
+    fn:()=>{const kg=ESG_MATERIALS.filter(m=>m.unit==='kg').sort((a,b)=>b.virgin-a.virgin); return {pass:kg[0].mat==='Aluminum', msg:`top kg-material: ${kg[0].mat} ${kg[0].virgin} kgCO₂e/kg`}; }},
+  {group:'Carbon & ESG', name:'computeEsgPrice avoided-cost > 0 when reduction > 0',
+    fn:()=>{document.getElementById('esgEmiss').value='10000'; document.getElementById('esgPrice').value='80'; document.getElementById('esgTarget').value='30'; document.getElementById('esgYears').value='5'; computeEsgPrice(); const txt=document.getElementById('esgPriceOutput').innerText; return {pass:txt.includes('Carbon cost avoided'), msg:'panel rendered'}; }}
 ];
 
 let _testResults = null;
@@ -8072,6 +8180,231 @@ function renderGlobalMapStats(){
     <div class="bg-white rounded-2xl card-shadow p-4"><div class="text-[10px] text-slate-500 uppercase">Weighted avg risk</div><div class="text-2xl font-extrabold" style="color:${_riskColor(avgRisk,10)}">${avgRisk.toFixed(2)}/10</div><div class="text-[10px] text-slate-500">supplier-weighted</div></div>
     <div class="bg-white rounded-2xl card-shadow p-4"><div class="text-[10px] text-slate-500 uppercase">Avg lead time</div><div class="text-2xl font-extrabold text-slate-800">${avgLead.toFixed(0)} d</div><div class="text-[10px] text-slate-500">sea freight</div></div>
     <div class="bg-white rounded-2xl card-shadow p-4"><div class="text-[10px] text-slate-500 uppercase">Avg grid CO₂</div><div class="text-2xl font-extrabold text-slate-800">${avgCarbon.toFixed(0)} g/kWh</div><div class="text-[10px] text-slate-500">supplier-weighted</div></div>`;
+}
+
+/* ============== INDUSTRY VERTICAL CONFIGURATOR ============== */
+const INDUSTRY_VERTICALS = [
+  {id:'pharma',     icon:'💊', name:'Pharma & Life Sciences',
+    summary:'API + excipient + packaging + cGMP overhead. High validation burden.',
+    keyDrivers:['Active Pharmaceutical Ingredient (API)','Excipient mix','Tablet press time','GMP overhead','Stability testing','Cold-chain logistics'],
+    regs:['FDA 21 CFR Part 11','EU GMP Annex 1','ICH Q7-Q10','DEA scheduling','Serialization (DSCSA)'],
+    kpis:{cogsTarget:'18-32%',inventoryTurns:'4-6',leadTime:'45-90d',otif:'≥98%'},
+    benchmarks:'Tier-1 generic API from India = $80-180/kg · cGMP overhead = 28-42% of direct cost.'},
+  {id:'auto',       icon:'🚗', name:'Automotive',
+    summary:'OEM tier-1/2/3 hierarchy. EOQ + JIT discipline. PPAP-driven.',
+    keyDrivers:['Steel/aluminum stamping','Plastic injection','Wiring harness','Electronics module','Painting & assembly labor','Tier-2 sub-assemblies'],
+    regs:['IATF 16949','ISO 26262 (safety)','REACH','ELV directive','APQP/PPAP'],
+    kpis:{cogsTarget:'76-84%',inventoryTurns:'12-18',leadTime:'8-21d',otif:'≥99%',ppm:'≤25'},
+    benchmarks:'Wire harness fully-loaded should-cost = $0.85-1.15/circuit · Stamping setup = 6-12 min/changeover.'},
+  {id:'aero',       icon:'✈️', name:'Aerospace & Defense',
+    summary:'High-mix low-volume. Traceability + AS9100 + ITAR/EAR.',
+    keyDrivers:['Titanium / Inconel / aluminum 7075','5-axis machining','NDT inspection','First Article Inspection','AS9100 documentation','Plating + heat treat'],
+    regs:['AS9100D','NADCAP','DFARS 252.225','ITAR/EAR','DO-178C / DO-254 (avionics SW/HW)'],
+    kpis:{cogsTarget:'45-62%',inventoryTurns:'2-4',leadTime:'90-180d',otif:'≥97%',rfqWinRate:'18-28%'},
+    benchmarks:'5-axis machine rate = $145-220/hr · NDT (FPI) = $35-85 per part.'},
+  {id:'fmcg',       icon:'🛒', name:'FMCG / CPG',
+    summary:'Volume sensitive. Packaging dominates. Brand premium = margin.',
+    keyDrivers:['Primary packaging (bottle / pouch)','Secondary (carton)','Tertiary (pallet, shrink)','Label & ink','Ingredient/formula','Co-packer labor'],
+    regs:['FDA 21 CFR 110-117','EU 1169/2011 (labeling)','EPR (extended producer responsibility)','BRCGS Packaging','Halal/Kosher/Organic certs'],
+    kpis:{cogsTarget:'48-62%',inventoryTurns:'14-22',leadTime:'4-14d',otif:'≥98.5%',wastagePct:'≤2.5%'},
+    benchmarks:'500ml PET bottle fully-converted = $0.052-0.078/unit · Co-pack labor = $0.018-0.034/unit (India tier-2).'},
+  {id:'construction',icon:'🏗️', name:'Construction & Infra',
+    summary:'Project-based. BOQ driven. Site overhead + escalation clauses.',
+    keyDrivers:['Cement / aggregate','Rebar / structural steel','Labor (skilled/unskilled)','Equipment rental','Earthwork','Site overhead'],
+    regs:['IS 456 (RCC)','OSHA construction','LEED / GRIHA','ISO 9001','Local building codes'],
+    kpis:{cogsTarget:'82-92%',inventoryTurns:'n/a (project)',leadTime:'project-based',otif:'milestone',marginRange:'8-15%'},
+    benchmarks:'OPC 53 cement = $135-148/MT (US) · Skilled mason = $4.20-6.80/hr (India), $48-72/hr (US Northeast).'},
+  {id:'electronics',icon:'💻', name:'Electronics & Semis',
+    summary:'BoM-heavy. Component obsolescence risk. Allocation cycles.',
+    keyDrivers:['IC / MCU','Passive components (R/C/L)','PCB fabrication','SMT assembly','Test & burn-in','Enclosure & assembly'],
+    regs:['IPC-A-610 (workmanship)','RoHS / REACH','Conflict Minerals (3TG)','UL/CE/FCC','J-STD-001 (soldering)'],
+    kpis:{cogsTarget:'62-78%',inventoryTurns:'6-10',leadTime:'12-26 wks',otif:'≥95%',firstPassYield:'≥98%'},
+    benchmarks:'2-layer PCB Asia = $0.012/cm² · SMT placement cost = $0.0018-0.0045/component.'},
+  {id:'energy',     icon:'⚡', name:'Energy & Utilities',
+    summary:'CapEx-heavy. Long asset lives (25-40y). EPC contracts.',
+    keyDrivers:['Turbines / generators','Transformer','Civil works','Switchgear & cabling','SCADA / control systems','EPC management fee'],
+    regs:['IEC 61850 (substation)','IEEE 1547 (DER)','NERC CIP','OSHA 1910.269','API 650 (tanks)'],
+    kpis:{cogsTarget:'58-72%',inventoryTurns:'2-3',leadTime:'36-78 wks',otif:'≥96%',capacityFactor:'≥85% (gas), ≥35% (solar PV)'},
+    benchmarks:'Utility-scale solar PV CapEx = $0.85-1.15/W · Power transformer (66kV class) = $18-35K/MVA.'},
+  {id:'food',       icon:'🍽️', name:'Food & Beverage',
+    summary:'Perishable. Strict cold-chain + traceability + allergen control.',
+    keyDrivers:['Raw ingredient (milk / wheat / sugar)','Packaging','Pasteurization energy','Cold storage','Co-pack labor','Logistics (refrigerated)'],
+    regs:['FSMA / HACCP','BRCGS Food','SQF','EU 178/2002','Halal/Kosher/Organic'],
+    kpis:{cogsTarget:'62-74%',inventoryTurns:'18-32',leadTime:'2-8d',otif:'≥99%',shelfLifeUtil:'≥85%'},
+    benchmarks:'UHT milk packaged = $0.42-0.58/L · Cold storage rent = $0.85-1.40/pallet/day.'},
+  {id:'apparel',    icon:'👕', name:'Apparel & Textile',
+    summary:'Seasonal. Fabric + cut-make-trim + Asian sourcing dominant.',
+    keyDrivers:['Fabric (cotton/poly blend)','Cut-Make-Trim labor','Trims (zip, button, label)','Wash & finish','Packaging','Inbound freight'],
+    regs:['OEKO-TEX 100','GOTS (organic)','BCI (Better Cotton)','Higg Index','SA8000 (social compliance)'],
+    kpis:{cogsTarget:'52-68%',inventoryTurns:'4-8',leadTime:'45-120d',otif:'≥92%',returnsRate:'≤8%'},
+    benchmarks:'Combed cotton tee (Bangladesh CMT) = $1.45-2.20/unit · Premium denim (Turkey) = $8-14/unit.'},
+  {id:'it',         icon:'☁️', name:'IT / SaaS / Cloud',
+    summary:'OpEx-heavy. Per-seat / per-API pricing. Multi-year commitments.',
+    keyDrivers:['SaaS subscriptions','Cloud infra (compute/storage/network)','Implementation / SI fees','License true-ups','Support contracts','Internal labor'],
+    regs:['SOC 2 Type II','ISO 27001','GDPR / CCPA','HIPAA (if applicable)','PCI-DSS'],
+    kpis:{cogsTarget:'14-26%',inventoryTurns:'n/a',leadTime:'days',otif:'≥99.9% uptime',renewalRate:'≥92%'},
+    benchmarks:'Salesforce Enterprise = $165/seat/mo (list) · AWS EC2 c6i.xlarge = $0.170/hr.'},
+  {id:'logistics',  icon:'🚚', name:'Logistics & 3PL',
+    summary:'Lane-rate driven. Fuel surcharge volatility. Asset/non-asset mix.',
+    keyDrivers:['Linehaul fuel','Driver labor','Equipment lease/depreciation','Insurance','Tolls & fees','Brokerage margin'],
+    regs:['DOT / FMCSA','CTPAT / AEO','SmartWay','IATA DGR (haz)','ELD mandate'],
+    kpis:{cogsTarget:'72-86%',inventoryTurns:'n/a',leadTime:'transit',otif:'≥97% on-time',emptyMiles:'≤14%'},
+    benchmarks:'US dry van linehaul = $1.85-2.40/mi · Drayage CA→inland = $480-720/move.'},
+  {id:'defense',    icon:'🛡️', name:'Defense / Government',
+    summary:'FAR/DFARS-bound. Cost-plus or T&M contracts. ITAR.',
+    keyDrivers:['Direct material (cleared parts)','Direct labor (cleared personnel)','Fringe + OH + G&A','Fee (cost-plus contracts)','Subcontract management','Compliance / DCAA audit cost'],
+    regs:['FAR / DFARS','ITAR / EAR','CMMC 2.0','NIST 800-171','TINA (cost truth-in-negotiation)'],
+    kpis:{cogsTarget:'58-72%',inventoryTurns:'2-4',leadTime:'120-360d',otif:'≥96%',cprDelinquency:'≤3%'},
+    benchmarks:'DoD fringe = 28-38% of direct labor · G&A = 8-14% · Fee = 6-10% (cost-plus-fixed-fee).'}
+];
+
+function initIndustry(){
+  const sel = localStorage.getItem('industryVertical') || '';
+  drawIndustryGrid(sel);
+  if(sel) showIndustryDetail(sel);
+}
+function drawIndustryGrid(selected){
+  const el = document.getElementById('industryGrid');
+  if(!el) return;
+  el.innerHTML = INDUSTRY_VERTICALS.map(v=>{
+    const isSel = v.id===selected;
+    return `<div class="bg-white rounded-2xl card-shadow p-4 cursor-pointer hover:shadow-lg transition border-2 ${isSel?'border-fuchsia-500':'border-transparent'}" onclick="selectIndustry('${v.id}')">
+      <div class="flex items-start gap-3">
+        <div class="text-3xl">${v.icon}</div>
+        <div class="flex-1">
+          <div class="font-bold text-sm text-slate-800">${v.name}</div>
+          <div class="text-[11px] text-slate-500 mt-1">${v.summary}</div>
+        </div>
+        ${isSel?'<span class="text-[10px] bg-fuchsia-100 text-fuchsia-800 px-2 py-1 rounded-full font-semibold">ACTIVE</span>':''}
+      </div>
+    </div>`;
+  }).join('');
+}
+function selectIndustry(id){
+  localStorage.setItem('industryVertical', id);
+  drawIndustryGrid(id);
+  showIndustryDetail(id);
+  window._industryVertical = id;
+}
+function showIndustryDetail(id){
+  const v = INDUSTRY_VERTICALS.find(x=>x.id===id); if(!v) return;
+  const el = document.getElementById('industryDetail');
+  el.classList.remove('hidden');
+  el.innerHTML = `
+    <div class="flex items-start gap-4 mb-5">
+      <div class="text-5xl">${v.icon}</div>
+      <div>
+        <h2 class="text-2xl font-bold text-slate-800">${v.name}</h2>
+        <p class="text-sm text-slate-600 mt-1">${v.summary}</p>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div>
+        <h3 class="font-bold text-sm text-slate-700 mb-2">Key Cost Drivers (use as your should-cost skeleton)</h3>
+        <ul class="text-xs text-slate-600 space-y-1 list-disc pl-5">${v.keyDrivers.map(d=>`<li>${d}</li>`).join('')}</ul>
+      </div>
+      <div>
+        <h3 class="font-bold text-sm text-slate-700 mb-2">Regulatory / Compliance scope</h3>
+        <ul class="text-xs text-slate-600 space-y-1 list-disc pl-5">${v.regs.map(r=>`<li>${r}</li>`).join('')}</ul>
+      </div>
+    </div>
+    <div class="mt-5">
+      <h3 class="font-bold text-sm text-slate-700 mb-2">Industry Benchmark KPIs</h3>
+      <div class="grid md:grid-cols-5 gap-2 text-[11px]">
+        ${Object.entries(v.kpis).map(([k,val])=>`<div class="bg-slate-50 border border-slate-200 rounded-lg p-2"><div class="text-[9px] uppercase text-slate-500">${k.replace(/([A-Z])/g,' $1').toLowerCase()}</div><div class="font-bold text-slate-800 mt-0.5">${val}</div></div>`).join('')}
+      </div>
+    </div>
+    <div class="mt-5 p-4 bg-fuchsia-50 border border-fuchsia-200 rounded-lg">
+      <div class="text-xs font-bold text-fuchsia-800 mb-1">📊 Industry benchmark intel</div>
+      <div class="text-xs text-slate-700">${v.benchmarks}</div>
+    </div>
+    <div class="mt-5 flex gap-2">
+      <button onclick="switchTab('calc')" class="px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded-lg text-xs font-semibold">→ Go to Calculator</button>
+      <button onclick="switchTab('tco')" class="px-4 py-2 bg-white border border-fuchsia-300 hover:bg-fuchsia-50 text-fuchsia-800 rounded-lg text-xs font-semibold">→ Apply to TCO</button>
+      <button onclick="switchTab('capex')" class="px-4 py-2 bg-white border border-fuchsia-300 hover:bg-fuchsia-50 text-fuchsia-800 rounded-lg text-xs font-semibold">→ Apply to CapEx</button>
+    </div>`;
+}
+
+/* ============== CARBON & ESG ============== */
+const ESG_MATERIALS = [
+  {mat:'Aluminum',         unit:'kg',  virgin:11.5, recycled:0.7, note:'Primary smelting is electrolysis — energy-intensive. Recycled = -94%.'},
+  {mat:'Steel (HRC)',      unit:'kg',  virgin:2.1,  recycled:0.45,note:'EAF recycled vs. BF/BOF virgin — major lever.'},
+  {mat:'Copper',           unit:'kg',  virgin:4.2,  recycled:1.1, note:'Cathode vs. scrap remelt.'},
+  {mat:'PET resin',        unit:'kg',  virgin:2.3,  recycled:0.8, note:'rPET reduces ~65%; food-grade rPET supply still constrained.'},
+  {mat:'HDPE resin',       unit:'kg',  virgin:1.8,  recycled:0.6, note:'rHDPE common in milk bottles, detergent.'},
+  {mat:'Glass (container)',unit:'kg',  virgin:0.85, recycled:0.30,note:'Cullet content drives intensity; furnace efficiency dominates.'},
+  {mat:'Paper / kraft',    unit:'kg',  virgin:1.1,  recycled:0.45,note:'Pulp & paper Scope 1 + 2 dominated by process heat.'},
+  {mat:'Cement (OPC)',     unit:'kg',  virgin:0.83, recycled:0.55,note:'Replace clinker with fly-ash / GGBS to cut ~30%.'},
+  {mat:'Cotton',           unit:'kg',  virgin:6.5,  recycled:1.8, note:'BCI / Better Cotton ~20% lower; recycled denim much lower.'},
+  {mat:'Polyester (PET fibre)',unit:'kg',virgin:3.4,recycled:1.2, note:'rPET fibre established; ocean-bound PET premium.'},
+  {mat:'Concrete',         unit:'m³',  virgin:300,  recycled:180, note:'GGBS/Fly-ash blends reduce embodied carbon substantially.'},
+  {mat:'Lithium carbonate',unit:'kg',  virgin:8.5,  recycled:3.5, note:'Brine vs. spodumene routes differ; recycled battery feedstock emerging.'}
+];
+
+function initESG(){
+  drawESGMaterialTable();
+  drawESGGridTable();
+  computeEsgPrice();
+}
+function drawESGMaterialTable(){
+  const tbody = document.getElementById('esgMaterialBody');
+  if(!tbody) return;
+  tbody.innerHTML = ESG_MATERIALS.map(m=>{
+    const reduction = ((m.virgin-m.recycled)/m.virgin*100).toFixed(0);
+    return `<tr class="border-b border-slate-100 hover:bg-emerald-50/30">
+      <td class="py-1 px-2 font-semibold text-slate-800">${m.mat}</td>
+      <td class="py-1 px-2 text-slate-500">${m.unit}</td>
+      <td class="py-1 px-2 text-right">${m.virgin.toFixed(2)}</td>
+      <td class="py-1 px-2 text-right">${m.recycled.toFixed(2)}</td>
+      <td class="py-1 px-2 text-right text-emerald-700 font-semibold">-${reduction}%</td>
+      <td class="py-1 px-2 text-[11px] text-slate-600">${m.note}</td>
+    </tr>`;
+  }).join('');
+}
+function drawESGGridTable(){
+  const tbody = document.getElementById('esgGridBody');
+  if(!tbody) return;
+  // Indicative renewable% (2024 IEA estimates)
+  const RENEW = {US:23, CN:31, IN:24, VN:43, MX:21, DE:46, BR:89, TR:42, JP:25, KR:9, TW:11, TH:13, MY:18, ID:14, PH:25, BD:3, PK:30, GB:42, FR:25, IT:42, ES:46, PL:21, CZ:13, CA:67, AR:23, CL:54, CO:73, PE:60, EG:11, ZA:8, NG:25, AE:6, SA:1, AU:32, NZ:84, CH:60, NL:34, BE:19, SE:67, NO:98, RU:18};
+  const rows = COUNTRIES.slice().sort((a,b)=>a.gridCO2-b.gridCO2).map(c=>{
+    const r = RENEW[c.code] || 0;
+    let impl;
+    if(c.gridCO2 < 150) impl = '🟢 Low-carbon — ideal for Scope-2 sensitive products. Use as anchor for export to EU CBAM.';
+    else if(c.gridCO2 < 400) impl = '🟡 Moderate — PPA / on-site solar can decarbonize further.';
+    else if(c.gridCO2 < 600) impl = '🟠 High — Scope-2 hot spot. Demand supplier RECs or relocate energy-intensive ops.';
+    else impl = '🔴 Coal-heavy — flag for EU CBAM exposure; price-in carbon adder.';
+    return `<tr class="border-b border-slate-100">
+      <td class="py-1 px-2 font-semibold">${c.name}</td>
+      <td class="py-1 px-2 text-right"><span style="color:${_riskColor(c.gridCO2,800)};font-weight:bold">${c.gridCO2}</span></td>
+      <td class="py-1 px-2 text-right">${r}%</td>
+      <td class="py-1 px-2 text-[11px] text-slate-600">${impl}</td>
+    </tr>`;
+  }).join('');
+  tbody.innerHTML = rows;
+}
+function computeEsgPrice(){
+  const emiss = parseFloat(document.getElementById('esgEmiss').value)||0;
+  const price = parseFloat(document.getElementById('esgPrice').value)||0;
+  const tgt = (parseFloat(document.getElementById('esgTarget').value)||0)/100;
+  const yrs = parseInt(document.getElementById('esgYears').value)||1;
+  const annualCost = emiss * price;
+  const cumIfFlat = annualCost * yrs;
+  const yrLinearReduction = tgt/yrs;
+  let cumWithReduction = 0;
+  for(let y=1;y<=yrs;y++){
+    const e = emiss * (1 - yrLinearReduction * y);
+    cumWithReduction += e * price;
+  }
+  const avoided = cumIfFlat - cumWithReduction;
+  const fmt = v => typeof fxFormat==='function' ? fxFormat(v,{digits:0}) : '$'+Math.round(v).toLocaleString();
+  document.getElementById('esgPriceOutput').innerHTML = `
+    <div class="grid md:grid-cols-4 gap-3">
+      <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3"><div class="text-[10px] text-slate-500 uppercase">Annual carbon cost</div><div class="text-xl font-bold text-emerald-800">${fmt(annualCost)}</div><div class="text-[10px] text-slate-500">at today's emissions</div></div>
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-3"><div class="text-[10px] text-slate-500 uppercase">${yrs}-yr cumulative (flat)</div><div class="text-xl font-bold text-amber-800">${fmt(cumIfFlat)}</div><div class="text-[10px] text-slate-500">no abatement scenario</div></div>
+      <div class="bg-teal-50 border border-teal-200 rounded-lg p-3"><div class="text-[10px] text-slate-500 uppercase">${yrs}-yr w/ ${(tgt*100).toFixed(0)}% reduction</div><div class="text-xl font-bold text-teal-800">${fmt(cumWithReduction)}</div><div class="text-[10px] text-slate-500">linear glide path</div></div>
+      <div class="bg-emerald-100 border border-emerald-300 rounded-lg p-3"><div class="text-[10px] text-slate-600 uppercase">Carbon cost avoided</div><div class="text-xl font-bold text-emerald-900">${fmt(avoided)}</div><div class="text-[10px] text-slate-600">use as business case ceiling</div></div>
+    </div>
+    <p class="text-xs text-slate-600 mt-3"><b>Procurement read:</b> the avoided-cost number is the most a finance team should rationally spend on abatement investments (insulation, supplier shift to greener grid, equipment efficiency upgrades, PPA premium). Anything below that has a positive NPV — feed it into the CapEx tab.</p>`;
 }
 
 function renderGlobalMapRecommendation(){
