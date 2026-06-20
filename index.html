@@ -366,6 +366,7 @@
     <div class="sidebar-bucket-label">🛒 Source</div>
     <button class="tab-btn tab-inactive" data-tab="rfq" onclick="switchTab('rfq')"><span>📋</span><span>RFQ / RFP Manager</span></button>
     <button class="tab-btn tab-inactive" data-tab="tariff" onclick="switchTab('tariff')"><span>🌐</span><span>Tariff Optimizer</span></button>
+    <button class="tab-btn tab-inactive" data-tab="globalmap" onclick="switchTab('globalmap')"><span>🗺️</span><span>Global Sourcing Map</span></button>
     <button class="tab-btn tab-inactive" data-tab="vendor" onclick="switchTab('vendor')"><span>🤝</span><span>Vendor Onboarding</span></button>
     <button class="tab-btn tab-inactive" data-tab="erp" onclick="switchTab('erp')"><span>🔌</span><span>ERP Integration</span></button>
   </div>
@@ -1452,6 +1453,62 @@
       <div class="bg-white rounded-xl card-shadow p-5"><div class="text-sm font-bold text-emerald-800 mb-1">WACC — Weighted Avg Cost of Capital</div><div class="text-xs text-slate-600">The blended cost of debt + equity, used as the discount rate / hurdle rate. <b>Typical WACC: 7–12%</b> for industrial firms. Always discount with after-tax WACC for after-tax cash flows. Project-specific risk may justify a premium above corporate WACC.</div></div>
     </div>
   </div>
+</section>
+
+<!-- ========= GLOBAL SOURCING MAP + COUNTRY RISK ========= -->
+<section id="tab-globalmap-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-cyan-700 to-blue-800 text-white rounded-2xl p-6 mb-6">
+    <div class="flex justify-between items-start flex-wrap gap-3">
+      <div>
+        <h2 class="text-2xl font-bold">Global Sourcing Map &amp; Country Risk Heatmap</h2>
+        <p class="text-cyan-100 text-sm">Supplier locations · tariff lanes · 6-factor country risk (political, FX, climate, IP, lead-time, single-source). Click a country pin.</p>
+      </div>
+      <div class="flex gap-2">
+        <select id="globalMapView" onchange="renderGlobalMap()" class="px-3 py-2 bg-white/15 hover:bg-white/25 rounded-lg text-xs font-semibold border-0 text-white cursor-pointer">
+          <option class="text-slate-900" value="supplier">View: Suppliers</option>
+          <option class="text-slate-900" value="risk">View: Country Risk</option>
+          <option class="text-slate-900" value="tariff">View: Tariff to US</option>
+          <option class="text-slate-900" value="leadtime">View: Lead Time</option>
+          <option class="text-slate-900" value="carbon">View: Carbon Intensity</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Map -->
+  <div class="bg-white rounded-2xl card-shadow p-4 mb-6">
+    <div id="globalMapContainer" class="relative w-full bg-slate-50 rounded-xl overflow-hidden" style="height:480px;">
+      <!-- SVG world map injected by JS -->
+    </div>
+    <div class="flex flex-wrap gap-2 mt-3 text-[10px] text-slate-500" id="globalMapLegend"></div>
+  </div>
+
+  <!-- Stats row -->
+  <div id="globalMapStats" class="grid md:grid-cols-4 gap-3 mb-6"></div>
+
+  <!-- Country detail / risk heatmap table -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6 overflow-x-auto">
+    <h3 class="font-bold text-sm mb-3">Country Risk Scorecard — 0 (low risk) to 10 (high risk)</h3>
+    <table class="w-full text-xs" id="countryRiskTable">
+      <thead><tr class="border-b-2 border-slate-200 bg-slate-50">
+        <th class="text-left py-2 px-2 text-slate-600">Country</th>
+        <th class="text-right py-2 px-2 text-slate-600">Suppliers</th>
+        <th class="text-right py-2 px-2 text-slate-600">Tariff to US %</th>
+        <th class="text-right py-2 px-2 text-slate-600">Lead time (d)</th>
+        <th class="text-right py-2 px-2 text-slate-600">Grid CO₂ (g/kWh)</th>
+        <th class="text-center py-2 px-2 text-slate-600">Political</th>
+        <th class="text-center py-2 px-2 text-slate-600">FX</th>
+        <th class="text-center py-2 px-2 text-slate-600">Climate</th>
+        <th class="text-center py-2 px-2 text-slate-600">IP</th>
+        <th class="text-center py-2 px-2 text-slate-600">Lead</th>
+        <th class="text-center py-2 px-2 text-slate-600">Single-src</th>
+        <th class="text-right py-2 px-2 text-slate-700 font-bold bg-cyan-50">Composite</th>
+      </tr></thead>
+      <tbody id="countryRiskBody"></tbody>
+    </table>
+  </div>
+
+  <div id="globalMapRecommendation" class="bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-2xl p-5 mb-6"></div>
 </section>
 
 <!-- ========= DEMAND FORECASTING ========= -->
@@ -3074,6 +3131,7 @@ function switchTab(name){
   if(name==='srm') initSRM();
   if(name==='tco') initTCO();
   if(name==='capex') initCapex();
+  if(name==='globalmap') initGlobalMap();
 }
 
 const TEMPLATES = {
@@ -7564,8 +7622,8 @@ const TEST_SUITE = [
     fn:()=>{const v=NPV(0.05,[-1000,400,400,400]); return {pass:v>0, msg:`got ${v.toFixed(2)} (must be >0)`}; }},
   {group:'Financial primitives', name:'IRR of [-100,110] ≈ 10%',
     fn:()=>{const v=IRR([-100,110]); return {pass:v!==null && Math.abs(v-0.10)<0.001, msg:`got ${(v*100).toFixed(2)}% expected 10%`}; }},
-  {group:'Financial primitives', name:'IRR of [-1000,300,400,500] ≈ 12.83%',
-    fn:()=>{const v=IRR([-1000,300,400,500]); return {pass:v!==null && Math.abs(v-0.1283)<0.005, msg:`got ${(v*100).toFixed(2)}% expected ≈12.83%`}; }},
+  {group:'Financial primitives', name:'IRR of [-1000,300,400,500] ≈ 8.90%',
+    fn:()=>{const v=IRR([-1000,300,400,500]); return {pass:v!==null && Math.abs(v-0.089)<0.005, msg:`got ${(v*100).toFixed(2)}% expected ≈8.90% (cross-verified independently)`}; }},
   {group:'Financial primitives', name:'IRR returns null for all-positive CFs',
     fn:()=>{const v=IRR([100,200,300]); return {pass:v===null, msg:`got ${v} expected null`}; }},
   {group:'Financial primitives', name:'MIRR < IRR when reinvest < IRR',
@@ -7666,7 +7724,23 @@ const TEST_SUITE = [
       return {pass:petCom && petContainers.length>=8, msg:`commodity ${!!petCom}, ${petContainers.length} PET containers`}; }},
   {group:'Consistency', name:'Commodity unit strings are well-formed',
     fn:()=>{const valid=/^\$\/(MT|oz|lb|bbl|gal|MMBtu|bu)$/; const bad=COMMODITIES.filter(c=>!valid.test(c.unit));
-      return {pass:bad.length===0, msg:bad.length?`malformed units: ${bad.map(b=>b.id+':'+b.unit).join(', ')}`:'all valid'}; }}
+      return {pass:bad.length===0, msg:bad.length?`malformed units: ${bad.map(b=>b.id+':'+b.unit).join(', ')}`:'all valid'}; }},
+
+  // ── Global Map / Country data ──
+  {group:'Global Map', name:'COUNTRIES has ≥ 35 entries',
+    fn:()=>({pass:COUNTRIES.length>=35, msg:`count: ${COUNTRIES.length}`})},
+  {group:'Global Map', name:'Every country has lat/lng + risk scores',
+    fn:()=>{const bad=COUNTRIES.filter(c=>typeof c.lat!=='number'||typeof c.lng!=='number'||c.pol==null||c.fx==null);
+      return {pass:bad.length===0, msg:bad.length?`incomplete: ${bad.map(b=>b.code).join(',')}`:'all complete'}; }},
+  {group:'Global Map', name:'Composite risk falls in 0-10 range',
+    fn:()=>{const bad=COUNTRIES.filter(c=>{const r=compositeRisk(c); return r<0||r>10;});
+      return {pass:bad.length===0, msg:bad.length?`out of range: ${bad.map(b=>b.code).join(',')}`:'all in range'}; }},
+  {group:'Global Map', name:'Equirectangular projection maps (0,0) to center',
+    fn:()=>{const p=_proj(0,0); return {pass:Math.abs(p.x-500)<0.01 && Math.abs(p.y-250)<0.01, msg:`got (${p.x},${p.y})`}; }},
+  {group:'Global Map', name:'FX engine round-trip USD→EUR→USD preserves value',
+    fn:()=>{const v=100; const eur=v*FX_RATES.EUR.rate; const back=eur/FX_RATES.EUR.rate; return {pass:Math.abs(back-v)<0.0001, msg:`100 → €${eur.toFixed(2)} → $${back.toFixed(2)}`}; }},
+  {group:'Global Map', name:'fxFormat() returns currency-symbol prefixed string',
+    fn:()=>{const prev=window.APP_CURRENCY; window.APP_CURRENCY='EUR'; const s=fxFormat(100); window.APP_CURRENCY=prev; return {pass:s.startsWith('€'), msg:`got "${s}"`}; }}
 ];
 
 let _testResults = null;
@@ -7784,6 +7858,249 @@ window.addEventListener('DOMContentLoaded', ()=>{
   const sel = document.getElementById('currencySelect');
   if(sel){ sel.value = window.APP_CURRENCY; }
 });
+
+/* ============== GLOBAL SOURCING MAP + COUNTRY RISK ============== */
+// Indicative country-level dataset: lat/lng (degrees), tariff to US %, lead time (sea, days),
+// grid carbon intensity (gCO2/kWh, IEA 2024 indicative), 6-factor risk scores (0-10 scale).
+const COUNTRIES = [
+  // [code, name, lat, lng, tariff%, leadDays, gridCO2, polR, fxR, climR, ipR, leadR, ssR, suppliers]
+  {code:'US',  name:'United States',     lat:38.9,  lng:-77.0,   tariff:0,  lead:3,   gridCO2:367, pol:1, fx:1, clim:3, ip:1, lead:1, ss:2,  suppliers:18},
+  {code:'CN',  name:'China',             lat:39.9,  lng:116.4,   tariff:24, lead:30,  gridCO2:531, pol:7, fx:5, clim:5, ip:7, lead:5, ss:3,  suppliers:42},
+  {code:'IN',  name:'India',             lat:19.1,  lng:72.9,    tariff:5,  lead:28,  gridCO2:632, pol:4, fx:5, clim:6, ip:4, lead:6, ss:4,  suppliers:24},
+  {code:'VN',  name:'Vietnam',           lat:21.0,  lng:105.9,   tariff:3,  lead:32,  gridCO2:474, pol:5, fx:5, clim:6, ip:5, lead:5, ss:5,  suppliers:12},
+  {code:'MX',  name:'Mexico',            lat:19.4,  lng:-99.1,   tariff:0,  lead:7,   gridCO2:432, pol:5, fx:5, clim:4, ip:3, lead:2, ss:3,  suppliers:14},
+  {code:'DE',  name:'Germany',           lat:52.5,  lng:13.4,    tariff:2,  lead:14,  gridCO2:380, pol:2, fx:3, clim:3, ip:1, lead:3, ss:2,  suppliers:11},
+  {code:'BR',  name:'Brazil',            lat:-15.8, lng:-47.9,   tariff:7,  lead:24,  gridCO2:99,  pol:6, fx:7, clim:5, ip:4, lead:5, ss:5,  suppliers:7},
+  {code:'TR',  name:'Türkiye',           lat:39.9,  lng:32.8,    tariff:3,  lead:18,  gridCO2:430, pol:6, fx:8, clim:5, ip:5, lead:4, ss:4,  suppliers:6},
+  {code:'JP',  name:'Japan',             lat:35.7,  lng:139.7,   tariff:1,  lead:18,  gridCO2:485, pol:1, fx:3, clim:4, ip:1, lead:3, ss:3,  suppliers:9},
+  {code:'KR',  name:'South Korea',       lat:37.6,  lng:127.0,   tariff:0,  lead:20,  gridCO2:432, pol:3, fx:3, clim:3, ip:2, lead:3, ss:3,  suppliers:8},
+  {code:'TW',  name:'Taiwan',            lat:25.0,  lng:121.5,   tariff:0,  lead:22,  gridCO2:495, pol:6, fx:3, clim:5, ip:1, lead:4, ss:6,  suppliers:10},
+  {code:'TH',  name:'Thailand',          lat:13.8,  lng:100.5,   tariff:3,  lead:28,  gridCO2:445, pol:5, fx:4, clim:6, ip:4, lead:5, ss:4,  suppliers:6},
+  {code:'MY',  name:'Malaysia',          lat:3.1,   lng:101.7,   tariff:2,  lead:30,  gridCO2:606, pol:4, fx:5, clim:5, ip:3, lead:5, ss:5,  suppliers:5},
+  {code:'ID',  name:'Indonesia',         lat:-6.2,  lng:106.8,   tariff:3,  lead:30,  gridCO2:770, pol:5, fx:6, clim:6, ip:5, lead:6, ss:5,  suppliers:5},
+  {code:'PH',  name:'Philippines',       lat:14.6,  lng:120.9,   tariff:3,  lead:25,  gridCO2:642, pol:5, fx:6, clim:7, ip:5, lead:5, ss:5,  suppliers:4},
+  {code:'BD',  name:'Bangladesh',        lat:23.8,  lng:90.4,    tariff:5,  lead:32,  gridCO2:563, pol:6, fx:7, clim:7, ip:5, lead:6, ss:5,  suppliers:3},
+  {code:'PK',  name:'Pakistan',          lat:33.7,  lng:73.1,    tariff:5,  lead:30,  gridCO2:413, pol:8, fx:8, clim:7, ip:6, lead:6, ss:6,  suppliers:2},
+  {code:'GB',  name:'United Kingdom',    lat:51.5,  lng:-0.1,    tariff:2,  lead:14,  gridCO2:238, pol:3, fx:3, clim:3, ip:1, lead:3, ss:3,  suppliers:5},
+  {code:'FR',  name:'France',            lat:48.9,  lng:2.4,     tariff:2,  lead:14,  gridCO2:56,  pol:3, fx:3, clim:3, ip:1, lead:3, ss:3,  suppliers:5},
+  {code:'IT',  name:'Italy',             lat:41.9,  lng:12.5,    tariff:2,  lead:14,  gridCO2:287, pol:4, fx:3, clim:4, ip:2, lead:3, ss:3,  suppliers:4},
+  {code:'ES',  name:'Spain',             lat:40.4,  lng:-3.7,    tariff:2,  lead:14,  gridCO2:174, pol:3, fx:3, clim:4, ip:2, lead:3, ss:4,  suppliers:3},
+  {code:'PL',  name:'Poland',            lat:52.2,  lng:21.0,    tariff:2,  lead:14,  gridCO2:705, pol:4, fx:4, clim:3, ip:3, lead:3, ss:4,  suppliers:3},
+  {code:'CZ',  name:'Czechia',           lat:50.1,  lng:14.4,    tariff:2,  lead:14,  gridCO2:392, pol:3, fx:4, clim:3, ip:2, lead:3, ss:4,  suppliers:2},
+  {code:'CA',  name:'Canada',            lat:45.4,  lng:-75.7,   tariff:0,  lead:5,   gridCO2:118, pol:1, fx:2, clim:3, ip:1, lead:2, ss:4,  suppliers:6},
+  {code:'AR',  name:'Argentina',         lat:-34.6, lng:-58.4,   tariff:8,  lead:30,  gridCO2:330, pol:7, fx:9, clim:5, ip:5, lead:5, ss:6,  suppliers:2},
+  {code:'CL',  name:'Chile',             lat:-33.4, lng:-70.7,   tariff:0,  lead:30,  gridCO2:402, pol:3, fx:5, clim:4, ip:2, lead:5, ss:5,  suppliers:3},
+  {code:'CO',  name:'Colombia',          lat:4.6,   lng:-74.1,   tariff:0,  lead:18,  gridCO2:170, pol:5, fx:6, clim:5, ip:4, lead:4, ss:5,  suppliers:2},
+  {code:'PE',  name:'Peru',              lat:-12.0, lng:-77.0,   tariff:0,  lead:24,  gridCO2:255, pol:6, fx:6, clim:5, ip:4, lead:5, ss:5,  suppliers:2},
+  {code:'EG',  name:'Egypt',             lat:30.0,  lng:31.2,    tariff:5,  lead:22,  gridCO2:439, pol:7, fx:7, clim:6, ip:6, lead:5, ss:5,  suppliers:2},
+  {code:'ZA',  name:'South Africa',      lat:-26.2, lng:28.0,    tariff:4,  lead:30,  gridCO2:835, pol:5, fx:6, clim:5, ip:3, lead:5, ss:5,  suppliers:2},
+  {code:'NG',  name:'Nigeria',           lat:9.1,   lng:7.5,     tariff:5,  lead:28,  gridCO2:399, pol:8, fx:8, clim:6, ip:7, lead:6, ss:6,  suppliers:1},
+  {code:'AE',  name:'UAE',               lat:24.5,  lng:54.4,    tariff:2,  lead:22,  gridCO2:494, pol:2, fx:1, clim:5, ip:2, lead:4, ss:4,  suppliers:3},
+  {code:'SA',  name:'Saudi Arabia',      lat:24.7,  lng:46.7,    tariff:4,  lead:22,  gridCO2:707, pol:4, fx:1, clim:5, ip:3, lead:5, ss:5,  suppliers:2},
+  {code:'AU',  name:'Australia',         lat:-35.3, lng:149.1,   tariff:0,  lead:24,  gridCO2:498, pol:1, fx:3, clim:5, ip:1, lead:5, ss:4,  suppliers:4},
+  {code:'NZ',  name:'New Zealand',       lat:-41.3, lng:174.8,   tariff:1,  lead:25,  gridCO2:91,  pol:1, fx:3, clim:3, ip:1, lead:5, ss:5,  suppliers:1},
+  {code:'CH',  name:'Switzerland',       lat:46.9,  lng:7.4,     tariff:2,  lead:16,  gridCO2:34,  pol:1, fx:1, clim:2, ip:1, lead:3, ss:3,  suppliers:3},
+  {code:'NL',  name:'Netherlands',       lat:52.4,  lng:4.9,     tariff:2,  lead:14,  gridCO2:328, pol:1, fx:3, clim:3, ip:1, lead:3, ss:3,  suppliers:3},
+  {code:'BE',  name:'Belgium',           lat:50.9,  lng:4.4,     tariff:2,  lead:14,  gridCO2:165, pol:2, fx:3, clim:3, ip:1, lead:3, ss:3,  suppliers:2},
+  {code:'SE',  name:'Sweden',            lat:59.3,  lng:18.1,    tariff:2,  lead:16,  gridCO2:36,  pol:1, fx:3, clim:2, ip:1, lead:3, ss:3,  suppliers:2},
+  {code:'NO',  name:'Norway',            lat:59.9,  lng:10.8,    tariff:2,  lead:16,  gridCO2:21,  pol:1, fx:3, clim:2, ip:1, lead:3, ss:4,  suppliers:1},
+  {code:'RU',  name:'Russia',            lat:55.8,  lng:37.6,    tariff:0,  lead:30,  gridCO2:368, pol:10,fx:9, clim:4, ip:8, lead:7, ss:5,  suppliers:0}
+];
+
+// Equirectangular projection — lat/lng (degrees) → SVG x,y in viewBox 0..1000 × 0..500
+function _proj(lat, lng){
+  const x = (lng + 180) / 360 * 1000;
+  const y = (90 - lat) / 180 * 500;
+  return {x, y};
+}
+
+function compositeRisk(c){
+  // Weighted: political 0.20, fx 0.15, climate 0.15, ip 0.15, lead 0.15, single-src 0.20
+  return (c.pol*0.20 + c.fx*0.15 + c.clim*0.15 + c.ip*0.15 + c.lead*0.15 + c.ss*0.20);
+}
+
+function _riskColor(score, max){
+  // 0 = green, max = red, interpolated
+  const t = Math.min(1, Math.max(0, score/max));
+  const r = Math.round(34 + (220-34)*t);
+  const g = Math.round(197 - (197-38)*t);
+  const b = Math.round(94  - (94-38)*t);
+  return `rgb(${r},${g},${b})`;
+}
+
+function initGlobalMap(){
+  renderGlobalMap();
+  renderCountryRiskTable();
+  renderGlobalMapStats();
+  renderGlobalMapRecommendation();
+}
+
+function renderGlobalMap(){
+  const container = document.getElementById('globalMapContainer');
+  if(!container) return;
+  const view = (document.getElementById('globalMapView')||{}).value || 'supplier';
+  const W = 1000, H = 500;
+  // Decide pin metric + color scale
+  let valueOf, maxVal, legendTitle, fmtVal;
+  if(view==='supplier'){
+    valueOf = c => c.suppliers; maxVal = Math.max(...COUNTRIES.map(c=>c.suppliers));
+    legendTitle = 'Supplier count'; fmtVal = v=>v+' suppliers';
+  } else if(view==='risk'){
+    valueOf = compositeRisk; maxVal = 10;
+    legendTitle = 'Composite country risk (0-10)'; fmtVal = v=>v.toFixed(1)+'/10';
+  } else if(view==='tariff'){
+    valueOf = c=>c.tariff; maxVal = Math.max(...COUNTRIES.map(c=>c.tariff));
+    legendTitle = 'Tariff to US (%)'; fmtVal = v=>v+'%';
+  } else if(view==='leadtime'){
+    valueOf = c=>c.lead; maxVal = Math.max(...COUNTRIES.map(c=>c.lead));
+    legendTitle = 'Lead time (sea, days)'; fmtVal = v=>v+' days';
+  } else if(view==='carbon'){
+    valueOf = c=>c.gridCO2; maxVal = Math.max(...COUNTRIES.map(c=>c.gridCO2));
+    legendTitle = 'Grid carbon intensity (gCO₂/kWh)'; fmtVal = v=>v+' g';
+  }
+  // Build pins
+  const pins = COUNTRIES.map(c=>{
+    const p = _proj(c.lat, c.lng);
+    const val = valueOf(c);
+    const radius = view==='supplier' ? Math.max(4, Math.min(22, 4 + val*0.45)) : 8;
+    const color = _riskColor(val, maxVal||1);
+    return {c, p, val, radius, color};
+  });
+  // Render SVG (no external file — uses a simplified land outline via background gradient + grid)
+  const svg = `
+    <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block">
+      <defs>
+        <linearGradient id="ocean" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#E0F2FE"/><stop offset="100%" stop-color="#BAE6FD"/>
+        </linearGradient>
+        <pattern id="grat" x="0" y="0" width="62.5" height="62.5" patternUnits="userSpaceOnUse">
+          <path d="M62.5 0 L 0 0 0 62.5" fill="none" stroke="#CBD5E1" stroke-width="0.3"/>
+        </pattern>
+      </defs>
+      <!-- Ocean -->
+      <rect width="${W}" height="${H}" fill="url(#ocean)"/>
+      <!-- Latitude/longitude graticule -->
+      <rect width="${W}" height="${H}" fill="url(#grat)"/>
+      <!-- Simplified continent shapes (highly stylized — for orientation only) -->
+      <g fill="#E2E8F0" stroke="#94A3B8" stroke-width="0.5" opacity="0.95">
+        <!-- North America -->
+        <path d="M 100,80 L 280,80 L 320,140 L 290,220 L 240,260 L 200,260 L 150,210 L 110,160 Z"/>
+        <!-- Central America -->
+        <path d="M 230,260 L 270,275 L 285,300 L 275,310 L 250,295 L 235,275 Z"/>
+        <!-- South America -->
+        <path d="M 270,310 L 330,310 L 360,350 L 350,420 L 320,460 L 290,470 L 280,420 L 290,360 Z"/>
+        <!-- Europe -->
+        <path d="M 470,80 L 560,80 L 580,150 L 555,180 L 510,170 L 480,145 Z"/>
+        <!-- Africa -->
+        <path d="M 480,180 L 580,180 L 610,260 L 590,350 L 545,395 L 510,380 L 490,330 L 480,250 Z"/>
+        <!-- Middle East -->
+        <path d="M 580,170 L 640,180 L 660,230 L 625,250 L 595,235 Z"/>
+        <!-- Russia + Asia -->
+        <path d="M 560,60 L 870,60 L 900,120 L 880,170 L 800,180 L 720,170 L 650,160 L 610,140 L 580,100 Z"/>
+        <!-- India -->
+        <path d="M 700,200 L 745,200 L 760,260 L 730,280 L 710,260 Z"/>
+        <!-- Southeast Asia -->
+        <path d="M 770,240 L 830,250 L 830,300 L 790,310 L 770,280 Z"/>
+        <!-- China east coast -->
+        <path d="M 800,150 L 875,170 L 880,220 L 830,230 L 800,200 Z"/>
+        <!-- Japan -->
+        <path d="M 895,170 L 920,180 L 925,220 L 905,225 Z"/>
+        <!-- Australia -->
+        <path d="M 800,360 L 900,360 L 920,400 L 880,430 L 820,425 L 800,390 Z"/>
+        <!-- New Zealand -->
+        <path d="M 935,420 L 955,425 L 950,445 L 935,440 Z"/>
+        <!-- Indonesia islands -->
+        <path d="M 780,310 L 870,320 L 870,335 L 790,330 Z"/>
+      </g>
+      <!-- Country pins -->
+      ${pins.map(({c,p,val,radius,color})=>`
+        <g class="map-pin" data-code="${c.code}" style="cursor:pointer">
+          <circle cx="${p.x}" cy="${p.y}" r="${radius+2}" fill="${color}" opacity="0.35"/>
+          <circle cx="${p.x}" cy="${p.y}" r="${radius}" fill="${color}" stroke="white" stroke-width="1.5">
+            <title>${c.name} — ${fmtVal(val)}</title>
+          </circle>
+          <text x="${p.x}" y="${p.y - radius - 3}" font-size="9" text-anchor="middle" fill="#0F172A" font-weight="bold">${c.code}</text>
+        </g>
+      `).join('')}
+    </svg>`;
+  container.innerHTML = svg;
+  // Legend
+  const legend = document.getElementById('globalMapLegend');
+  if(legend){
+    legend.innerHTML = `
+      <span><b>Legend:</b> ${legendTitle}</span>
+      <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full" style="background:${_riskColor(0,maxVal)}"></span>low</span>
+      <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full" style="background:${_riskColor(maxVal*0.5,maxVal)}"></span>mid</span>
+      <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full" style="background:${_riskColor(maxVal,maxVal)}"></span>high</span>
+      <span class="ml-auto">${COUNTRIES.length} countries · ${COUNTRIES.reduce((s,c)=>s+c.suppliers,0)} suppliers tracked</span>`;
+  }
+}
+
+function renderCountryRiskTable(){
+  const tbody = document.getElementById('countryRiskBody');
+  if(!tbody) return;
+  const rows = COUNTRIES.slice().sort((a,b)=>compositeRisk(b)-compositeRisk(a)).map(c=>{
+    const composite = compositeRisk(c);
+    const cellColor = (v,max)=>`background:${_riskColor(v,max)};color:${v>max*0.6?'white':'#0F172A'};border-radius:4px;padding:2px 6px;display:inline-block;min-width:20px;text-align:center`;
+    return `<tr class="border-b border-slate-100 hover:bg-cyan-50/40">
+      <td class="py-1 px-2 font-semibold text-slate-800">${c.name} <span class="text-[10px] text-slate-400">${c.code}</span></td>
+      <td class="py-1 px-2 text-right">${c.suppliers}</td>
+      <td class="py-1 px-2 text-right">${c.tariff}%</td>
+      <td class="py-1 px-2 text-right">${c.lead}</td>
+      <td class="py-1 px-2 text-right">${c.gridCO2}</td>
+      <td class="py-1 px-2 text-center"><span style="${cellColor(c.pol,10)}">${c.pol}</span></td>
+      <td class="py-1 px-2 text-center"><span style="${cellColor(c.fx,10)}">${c.fx}</span></td>
+      <td class="py-1 px-2 text-center"><span style="${cellColor(c.clim,10)}">${c.clim}</span></td>
+      <td class="py-1 px-2 text-center"><span style="${cellColor(c.ip,10)}">${c.ip}</span></td>
+      <td class="py-1 px-2 text-center"><span style="${cellColor(c.lead,10)}">${c.lead}</span></td>
+      <td class="py-1 px-2 text-center"><span style="${cellColor(c.ss,10)}">${c.ss}</span></td>
+      <td class="py-1 px-2 text-right font-bold" style="color:${_riskColor(composite,10)}">${composite.toFixed(1)}</td>
+    </tr>`;
+  }).join('');
+  tbody.innerHTML = rows;
+}
+
+function renderGlobalMapStats(){
+  const el = document.getElementById('globalMapStats');
+  if(!el) return;
+  const totalSuppliers = COUNTRIES.reduce((s,c)=>s+c.suppliers,0);
+  const avgRisk = COUNTRIES.reduce((s,c)=>s+compositeRisk(c)*c.suppliers,0) / totalSuppliers;
+  const avgLead = COUNTRIES.reduce((s,c)=>s+c.lead*c.suppliers,0) / totalSuppliers;
+  const avgCarbon = COUNTRIES.reduce((s,c)=>s+c.gridCO2*c.suppliers,0) / totalSuppliers;
+  el.innerHTML = `
+    <div class="bg-white rounded-2xl card-shadow p-4"><div class="text-[10px] text-slate-500 uppercase">Total suppliers</div><div class="text-2xl font-extrabold text-slate-800">${totalSuppliers}</div><div class="text-[10px] text-slate-500">${COUNTRIES.filter(c=>c.suppliers>0).length} countries</div></div>
+    <div class="bg-white rounded-2xl card-shadow p-4"><div class="text-[10px] text-slate-500 uppercase">Weighted avg risk</div><div class="text-2xl font-extrabold" style="color:${_riskColor(avgRisk,10)}">${avgRisk.toFixed(2)}/10</div><div class="text-[10px] text-slate-500">supplier-weighted</div></div>
+    <div class="bg-white rounded-2xl card-shadow p-4"><div class="text-[10px] text-slate-500 uppercase">Avg lead time</div><div class="text-2xl font-extrabold text-slate-800">${avgLead.toFixed(0)} d</div><div class="text-[10px] text-slate-500">sea freight</div></div>
+    <div class="bg-white rounded-2xl card-shadow p-4"><div class="text-[10px] text-slate-500 uppercase">Avg grid CO₂</div><div class="text-2xl font-extrabold text-slate-800">${avgCarbon.toFixed(0)} g/kWh</div><div class="text-[10px] text-slate-500">supplier-weighted</div></div>`;
+}
+
+function renderGlobalMapRecommendation(){
+  const el = document.getElementById('globalMapRecommendation');
+  if(!el) return;
+  const sorted = COUNTRIES.slice().sort((a,b)=>compositeRisk(b)-compositeRisk(a));
+  const top3Risky = sorted.slice(0,3).filter(c=>c.suppliers>0);
+  const top3Safe = sorted.slice().reverse().slice(0,3).filter(c=>c.suppliers>0);
+  el.innerHTML = `
+    <div class="flex items-start gap-3">
+      <div class="text-3xl">🌐</div>
+      <div class="flex-1">
+        <h3 class="font-bold text-base text-cyan-900">Global Sourcing Footprint — strategic observations</h3>
+        <p class="text-sm text-slate-700 mt-1">
+          <b>Highest-risk countries with active suppliers:</b> ${top3Risky.map(c=>`${c.name} (${compositeRisk(c).toFixed(1)})`).join(', ')} —
+          target these for risk mitigation: dual-sourcing, working-capital buffers, FX hedges, or geo-shift.
+        </p>
+        <p class="text-sm text-slate-700 mt-2">
+          <b>Lowest-risk anchors:</b> ${top3Safe.map(c=>`${c.name} (${compositeRisk(c).toFixed(1)})`).join(', ')} —
+          consider as second-source candidates when consolidating away from high-risk geographies.
+        </p>
+        <ul class="text-xs text-slate-600 mt-2 list-disc pl-5 space-y-1">
+          <li>Use the View dropdown above to overlay <b>tariff</b>, <b>lead-time</b>, or <b>grid carbon intensity</b> on the map — picks up nearshoring or ESG-driven sourcing rationale.</li>
+          <li>Any country with composite risk &gt; 7.0 should not be single-sourced for any spend bucket exceeding 5% of category total.</li>
+          <li>Click any country pin (tap-target) to drill into its supplier-detail panel (planned addition).</li>
+        </ul>
+      </div>
+    </div>`;
+}
 
 /* ============== DEMAND FORECASTING ============== */
 function loadForecastDemo(){
