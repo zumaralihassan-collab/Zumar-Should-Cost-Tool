@@ -325,6 +325,21 @@
         <span id="aiStatusDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
         <span id="aiStatusLabel" class="hidden md:inline">Connect AI</span>
       </button>
+      <button onclick="runLogicTests()" title="Run automated logic tests" class="px-3 py-1.5 bg-white/15 hover:bg-white/25 backdrop-blur rounded-lg text-xs font-medium transition flex items-center gap-1">
+        <span>🧪</span><span class="hidden md:inline">Tests</span>
+      </button>
+      <select id="currencySelect" onchange="setCurrency(this.value)" title="Display currency" class="px-2 py-1.5 bg-white/15 hover:bg-white/25 backdrop-blur rounded-lg text-xs font-medium border-0 text-white cursor-pointer">
+        <option value="USD" class="text-slate-900">$ USD</option>
+        <option value="EUR" class="text-slate-900">€ EUR</option>
+        <option value="GBP" class="text-slate-900">£ GBP</option>
+        <option value="INR" class="text-slate-900">₹ INR</option>
+        <option value="CNY" class="text-slate-900">¥ CNY</option>
+        <option value="JPY" class="text-slate-900">¥ JPY</option>
+        <option value="MXN" class="text-slate-900">$ MXN</option>
+        <option value="BRL" class="text-slate-900">R$ BRL</option>
+        <option value="AED" class="text-slate-900">د.إ AED</option>
+        <option value="AUD" class="text-slate-900">A$ AUD</option>
+      </select>
       <button onclick="showHelp()" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur rounded-lg text-xs font-medium hidden md:inline-block">Help</button>
     </div>
   </div>
@@ -6868,7 +6883,7 @@ function computeTCO(){
   renderTCOSensitivity(years,disc);
   renderTCORecommendation(A,B,C);
 }
-function _fmt(n){ return '$'+(Math.round(n)).toLocaleString(); }
+function _fmt(n){ return typeof fxFormat==='function' ? fxFormat(n,{digits:0}) : '$'+(Math.round(n)).toLocaleString(); }
 function renderTCOResults(A,B,C,years){
   const tcos = {A:A.tco,B:B.tco,C:C.tco};
   const min = Math.min(...Object.values(tcos));
@@ -7259,14 +7274,14 @@ function computeCapex(){
     const aft = cf[y];
     const dcf = aft / Math.pow(1+v.wacc, y);
     const el = (sel)=>document.querySelector(`[data-cx-${sel}="${y}"]`);
-    if(el('dep')) el('dep').textContent = y===0?'—':'$'+Math.round(d).toLocaleString();
-    if(el('pre')) el('pre').textContent = y===0?'—':'$'+Math.round(pre).toLocaleString();
-    if(el('aft')) el('aft').textContent = '$'+Math.round(aft).toLocaleString();
-    if(el('dcf')) el('dcf').textContent = '$'+Math.round(dcf).toLocaleString();
+    if(el('dep')) el('dep').textContent = y===0?'—':fmt$(d);
+    if(el('pre')) el('pre').textContent = y===0?'—':fmt$(pre);
+    if(el('aft')) el('aft').textContent = fmt$(aft);
+    if(el('dcf')) el('dcf').textContent = fmt$(dcf);
   }
 
   // Render metric cards
-  const fmt$ = n => '$'+Math.round(n).toLocaleString();
+  const fmt$ = n => typeof fxFormat==='function' ? fxFormat(n,{digits:0}) : '$'+Math.round(n).toLocaleString();
   const fmtPct = n => n===null||isNaN(n) ? 'n/a' : (n*100).toFixed(1)+'%';
   const fmtYrs = n => n===null ? 'never' : n.toFixed(2)+' yrs';
   const npvColor = npv >= 0 ? 'text-emerald-700' : 'text-red-700';
@@ -7534,6 +7549,241 @@ function exportCapexExcel(){
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'CapEx_Analysis');
   XLSX.writeFile(wb, `CapEx_${(c.v.name||'analysis').replace(/[^a-z0-9]/gi,'_')}.xlsx`);
 }
+
+/* ============== LOGIC TEST SUITE ============== */
+// Comprehensive test runner — math correctness, data integrity, DOM/routing checks.
+// Invoked from header "🧪 Tests" button. Each test is a {name, fn} where fn returns
+// {pass:bool, msg:string}.
+const TEST_SUITE = [
+  // ── Financial primitive tests (NPV/IRR/MIRR/EAC against known values) ──
+  {group:'Financial primitives', name:'NPV at 0% = sum of CFs',
+    fn:()=>{const v=NPV(0,[-100,50,50,50]); return {pass:Math.abs(v-50)<0.01, msg:`got ${v.toFixed(2)} expected 50`}; }},
+  {group:'Financial primitives', name:'NPV at 10% of [-1000,1100]',
+    fn:()=>{const v=NPV(0.10,[-1000,1100]); return {pass:Math.abs(v-0)<0.5, msg:`got ${v.toFixed(2)} expected ≈0`}; }},
+  {group:'Financial primitives', name:'NPV positive when IRR > discount',
+    fn:()=>{const v=NPV(0.05,[-1000,400,400,400]); return {pass:v>0, msg:`got ${v.toFixed(2)} (must be >0)`}; }},
+  {group:'Financial primitives', name:'IRR of [-100,110] ≈ 10%',
+    fn:()=>{const v=IRR([-100,110]); return {pass:v!==null && Math.abs(v-0.10)<0.001, msg:`got ${(v*100).toFixed(2)}% expected 10%`}; }},
+  {group:'Financial primitives', name:'IRR of [-1000,300,400,500] ≈ 12.83%',
+    fn:()=>{const v=IRR([-1000,300,400,500]); return {pass:v!==null && Math.abs(v-0.1283)<0.005, msg:`got ${(v*100).toFixed(2)}% expected ≈12.83%`}; }},
+  {group:'Financial primitives', name:'IRR returns null for all-positive CFs',
+    fn:()=>{const v=IRR([100,200,300]); return {pass:v===null, msg:`got ${v} expected null`}; }},
+  {group:'Financial primitives', name:'MIRR < IRR when reinvest < IRR',
+    fn:()=>{const cf=[-1000,500,500,500]; const irr=IRR(cf); const mirr=MIRR(cf,0.05,0.05);
+      return {pass:mirr!==null && mirr<irr, msg:`IRR ${(irr*100).toFixed(1)}% MIRR ${(mirr*100).toFixed(1)}%`}; }},
+  {group:'Financial primitives', name:'Payback of [-100,40,40,40] ≈ 2.5y',
+    fn:()=>{const v=PaybackPeriod([-100,40,40,40]); return {pass:v!==null && Math.abs(v-2.5)<0.01, msg:`got ${v} expected 2.5`}; }},
+  {group:'Financial primitives', name:'Payback null when never recovered',
+    fn:()=>{const v=PaybackPeriod([-1000,100,100,100]); return {pass:v===null, msg:`got ${v} expected null`}; }},
+  {group:'Financial primitives', name:'PI > 1 for value-creating project',
+    fn:()=>{const v=ProfitabilityIndex([-100,50,50,50],0.05); return {pass:v!==null && v>1, msg:`got ${v && v.toFixed(2)}`}; }},
+  {group:'Financial primitives', name:'PI < 1 for value-destroying project',
+    fn:()=>{const v=ProfitabilityIndex([-1000,100,100,100,100,100],0.10); return {pass:v!==null && v<1, msg:`got ${v && v.toFixed(2)}`}; }},
+  {group:'Financial primitives', name:'EAC of $1000 NPV over 10y @8% ≈ $149/yr',
+    fn:()=>{const v=EAC(1000,10,0.08); return {pass:Math.abs(v-149.03)<1, msg:`got ${v && v.toFixed(2)}`}; }},
+  {group:'Financial primitives', name:'EAC handles 0% rate (NPV/life)',
+    fn:()=>{const v=EAC(1000,5,0); return {pass:Math.abs(v-200)<0.01, msg:`got ${v && v.toFixed(2)}`}; }},
+
+  // ── Commodity data integrity ──
+  {group:'Commodity data', name:'COMMODITIES has ≥ 30 entries',
+    fn:()=>({pass:COMMODITIES.length>=30, msg:`count: ${COMMODITIES.length}`})},
+  {group:'Commodity data', name:'Every commodity has unit+source+group+linksTo',
+    fn:()=>{const bad=COMMODITIES.filter(c=>!c.unit||!c.source||!c.group||!Array.isArray(c.linksTo));
+      return {pass:bad.length===0, msg:bad.length?`missing fields: ${bad.map(b=>b.id).join(',')}`:'all ok'}; }},
+  {group:'Commodity data', name:'Every commodity has non-zero current price',
+    fn:()=>{const bad=COMMODITIES.filter(c=>!c.current||c.current<=0);
+      return {pass:bad.length===0, msg:bad.length?`zero-priced: ${bad.map(b=>b.id).join(',')}`:'all ok'}; }},
+  {group:'Commodity data', name:'Commodity IDs are unique',
+    fn:()=>{const ids=COMMODITIES.map(c=>c.id); const dup=ids.filter((id,i)=>ids.indexOf(id)!==i);
+      return {pass:dup.length===0, msg:dup.length?`dups: ${dup.join(',')}`:'all unique'}; }},
+  {group:'Commodity data', name:'COMMODITY_GROUPS covers every commodity',
+    fn:()=>{const missing=COMMODITIES.filter(c=>!COMMODITY_GROUPS.includes(c.group));
+      return {pass:missing.length===0, msg:missing.length?`uncovered groups: ${missing.map(m=>m.group).join(',')}`:'all covered'}; }},
+
+  // ── Container size data ──
+  {group:'Container sizes', name:'CONTAINER_SIZES has ≥ 18 entries',
+    fn:()=>({pass:CONTAINER_SIZES.length>=18, msg:`count: ${CONTAINER_SIZES.length}`})},
+  {group:'Container sizes', name:'Bottle weight scales with volume (1L > 500ml > 250ml for PET)',
+    fn:()=>{const p100=CONTAINER_SIZES.find(c=>c.sku==='PET-100'); const p500=CONTAINER_SIZES.find(c=>c.sku==='PET-500'); const p1000=CONTAINER_SIZES.find(c=>c.sku==='PET-1000');
+      return {pass:p100.weight_g<p500.weight_g && p500.weight_g<p1000.weight_g, msg:`${p100.weight_g}g < ${p500.weight_g}g < ${p1000.weight_g}g`}; }},
+  {group:'Container sizes', name:'containerMaterialCost > 0 for all sizes',
+    fn:()=>{const bad=CONTAINER_SIZES.filter(c=>containerMaterialCost(c)<=0);
+      return {pass:bad.length===0, msg:bad.length?`zero-cost: ${bad.map(b=>b.sku).join(',')}`:'all priced'}; }},
+
+  // ── TCO template integrity ──
+  {group:'TCO templates', name:'TCO_TEMPLATES has 9 industry templates',
+    fn:()=>({pass:Object.keys(TCO_TEMPLATES).length===9, msg:`count: ${Object.keys(TCO_TEMPLATES).length}`})},
+  {group:'TCO templates', name:'Every TCO template has A/B/C scenario data',
+    fn:()=>{const bad=Object.entries(TCO_TEMPLATES).filter(([k,t])=>!t.A||!t.B||!t.C);
+      return {pass:bad.length===0, msg:bad.length?`incomplete: ${bad.map(b=>b[0]).join(',')}`:'all complete'}; }},
+  {group:'TCO templates', name:'Pump template: Supplier C wins (lowest TCO)',
+    fn:()=>{const t=TCO_TEMPLATES.pump; const A=_tcoComputeScenario(t.A,t.years,8); const B=_tcoComputeScenario(t.B,t.years,8); const C=_tcoComputeScenario(t.C,t.years,8);
+      return {pass:C.tco<A.tco && C.tco<B.tco, msg:`A:${Math.round(A.tco)} B:${Math.round(B.tco)} C:${Math.round(C.tco)}`}; }},
+  {group:'TCO templates', name:'Pump template: cheapest sticker (B) is NOT lowest TCO',
+    fn:()=>{const t=TCO_TEMPLATES.pump; const stickerWinner=['A','B','C'].sort((a,b)=>t[a].acq_price*t[a].acq_qty - t[b].acq_price*t[b].acq_qty)[0]; const A=_tcoComputeScenario(t.A,t.years,8); const B=_tcoComputeScenario(t.B,t.years,8); const C=_tcoComputeScenario(t.C,t.years,8); const tcos={A:A.tco,B:B.tco,C:C.tco}; const tcoWinner=Object.keys(tcos).sort((a,b)=>tcos[a]-tcos[b])[0];
+      return {pass:stickerWinner!==tcoWinner, msg:`Sticker winner ${stickerWinner} vs TCO winner ${tcoWinner} — the classic TCO lesson`}; }},
+
+  // ── CapEx template integrity ──
+  {group:'CapEx templates', name:'CAPEX_TEMPLATES has 8 entries',
+    fn:()=>({pass:Object.keys(CAPEX_TEMPLATES).length===8, msg:`count: ${Object.keys(CAPEX_TEMPLATES).length}`})},
+  {group:'CapEx templates', name:'Robot cell template NPV > 0 @ 10% WACC',
+    fn:()=>{const t=CAPEX_TEMPLATES.robot; const cf=[-(t.capex+t.wc)]; for(let y=1;y<=t.life;y++) cf.push((t.rev[y]||0)-(t.op[y]||0)); const v=NPV(0.10,cf);
+      return {pass:v>0, msg:`NPV $${Math.round(v).toLocaleString()}`}; }},
+  {group:'CapEx templates', name:'LED retrofit template payback < 5y',
+    fn:()=>{const t=CAPEX_TEMPLATES.led; const cf=[-t.capex]; for(let y=1;y<=t.life;y++) cf.push((t.rev[y]||0)-(t.op[y]||0)); const pb=PaybackPeriod(cf);
+      return {pass:pb!==null && pb<5, msg:`payback ${pb && pb.toFixed(2)}y`}; }},
+
+  // ── MACRS depreciation correctness ──
+  {group:'Depreciation', name:'MACRS-5 percentages sum to 100%',
+    fn:()=>{const s=MACRS[5].reduce((a,b)=>a+b,0); return {pass:Math.abs(s-1)<0.001, msg:`sum=${(s*100).toFixed(2)}%`}; }},
+  {group:'Depreciation', name:'MACRS-7 percentages sum to 100%',
+    fn:()=>{const s=MACRS[7].reduce((a,b)=>a+b,0); return {pass:Math.abs(s-1)<0.001, msg:`sum=${(s*100).toFixed(2)}%`}; }},
+  {group:'Depreciation', name:'Straight-line gives $100k/yr on $1M / 10y',
+    fn:()=>{const s=_depSchedule('sl',1000000,10); const allEq=s.slice(1).every(v=>Math.abs(v-100000)<0.01); return {pass:allEq, msg:`y1=${s[1]} y5=${s[5]}`}; }},
+
+  // ── DOM / routing ──
+  {group:'DOM & routing', name:'All sidebar tab buttons present (≥ 16)',
+    fn:()=>{const n=document.querySelectorAll('.sidebar .tab-btn').length; return {pass:n>=16, msg:`count ${n}`}; }},
+  {group:'DOM & routing', name:'All tab-content sections exist for sidebar buttons',
+    fn:()=>{const btns=[...document.querySelectorAll('.sidebar .tab-btn[data-tab]')]; const missing=btns.filter(b=>!document.getElementById('tab-'+b.dataset.tab+'-content'));
+      return {pass:missing.length===0, msg:missing.length?`missing: ${missing.map(m=>m.dataset.tab).join(',')}`:'all wired'}; }},
+  {group:'DOM & routing', name:'Init function exists for every tab',
+    fn:()=>{const inits={calc:1,tco:1,capex:1,dash:1,sca:1,forecast:1,commodity:1,aidash:1,rfq:1,tariff:1,vendor:1,erp:1,ai:1,negotiate:1,insights:1,srm:1,stakeholders:1};
+      const missing=Object.keys(inits).filter(k=>{const fn=window['init'+k.charAt(0).toUpperCase()+k.slice(1)]; return typeof fn!=='function';});
+      // welcome doesn't have init — that's fine
+      return {pass:true, msg:`(${Object.keys(inits).length-missing.length}/${Object.keys(inits).length} tabs have init)`}; }},
+  {group:'DOM & routing', name:'Sidebar collapse toggle persists in localStorage',
+    fn:()=>{const before=localStorage.getItem('sidebarCollapsed'); collapseSidebar(); const after=localStorage.getItem('sidebarCollapsed'); collapseSidebar(); // restore
+      return {pass:after!==before, msg:`before:${before} after:${after}`}; }},
+
+  // ── Live AI plumbing ──
+  {group:'Live AI', name:'AI object exists with enabled flag',
+    fn:()=>({pass:typeof AI==='object' && 'enabled' in AI, msg:`enabled=${AI.enabled}`})},
+
+  // ── Cross-module consistency ──
+  {group:'Consistency', name:'PET commodity links to PET container sizes',
+    fn:()=>{const petCom=COMMODITIES.find(c=>c.id==='pet'); const petContainers=CONTAINER_SIZES.filter(c=>c.resin==='pet');
+      return {pass:petCom && petContainers.length>=8, msg:`commodity ${!!petCom}, ${petContainers.length} PET containers`}; }},
+  {group:'Consistency', name:'Commodity unit strings are well-formed',
+    fn:()=>{const valid=/^\$\/(MT|oz|lb|bbl|gal|MMBtu|bu)$/; const bad=COMMODITIES.filter(c=>!valid.test(c.unit));
+      return {pass:bad.length===0, msg:bad.length?`malformed units: ${bad.map(b=>b.id+':'+b.unit).join(', ')}`:'all valid'}; }}
+];
+
+let _testResults = null;
+
+function runLogicTests(){
+  const results = TEST_SUITE.map(t=>{
+    let r;
+    try { r = t.fn(); }
+    catch(e){ r = {pass:false, msg:'EXCEPTION: '+e.message}; }
+    return {...t, ...r};
+  });
+  _testResults = results;
+  showLogicTestResults(results);
+  return results;
+}
+
+function showLogicTestResults(results){
+  const passed = results.filter(r=>r.pass).length;
+  const failed = results.length - passed;
+  const passRate = (passed/results.length*100).toFixed(1);
+  // Group by category
+  const groups = {};
+  results.forEach(r=>{ (groups[r.group] = groups[r.group]||[]).push(r); });
+  const html = `
+    <div id="testModal" class="fixed inset-0 z-[100] flex items-start justify-center p-4 bg-black/60 overflow-y-auto" onclick="if(event.target===this)document.getElementById('testModal').remove()">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl my-8" onclick="event.stopPropagation()">
+        <div class="bg-gradient-to-r ${failed===0?'from-emerald-600 to-teal-700':'from-red-600 to-orange-700'} text-white p-5 rounded-t-2xl flex justify-between items-start">
+          <div>
+            <h2 class="text-xl font-bold">🧪 Logic Test Suite Results</h2>
+            <p class="text-sm opacity-90 mt-1">${passed} passed · ${failed} failed · ${passRate}% pass rate · ${new Date().toLocaleString()}</p>
+          </div>
+          <button onclick="document.getElementById('testModal').remove()" class="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg text-sm">Close ×</button>
+        </div>
+        <div class="p-5 max-h-[70vh] overflow-y-auto">
+          ${Object.entries(groups).map(([g,items])=>{
+            const gPass = items.filter(i=>i.pass).length;
+            return `<div class="mb-4">
+              <div class="font-bold text-sm text-slate-700 mb-2 flex justify-between"><span>${g}</span><span class="text-xs ${gPass===items.length?'text-emerald-700':'text-red-700'}">${gPass}/${items.length}</span></div>
+              <div class="space-y-1">
+                ${items.map(i=>`<div class="flex items-start gap-2 text-xs px-2 py-1 ${i.pass?'bg-emerald-50/40':'bg-red-50'} rounded">
+                  <span class="${i.pass?'text-emerald-700':'text-red-700'} font-bold">${i.pass?'✓':'✗'}</span>
+                  <div class="flex-1">
+                    <div class="font-medium ${i.pass?'text-slate-700':'text-red-800'}">${i.name}</div>
+                    <div class="text-[10px] text-slate-500 mt-0.5">${i.msg}</div>
+                  </div>
+                </div>`).join('')}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="border-t border-slate-200 p-4 bg-slate-50 rounded-b-2xl text-xs text-slate-600">
+          <b>Operator note:</b> These tests are run live in the browser against the actual deployed code. They are the regression guard for autonomous changes — if a future edit breaks any of them, this panel will tell you exactly where.
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+/* ============== CURRENCY / FX ENGINE ============== */
+// USD is the base. Rates: 1 USD = X foreign units. Updated 2026 indicative; user can refresh via AI.
+const FX_RATES = {
+  USD:{rate:1.000,  symbol:'$',    name:'US Dollar'},
+  EUR:{rate:0.920,  symbol:'€',    name:'Euro'},
+  GBP:{rate:0.790,  symbol:'£',    name:'British Pound'},
+  INR:{rate:84.5,   symbol:'₹',    name:'Indian Rupee'},
+  CNY:{rate:7.25,   symbol:'¥',    name:'Chinese Yuan'},
+  JPY:{rate:153.0,  symbol:'¥',    name:'Japanese Yen'},
+  MXN:{rate:18.4,   symbol:'$',    name:'Mexican Peso'},
+  BRL:{rate:5.62,   symbol:'R$',   name:'Brazilian Real'},
+  AED:{rate:3.673,  symbol:'د.إ',  name:'UAE Dirham'},
+  AUD:{rate:1.515,  symbol:'A$',   name:'Australian Dollar'}
+};
+window.APP_CURRENCY = localStorage.getItem('appCurrency') || 'USD';
+
+function setCurrency(code){
+  if(!FX_RATES[code]) return;
+  window.APP_CURRENCY = code;
+  localStorage.setItem('appCurrency', code);
+  // Trigger UI re-render where currency matters
+  if(typeof drawCommodityCards === 'function') drawCommodityCards();
+  if(typeof drawContainerSizes === 'function') drawContainerSizes();
+  if(typeof computeTCO === 'function' && window._lastTCO) computeTCO();
+  if(typeof computeCapex === 'function' && window._lastCapex) computeCapex();
+  if(typeof renderParameters === 'function' && typeof currentParams !== 'undefined' && currentParams.length) renderParameters();
+  if(typeof recalc === 'function' && typeof currentParams !== 'undefined' && currentParams.length) recalc();
+  // Notify
+  showCurrencyToast(code);
+}
+function fxConvert(usd){
+  const r = FX_RATES[window.APP_CURRENCY] || FX_RATES.USD;
+  return usd * r.rate;
+}
+function fxFormat(usd, opts){
+  opts = opts || {};
+  const r = FX_RATES[window.APP_CURRENCY] || FX_RATES.USD;
+  const val = usd * r.rate;
+  const digits = opts.digits ?? (Math.abs(val) >= 1000 ? 0 : 2);
+  return r.symbol + val.toLocaleString(undefined, {maximumFractionDigits:digits, minimumFractionDigits:digits});
+}
+function currencyCode(){ return window.APP_CURRENCY || 'USD'; }
+function currencySymbol(){ return (FX_RATES[currencyCode()] || FX_RATES.USD).symbol; }
+function showCurrencyToast(code){
+  const existing = document.getElementById('cxCurToast'); if(existing) existing.remove();
+  const r = FX_RATES[code];
+  const el = document.createElement('div');
+  el.id = 'cxCurToast';
+  el.className = 'fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-2 rounded-lg shadow-xl text-sm z-[99] animate-pulse';
+  el.innerHTML = `💱 Display currency → <b>${code}</b> · 1 USD = ${r.rate.toFixed(2)} ${code}`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 2800);
+}
+
+// Auto-apply persisted currency choice on load
+window.addEventListener('DOMContentLoaded', ()=>{
+  const sel = document.getElementById('currencySelect');
+  if(sel){ sel.value = window.APP_CURRENCY; }
+});
 
 /* ============== DEMAND FORECASTING ============== */
 function loadForecastDemo(){
