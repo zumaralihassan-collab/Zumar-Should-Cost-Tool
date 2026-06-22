@@ -102,19 +102,43 @@
   html.dark-mode .bg-white { background:#1E293B !important; color:#E2E8F0 !important; }
   html.dark-mode .bg-slate-50 { background:#0F172A !important; }
   html.dark-mode .bg-slate-100 { background:#1E293B !important; }
+  html.dark-mode .bg-slate-200 { background:#334155 !important; }
   html.dark-mode .card-shadow { box-shadow:0 4px 12px rgba(0,0,0,0.5) !important; }
-  html.dark-mode .text-slate-700, html.dark-mode .text-slate-800, html.dark-mode .text-slate-900 { color:#E2E8F0 !important; }
-  html.dark-mode .text-slate-500, html.dark-mode .text-slate-600 { color:#94A3B8 !important; }
-  html.dark-mode .border-slate-200, html.dark-mode .border-slate-300 { border-color:#334155 !important; }
+  /* All headings stay readable regardless of Tailwind class */
+  html.dark-mode h1, html.dark-mode h2, html.dark-mode h3, html.dark-mode h4, html.dark-mode h5, html.dark-mode h6 { color:#F1F5F9 !important; }
+  /* Cover every dark slate/gray text class — these are the main offenders */
+  html.dark-mode .text-slate-700, html.dark-mode .text-slate-800, html.dark-mode .text-slate-900,
+  html.dark-mode .text-gray-700, html.dark-mode .text-gray-800, html.dark-mode .text-gray-900,
+  html.dark-mode .text-zinc-700, html.dark-mode .text-zinc-800, html.dark-mode .text-zinc-900,
+  html.dark-mode .text-neutral-700, html.dark-mode .text-neutral-800, html.dark-mode .text-neutral-900,
+  html.dark-mode .text-black { color:#F1F5F9 !important; }
+  html.dark-mode .text-slate-400, html.dark-mode .text-slate-500, html.dark-mode .text-slate-600,
+  html.dark-mode .text-gray-400, html.dark-mode .text-gray-500, html.dark-mode .text-gray-600 { color:#94A3B8 !important; }
+  /* Borders */
+  html.dark-mode .border-slate-200, html.dark-mode .border-slate-300, html.dark-mode .border-gray-200, html.dark-mode .border-gray-300 { border-color:#334155 !important; }
+  /* Faint backgrounds used as table-row stripes */
+  html.dark-mode tr.bg-slate-50, html.dark-mode tr.bg-emerald-50, html.dark-mode .bg-emerald-50, html.dark-mode .bg-indigo-50, html.dark-mode .bg-violet-50, html.dark-mode .bg-purple-50, html.dark-mode .bg-cyan-50, html.dark-mode .bg-amber-50, html.dark-mode .bg-rose-50, html.dark-mode .bg-pink-50 { background:#1E293B !important; color:#E2E8F0 !important; }
+  /* Sidebar */
   html.dark-mode .sidebar { background:#0F172A !important; border-color:#334155 !important; }
   html.dark-mode .sidebar .tab-btn { color:#CBD5E1 !important; }
   html.dark-mode .sidebar .tab-btn.tab-inactive:hover { background:#1E293B !important; color:#5EEAD4 !important; }
   html.dark-mode .sidebar-bucket-label { color:#94A3B8 !important; }
+  /* Inputs */
   html.dark-mode input, html.dark-mode select, html.dark-mode textarea {
     background:#1E293B !important; color:#E2E8F0 !important; border-color:#334155 !important;
   }
+  html.dark-mode input::placeholder, html.dark-mode textarea::placeholder { color:#64748B !important; }
+  /* Tables */
   html.dark-mode table th { background:#1E293B !important; color:#94A3B8 !important; }
   html.dark-mode table tbody tr { border-color:#334155 !important; }
+  /* Code blocks */
+  html.dark-mode code, html.dark-mode pre { background:#0F172A !important; color:#5EEAD4 !important; border:1px solid #334155; }
+  /* Hover surfaces */
+  html.dark-mode .hover\:bg-slate-50:hover, html.dark-mode .hover\:bg-slate-100:hover, html.dark-mode .hover\:bg-gray-50:hover { background:#334155 !important; }
+  /* Card-like wrappers that use a colored faint background — keep brand color but lift contrast */
+  html.dark-mode .bg-teal-50, html.dark-mode .bg-emerald-50, html.dark-mode .bg-green-50, html.dark-mode .bg-blue-50, html.dark-mode .bg-sky-50 { background:#1E293B !important; }
+  html.dark-mode .bg-fuchsia-50, html.dark-mode .bg-pink-50, html.dark-mode .bg-rose-50 { background:#1E293B !important; }
+  html.dark-mode .bg-orange-50, html.dark-mode .bg-yellow-50, html.dark-mode .bg-amber-50 { background:#1E293B !important; }
 
   /* ========== SIDEBAR LAYOUT ========== */
   .app-layout { display: flex; min-height: 100vh; }
@@ -9498,11 +9522,42 @@ function computeEsgPrice(){
 }
 
 /* ============== DARK MODE ============== */
+// Apply dark-mode-aware colors to Chart.js global defaults and refresh every live chart so
+// canvas-drawn labels (titles, axis ticks, legend, tooltips) follow the theme.
+function applyChartTheme(){
+  if(typeof Chart === 'undefined') return;
+  const dark = document.documentElement.classList.contains('dark-mode');
+  Chart.defaults.color       = dark ? '#E2E8F0' : '#475569';
+  Chart.defaults.borderColor = dark ? '#334155' : '#E2E8F0';
+  // Chart.js v4 scale grid is per-scale, but we can set it via defaults.scale.grid
+  if(Chart.defaults.scale && Chart.defaults.scale.grid){
+    Chart.defaults.scale.grid.color = dark ? 'rgba(148,163,184,0.15)' : 'rgba(148,163,184,0.25)';
+  }
+  if(Chart.defaults.plugins && Chart.defaults.plugins.tooltip){
+    Chart.defaults.plugins.tooltip.backgroundColor = dark ? 'rgba(15,23,42,0.95)' : 'rgba(15,23,42,0.85)';
+    Chart.defaults.plugins.tooltip.titleColor = '#F1F5F9';
+    Chart.defaults.plugins.tooltip.bodyColor  = '#E2E8F0';
+  }
+  // Re-render any live chart instance we know about
+  const buckets = [
+    typeof charts !== 'undefined' ? charts : null,
+    window._cxCharts,
+    window._tcoCharts
+  ];
+  buckets.forEach(b=>{
+    if(!b) return;
+    Object.values(b).forEach(c=>{
+      try { if(c && typeof c.update === 'function') c.update(); } catch(_e){}
+    });
+  });
+}
+
 function toggleDarkMode(){
   const dark = document.documentElement.classList.toggle('dark-mode');
   localStorage.setItem('darkMode', dark ? '1' : '0');
   const icon = document.getElementById('darkModeIcon');
   if(icon) icon.textContent = dark ? '☀️' : '🌙';
+  applyChartTheme();
 }
 window.addEventListener('DOMContentLoaded', ()=>{
   if(localStorage.getItem('darkMode')==='1'){
@@ -9510,6 +9565,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
     const icon = document.getElementById('darkModeIcon');
     if(icon) icon.textContent = '☀️';
   }
+  // Defer chart theming a tick so Chart.js is fully loaded
+  setTimeout(applyChartTheme, 50);
 });
 
 /* ============== INTEGRATIONS HUB ============== */
