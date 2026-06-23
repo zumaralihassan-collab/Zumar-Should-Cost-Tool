@@ -723,6 +723,9 @@
     <button class="tab-btn tab-inactive" data-tab="capex" onclick="switchTab('capex')"><span>💵</span><span>CapEx &amp; Investment</span></button>
     <button class="tab-btn tab-inactive" data-tab="esg" onclick="switchTab('esg')"><span>🌱</span><span>Carbon &amp; ESG</span></button>
     <button class="tab-btn tab-inactive" data-tab="makebuy" onclick="switchTab('makebuy')"><span>⚖️</span><span>Make vs Buy</span></button>
+    <button class="tab-btn tab-inactive" data-tab="diind" onclick="switchTab('diind')"><span>🔀</span><span>Direct vs Indirect</span></button>
+    <button class="tab-btn tab-inactive" data-tab="iceberg" onclick="switchTab('iceberg')"><span>🧊</span><span>Cost Iceberg</span></button>
+    <button class="tab-btn tab-inactive" data-tab="pentagon" onclick="switchTab('pentagon')"><span>⬟</span><span>Procurement Pentagon</span></button>
     <button class="tab-btn tab-inactive" data-tab="dash" onclick="switchTab('dash')"><span>📈</span><span>Executive Dashboard</span></button>
     <button class="tab-btn tab-inactive" data-tab="sca" onclick="switchTab('sca')"><span>🎯</span><span>Supply Chain Analytics</span></button>
     <button class="tab-btn tab-inactive" data-tab="forecast" onclick="switchTab('forecast')"><span>🔮</span><span>Demand Forecasting</span></button>
@@ -735,6 +738,7 @@
     <button class="tab-btn tab-inactive" data-tab="tariff" onclick="switchTab('tariff')"><span>🌐</span><span>Tariff Optimizer</span></button>
     <button class="tab-btn tab-inactive" data-tab="tlc" onclick="switchTab('tlc')"><span>🚢</span><span>Total Landed Cost</span></button>
     <button class="tab-btn tab-inactive" data-tab="quotecompare" onclick="switchTab('quotecompare')"><span>⚖️</span><span>Quote Comparison</span></button>
+    <button class="tab-btn tab-inactive" data-tab="sourcing" onclick="switchTab('sourcing')"><span>🎯</span><span>Sourcing Strategy</span></button>
     <button class="tab-btn tab-inactive" data-tab="globalmap" onclick="switchTab('globalmap')"><span>🗺️</span><span>Global Sourcing Map</span></button>
     <button class="tab-btn tab-inactive" data-tab="vendor" onclick="switchTab('vendor')"><span>🤝</span><span>Vendor Onboarding</span></button>
     <button class="tab-btn tab-inactive" data-tab="erp" onclick="switchTab('erp')"><span>🔌</span><span>ERP Integration</span></button>
@@ -743,6 +747,7 @@
     <div class="sidebar-bucket-label">🤝 Negotiate</div>
     <button class="tab-btn tab-inactive" data-tab="ai" onclick="switchTab('ai')"><span>💬</span><span>AI Procurement Strategist</span></button>
     <button class="tab-btn tab-inactive" data-tab="negotiate" onclick="switchTab('negotiate')"><span>🦈</span><span>Negotiation Simulator</span></button>
+    <button class="tab-btn tab-inactive" data-tab="leverage" onclick="switchTab('leverage')"><span>♟️</span><span>Negotiation Leverages</span></button>
     <button class="tab-btn tab-inactive" data-tab="insights" onclick="switchTab('insights')"><span>💡</span><span>Insights &amp; Recs</span></button>
   </div>
   <div class="sidebar-bucket">
@@ -1168,6 +1173,281 @@
       <button onclick="makebuyAIRationale()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold">Generate rationale</button>
     </div>
     <div id="mbAIOutput" class="text-xs text-slate-600">Connect Live AI in the header for a narrative recommendation, or read the decision panel above — the breakeven math runs fully offline.</div>
+  </div>
+</section>
+
+<!-- ========= DIRECT VS INDIRECT PROCUREMENT ========= -->
+<section id="tab-diind-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-cyan-700 via-blue-700 to-indigo-700 text-white rounded-2xl p-6 mb-6">
+    <h2 class="text-2xl font-bold">🔀 Direct vs Indirect Procurement</h2>
+    <p class="text-cyan-100 text-sm mt-1">Spend segmentation, ownership model, KPIs and strategy templates for the two fundamental procurement domains.</p>
+  </div>
+
+  <!-- Concept primer -->
+  <div class="grid md:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white rounded-2xl card-shadow p-5 border-l-4 border-cyan-600">
+      <h3 class="font-bold text-base text-cyan-800">Direct Procurement</h3>
+      <p class="text-xs text-slate-600 mt-1">Goods &amp; services that go INTO the product. Raw materials, components, sub-assemblies, packaging that ships with the SKU.</p>
+      <div class="mt-3 text-xs space-y-1">
+        <div><b>Examples:</b> Steel, plastic resin, ICs, fasteners, primary packaging</div>
+        <div><b>BoM-driven:</b> Demand = production schedule × bill of materials</div>
+        <div><b>Ownership:</b> Strategic sourcing + category management</div>
+        <div><b>Cycle:</b> Long lead, multi-year contracts, NPI-aligned</div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-5 border-l-4 border-orange-600">
+      <h3 class="font-bold text-base text-orange-800">Indirect Procurement</h3>
+      <p class="text-xs text-slate-600 mt-1">Everything else the business buys. Operating expenses, MRO, services, IT, marketing, professional services.</p>
+      <div class="mt-3 text-xs space-y-1">
+        <div><b>Examples:</b> Office supplies, IT/SaaS, consulting, travel, MRO, facilities</div>
+        <div><b>Tail-heavy:</b> Long tail of low-spend transactions, many vendors</div>
+        <div><b>Ownership:</b> Often distributed; central P2P + catalogues</div>
+        <div><b>Cycle:</b> Short, transactional, frequent re-buys</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spend split + comparison table -->
+  <div class="grid md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-2xl card-shadow p-5">
+      <h3 class="font-bold text-sm mb-3">Spend Split (sample portfolio)</h3>
+      <div class="h-56"><canvas id="diIndSplitChart"></canvas></div>
+      <p class="text-xs text-slate-500 mt-2">Industry-typical 60/40 direct/indirect for manufacturing; flips to 30/70 for asset-light services.</p>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-5 col-span-2 overflow-x-auto">
+      <h3 class="font-bold text-sm mb-3">Side-by-Side Comparison</h3>
+      <table class="w-full text-xs">
+        <thead><tr class="border-b-2 border-slate-200 bg-slate-50">
+          <th class="text-left py-2 px-2 text-slate-600">Dimension</th>
+          <th class="text-left py-2 px-2 text-cyan-700">Direct</th>
+          <th class="text-left py-2 px-2 text-orange-700">Indirect</th>
+        </tr></thead>
+        <tbody id="diIndCompareBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Indirect category Pareto -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <h3 class="font-bold text-sm mb-3">Indirect-Spend Pareto — 80% of spend, 20% of categories</h3>
+    <div class="h-72"><canvas id="diIndParetoChart"></canvas></div>
+    <p class="text-xs text-slate-500 mt-2">Classic indirect challenge: long tail of unmanaged categories. Focus consolidation on the top 6 categories first.</p>
+  </div>
+
+  <!-- Strategy templates -->
+  <div class="grid md:grid-cols-2 gap-4 mb-6">
+    <div class="bg-cyan-50 border border-cyan-200 rounded-2xl p-5">
+      <h3 class="font-bold text-cyan-900 text-sm mb-2">Direct strategy template</h3>
+      <ul class="text-xs text-slate-700 space-y-1 list-disc pl-5">
+        <li>Long-term partnerships with tier-1s · 3-5 year LOAs</li>
+        <li>Should-cost engineering on every material driver</li>
+        <li>VMI / consignment stock for high-runners</li>
+        <li>Dual-source for any single-source risk &gt; 5% category</li>
+        <li>Index-link raw materials to LME / PIX / commodity feeds</li>
+        <li>Joint cost-down workshops, value engineering</li>
+      </ul>
+    </div>
+    <div class="bg-orange-50 border border-orange-200 rounded-2xl p-5">
+      <h3 class="font-bold text-orange-900 text-sm mb-2">Indirect strategy template</h3>
+      <ul class="text-xs text-slate-700 space-y-1 list-disc pl-5">
+        <li>P2P platform with electronic catalogues for tail spend</li>
+        <li>Consolidate the long tail — fewer, deeper preferred vendors</li>
+        <li>Hosted/punchout catalogs for MRO, office, IT</li>
+        <li>Statement-of-Work governance for services / consulting</li>
+        <li>Procurement-as-a-service for niche categories</li>
+        <li>Demand management — challenge whether the buy is needed</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl card-shadow p-4 mb-6">
+    <div class="font-bold text-xs mb-2">🔗 Related modules</div>
+    <div class="flex flex-wrap gap-2 text-xs">
+      <button onclick="switchTab('calc')" class="px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded-lg">→ Should-Cost (Direct)</button>
+      <button onclick="switchTab('tco')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg">→ TCO Optimization</button>
+      <button onclick="switchTab('iceberg')" class="px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 border border-cyan-200 rounded-lg">→ Cost Iceberg</button>
+      <button onclick="switchTab('sourcing')" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg">→ Sourcing Strategy</button>
+    </div>
+  </div>
+</section>
+
+<!-- ========= PROCUREMENT ICEBERG VIEW ========= -->
+<section id="tab-iceberg-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-sky-700 via-cyan-700 to-teal-700 text-white rounded-2xl p-6 mb-6">
+    <h2 class="text-2xl font-bold">🧊 Procurement Cost Iceberg</h2>
+    <p class="text-sky-100 text-sm mt-1">The price you pay is the tip — 70-80% of true cost is below the waterline. Visualises the same 9 layers TCO Optimization tracks, but as a strategic teaching frame.</p>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-5 mb-6">
+    <div class="md:col-span-2 bg-white rounded-2xl card-shadow p-5">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-bold text-sm">Iceberg Visualization</h3>
+        <select id="icebergScenario" class="border border-slate-300 rounded-lg px-2 py-1 text-xs" onchange="drawIceberg()">
+          <option value="pump">Industrial Pump (75 kW)</option>
+          <option value="laptop">Enterprise Laptop Fleet</option>
+          <option value="forklift">Electric Forklift</option>
+          <option value="generic">Generic Capital Asset</option>
+        </select>
+      </div>
+      <div id="icebergSvgHost" style="min-height:420px;"></div>
+      <p class="text-xs text-slate-500 mt-2">Hover any layer for its share %. The purchase-price tip is typically 20-30%; the remaining 70-80% is hidden cost that destroys ROI if ignored.</p>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-5">
+      <h3 class="font-bold text-sm mb-3">Hidden cost breakdown</h3>
+      <div id="icebergTable" class="text-xs space-y-2"></div>
+    </div>
+  </div>
+
+  <div class="bg-amber-50 border-l-4 border-amber-500 rounded-r-xl p-5 mb-6">
+    <h3 class="font-bold text-amber-900 text-sm mb-2">💡 What this teaches</h3>
+    <ul class="text-xs text-slate-700 list-disc pl-5 space-y-1">
+      <li><b>Anchor effect</b> — buyers fixate on the visible 25%. Reframe the conversation around the 75%.</li>
+      <li><b>Total-cost mindset</b> — supplier with $14k sticker can lose to $22k sticker once downtime, quality, end-of-life are priced in (see TCO module).</li>
+      <li><b>Contract levers</b> — push KPIs &amp; penalties on the biggest below-water lines: usually Operating + Quality + Downtime.</li>
+      <li><b>Procurement seat at the table</b> — the iceberg image is the single best lobby tool to get procurement involved earlier in the design / engineering phase, when 80% of TCO is locked in.</li>
+    </ul>
+  </div>
+
+  <div class="bg-white rounded-2xl card-shadow p-4 mb-6">
+    <div class="font-bold text-xs mb-2">🔗 Cross-link</div>
+    <div class="flex flex-wrap gap-2 text-xs">
+      <button onclick="switchTab('tco')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg">→ Compute exact TCO</button>
+      <button onclick="switchTab('makebuy')" class="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 rounded-lg">→ Make vs Buy</button>
+      <button onclick="switchTab('diind')" class="px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 border border-cyan-200 rounded-lg">→ Direct vs Indirect</button>
+    </div>
+  </div>
+</section>
+
+<!-- ========= PROCUREMENT PENTAGON (5-axis tradeoff) ========= -->
+<section id="tab-pentagon-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-violet-700 via-purple-700 to-fuchsia-700 text-white rounded-2xl p-6 mb-6">
+    <h2 class="text-2xl font-bold">⬟ Procurement Pentagon — 5-Axis Tradeoff</h2>
+    <p class="text-violet-100 text-sm mt-1">The classic Cost-Quality-Delivery triangle, extended for the 2020s with Sustainability and Innovation. Set your weights; the engine recommends a sourcing posture.</p>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-5 mb-6">
+    <div class="bg-white rounded-2xl card-shadow p-5">
+      <h3 class="font-bold text-sm mb-3">Drag your priorities</h3>
+      <p class="text-[11px] text-slate-500 mb-3">All 5 must sum to 100 — the engine re-normalises as you move sliders.</p>
+      <div id="pentSliders" class="space-y-3"></div>
+      <button onclick="resetPentagon()" class="mt-3 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold">↻ Reset to balanced (20/20/20/20/20)</button>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-5">
+      <h3 class="font-bold text-sm mb-3">Your Pentagon</h3>
+      <div class="h-72"><canvas id="pentagonChart"></canvas></div>
+    </div>
+  </div>
+
+  <div id="pentagonStrategy" class="bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-2xl p-5 mb-6"></div>
+
+  <div class="grid md:grid-cols-5 gap-3 mb-6">
+    <div class="bg-white rounded-2xl card-shadow p-4"><div class="text-xs font-bold text-blue-700">Cost</div><p class="text-[11px] text-slate-600 mt-1">Unit price, TCO, payment terms, working-capital impact.</p></div>
+    <div class="bg-white rounded-2xl card-shadow p-4"><div class="text-xs font-bold text-emerald-700">Quality</div><p class="text-[11px] text-slate-600 mt-1">PPM, first-pass yield, returns, warranty, certifications.</p></div>
+    <div class="bg-white rounded-2xl card-shadow p-4"><div class="text-xs font-bold text-amber-700">Delivery</div><p class="text-[11px] text-slate-600 mt-1">OTIF, lead-time, flexibility, capacity headroom.</p></div>
+    <div class="bg-white rounded-2xl card-shadow p-4"><div class="text-xs font-bold text-teal-700">Sustainability</div><p class="text-[11px] text-slate-600 mt-1">Scope 1/2/3, recyclability, labor, ESG ratings, CBAM exposure.</p></div>
+    <div class="bg-white rounded-2xl card-shadow p-4"><div class="text-xs font-bold text-fuchsia-700">Innovation</div><p class="text-[11px] text-slate-600 mt-1">R&amp;D investment, design-in collaboration, IP, technology roadmap.</p></div>
+  </div>
+</section>
+
+<!-- ========= SOURCING STRATEGY SELECTOR ========= -->
+<section id="tab-sourcing-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 text-white rounded-2xl p-6 mb-6">
+    <h2 class="text-2xl font-bold">🎯 Sourcing Strategy Selector</h2>
+    <p class="text-amber-100 text-sm mt-1">Kraljic-aware decision tree → single-source, dual-source, multi-source, partnership, JV, or vertical integration. With rationale.</p>
+  </div>
+
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <h3 class="font-bold text-sm mb-4">Tell us about the category</h3>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Annual spend ($)</label>
+        <input id="ssSpend" type="number" value="2500000" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="computeSourcingStrategy()"/>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Supply risk (1=low, 5=critical)</label>
+        <input id="ssRisk" type="range" min="1" max="5" value="3" oninput="computeSourcingStrategy()" class="w-full"/>
+        <div class="text-[10px] text-slate-500" id="ssRiskLabel">3 / 5 — medium</div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Number of qualified suppliers in market</label>
+        <input id="ssSupplyBase" type="number" value="6" min="1" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" oninput="computeSourcingStrategy()"/>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Switching cost / qualification effort</label>
+        <select id="ssSwitchCost" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" onchange="computeSourcingStrategy()">
+          <option value="low">Low — drop-in qualified part</option>
+          <option value="medium" selected>Medium — re-qualification &amp; PPAP</option>
+          <option value="high">High — design change / NRE</option>
+          <option value="prohibitive">Prohibitive — qualified-by-customer or regulatory</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">IP / strategic value</label>
+        <select id="ssIP" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" onchange="computeSourcingStrategy()">
+          <option value="commodity" selected>Commodity — no proprietary content</option>
+          <option value="custom">Custom — supplier holds some IP</option>
+          <option value="strategic">Strategic — core IP, competitive moat</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Demand volatility</label>
+        <select id="ssVolatility" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" onchange="computeSourcingStrategy()">
+          <option value="stable" selected>Stable — predictable</option>
+          <option value="seasonal">Seasonal — known peaks</option>
+          <option value="volatile">Volatile — promo / NPI-driven</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div id="ssRecommendation" class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 mb-6"></div>
+
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6 overflow-x-auto">
+    <h3 class="font-bold text-sm mb-3">Sourcing strategies — when each wins</h3>
+    <table class="w-full text-xs">
+      <thead><tr class="border-b-2 border-slate-200 bg-slate-50">
+        <th class="text-left py-2 px-2 text-slate-600">Strategy</th>
+        <th class="text-left py-2 px-2 text-slate-600">When it wins</th>
+        <th class="text-left py-2 px-2 text-slate-600">Watch-outs</th>
+      </tr></thead>
+      <tbody id="ssTable"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ========= NEGOTIATION LEVERAGE MATRIX ========= -->
+<section id="tab-leverage-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-rose-700 via-red-700 to-orange-700 text-white rounded-2xl p-6 mb-6">
+    <h2 class="text-2xl font-bold">♟️ Negotiation Leverage Matrix</h2>
+    <p class="text-rose-100 text-sm mt-1">12 evidence-backed levers from behavioural economics + game theory. When to use, what to say, what NOT to say.</p>
+  </div>
+
+  <!-- 12 Leverage cards -->
+  <div id="leverageGrid" class="grid md:grid-cols-2 gap-4 mb-6"></div>
+
+  <!-- BATNA / ZOPA primer -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <h3 class="font-bold text-sm mb-3">📐 BATNA &amp; ZOPA — the foundation</h3>
+    <div class="grid md:grid-cols-2 gap-4 text-xs text-slate-700">
+      <div>
+        <b class="text-rose-800">BATNA — Best Alternative To a Negotiated Agreement.</b>
+        <p class="mt-1">Your walk-away. If the deal at the table is worse than your BATNA, leave. The party with the stronger BATNA holds the power. Improve your BATNA <i>before</i> the negotiation starts.</p>
+      </div>
+      <div>
+        <b class="text-rose-800">ZOPA — Zone of Possible Agreement.</b>
+        <p class="mt-1">The overlap between your walk-away and theirs. If yours is $90 and theirs is $100, ZOPA = $90-$100. Outside this zone, no deal is possible. Anchoring near the edge captures most of the surplus.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl card-shadow p-4 mb-6">
+    <div class="font-bold text-xs mb-2">🔗 Use these inside</div>
+    <div class="flex flex-wrap gap-2 text-xs">
+      <button onclick="switchTab('negotiate')" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg">→ Negotiation Simulator</button>
+      <button onclick="switchTab('quotecompare')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg">→ Quote Comparison</button>
+      <button onclick="switchTab('tco')" class="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg">→ TCO (for total-cost framing)</button>
+      <button onclick="switchTab('pentagon')" class="px-3 py-1.5 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg">→ Pentagon (multi-attribute)</button>
+    </div>
   </div>
 </section>
 
@@ -4012,6 +4292,11 @@ function switchTab(name){
   if(name==='tlc') initTLC();
   if(name==='quotecompare') initQuoteCompare();
   if(name==='integrations') initIntegrations();
+  if(name==='diind') initDiInd();
+  if(name==='iceberg') initIceberg();
+  if(name==='pentagon') initPentagon();
+  if(name==='sourcing') initSourcingStrategy();
+  if(name==='leverage') initLeverage();
 }
 
 const TEMPLATES = {
@@ -10980,6 +11265,383 @@ function renderRFP(){
       <td class="p-2 text-right"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${color}">${v.weighted}</span></td>
       <td class="p-2 text-right"><button onclick="deleteRFP(${origIdx})" class="text-slate-400 hover:text-red-500">×</button></td></tr>`;
   }).join('');
+}
+
+/* ===================================================================
+ * DIRECT vs INDIRECT PROCUREMENT HUB
+ * =================================================================== */
+const DIIND_COMPARE = [
+  ['Definition','Goes INTO the product (BoM)','Operates the business — not in the product'],
+  ['Typical share of spend','55-70% (mfg) / 20-40% (services)','30-45% (mfg) / 60-80% (services)'],
+  ['Demand driver','Production schedule × BoM','Headcount, projects, ops cycle'],
+  ['Vendor count','Few — concentrated, strategic','Many — long-tail, transactional'],
+  ['Contract horizon','1-5 years, often LOAs','Annual or per-PO'],
+  ['Negotiation lever','Should-cost, index-link, JV/VMI','Consolidation, P-card, catalogue'],
+  ['Primary KPIs','PPV, supplier OTIF, PPM, on-time NPI','% addressable spend managed, # vendors, cycle time'],
+  ['Ownership','Strategic sourcing / category mgrs','Distributed buyers + central P2P'],
+  ['Lead time','Weeks to months','Hours to days'],
+  ['Risk profile','Single-source, supply continuity','Maverick spend, fraud, expense leakage']
+];
+const DIIND_INDIRECT_CATS = [
+  {cat:'IT & Software (SaaS, licenses, hardware)', spend:2400},
+  {cat:'Professional Services (consulting, audit, legal)', spend:2050},
+  {cat:'Marketing & Advertising', spend:1850},
+  {cat:'Travel & Entertainment', spend:1200},
+  {cat:'Facilities & Real-estate', spend:1100},
+  {cat:'MRO (maintenance, repair, operations)', spend:850},
+  {cat:'HR / Recruiting / Contingent labor', spend:740},
+  {cat:'Logistics & Freight (outbound)', spend:620},
+  {cat:'Office supplies & furniture', spend:380},
+  {cat:'Insurance & Risk', spend:310},
+  {cat:'Telecoms', spend:220},
+  {cat:'Other tail', spend:280}
+];
+let _diIndCharts = {split:null, pareto:null};
+
+function initDiInd(){
+  // Comparison table
+  const tbody = document.getElementById('diIndCompareBody');
+  if(tbody) tbody.innerHTML = DIIND_COMPARE.map(r =>
+    `<tr class="border-b border-slate-100"><td class="py-1 px-2 font-medium text-slate-700">${r[0]}</td><td class="py-1 px-2 text-slate-600">${r[1]}</td><td class="py-1 px-2 text-slate-600">${r[2]}</td></tr>`
+  ).join('');
+  // Split donut (sample 62/38 split)
+  if(_diIndCharts.split) _diIndCharts.split.destroy();
+  const split = document.getElementById('diIndSplitChart');
+  if(split && typeof Chart!=='undefined'){
+    _diIndCharts.split = new Chart(split, {
+      type:'doughnut',
+      data:{labels:['Direct','Indirect'], datasets:[{data:[62,38], backgroundColor:['#0891B2','#EA580C'], borderWidth:0}]},
+      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{font:{size:10}}}}}
+    });
+  }
+  // Pareto of indirect
+  if(_diIndCharts.pareto) _diIndCharts.pareto.destroy();
+  const pCtx = document.getElementById('diIndParetoChart');
+  if(pCtx && typeof Chart!=='undefined'){
+    const sorted = [...DIIND_INDIRECT_CATS].sort((a,b)=>b.spend-a.spend);
+    const total = sorted.reduce((s,x)=>s+x.spend, 0);
+    let cum = 0;
+    const cumPct = sorted.map(x => { cum += x.spend; return +(cum/total*100).toFixed(1); });
+    _diIndCharts.pareto = new Chart(pCtx, {
+      data:{labels:sorted.map(x=>x.cat),
+            datasets:[
+              {type:'bar', label:'Spend ($K)', data:sorted.map(x=>x.spend), backgroundColor:'#EA580C', yAxisID:'y'},
+              {type:'line', label:'Cumulative %', data:cumPct, borderColor:'#0891B2', backgroundColor:'#0891B2', yAxisID:'y2', tension:0.2}
+            ]},
+      options:{responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{position:'bottom', labels:{font:{size:10}}}},
+        scales:{y:{title:{display:true,text:'$K'}}, y2:{position:'right', min:0, max:100, title:{display:true,text:'Cumulative %'}}}}
+    });
+  }
+}
+
+/* ===================================================================
+ * PROCUREMENT COST ICEBERG
+ * =================================================================== */
+const ICEBERG_SCENARIOS = {
+  pump:    {label:'Industrial Pump (75 kW)', layers:[['Purchase price',22],['Inbound freight + duty',5],['Installation/commissioning',4],['Energy (10-yr)',28],['Maintenance + spares',11],['Quality/defect cost',5],['Downtime',12],['Financing (terms × WACC)',3],['End-of-life net',2],['Risk + hidden switching',8]]},
+  laptop:  {label:'Enterprise Laptop Fleet',  layers:[['Purchase price',30],['Inbound freight',3],['Imaging + deployment',4],['Energy (4-yr)',2],['Spares + repair',7],['Quality (defective units)',6],['Helpdesk + downtime',14],['Financing',2],['End-of-life disposal',3],['Hidden switching + training',29]]},
+  forklift:{label:'Electric Forklift (3 T)',  layers:[['Purchase price',28],['Inbound freight',4],['Charging install',3],['Energy (7-yr)',8],['Maintenance',12],['Quality issues',4],['Downtime',15],['Financing',2],['Salvage credit',-2],['Risk + training',26]]},
+  generic: {label:'Generic Capital Asset',    layers:[['Purchase price',25],['Freight & duty',5],['Install',4],['Operating (energy + labor)',24],['Maintenance',10],['Quality',6],['Downtime',12],['Financing',3],['End-of-life',3],['Hidden/switching',8]]}
+};
+
+function initIceberg(){ drawIceberg(); }
+
+function drawIceberg(){
+  const id = (document.getElementById('icebergScenario')||{}).value || 'pump';
+  const sc = ICEBERG_SCENARIOS[id]; if(!sc) return;
+  // Above-water = first layer (purchase price); below-water = rest
+  const above = sc.layers.slice(0,1);
+  const below = sc.layers.slice(1);
+  const aboveTotal = above.reduce((s,l)=>s+l[1], 0);
+  const belowTotal = below.reduce((s,l)=>s+l[1], 0);
+  const PALETTE = ['#7DD3FC','#0EA5E9','#0284C7','#0369A1','#075985','#0C4A6E','#082F49','#1E40AF','#312E81','#1E1B4B'];
+  // Build SVG iceberg
+  const host = document.getElementById('icebergSvgHost'); if(!host) return;
+  const W = 600, H = 420, waterY = 110;
+  const tipPoints = `300,40 ${300 - (aboveTotal*4)},${waterY} ${300 + (aboveTotal*4)},${waterY}`;
+  // Below-water — render each layer as a horizontal slice of growing width
+  let y = waterY;
+  const layerH = (H - waterY - 20) / below.length;
+  let slices = '';
+  below.forEach((l, i) => {
+    const widthScale = 30 + i*16;
+    const x1 = 300 - widthScale - l[1]*3;
+    const x2 = 300 + widthScale + l[1]*3;
+    slices += `<polygon points="${x1},${y} ${x2},${y} ${x2+10},${y+layerH} ${x1-10},${y+layerH}" fill="${PALETTE[Math.min(i, PALETTE.length-1)]}" stroke="#0F172A" stroke-width="0.5" data-name="${l[0]}" data-share="${l[1]}">
+        <title>${l[0]}: ${l[1]}% of TCO</title></polygon>
+      <text x="300" y="${y + layerH/2 + 4}" text-anchor="middle" fill="white" font-size="11" font-weight="600" pointer-events="none">${l[0]} · ${l[1]}%</text>`;
+    y += layerH;
+  });
+  host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%; max-height:420px;">
+    <!-- Sky -->
+    <rect width="${W}" height="${waterY}" fill="url(#skyGrad)"/>
+    <defs>
+      <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#E0F2FE"/><stop offset="1" stop-color="#BAE6FD"/>
+      </linearGradient>
+      <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#075985" stop-opacity="0.3"/><stop offset="1" stop-color="#0C4A6E" stop-opacity="0.05"/>
+      </linearGradient>
+    </defs>
+    <!-- Water -->
+    <rect y="${waterY}" width="${W}" height="${H-waterY}" fill="url(#waterGrad)"/>
+    <!-- Waterline -->
+    <line x1="0" x2="${W}" y1="${waterY}" y2="${waterY}" stroke="#0284C7" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="20" y="${waterY-6}" fill="#0C4A6E" font-size="11" font-weight="700">WATERLINE — what you SEE</text>
+    <text x="${W-20}" y="${waterY-6}" text-anchor="end" fill="#0284C7" font-size="11" font-weight="700">${aboveTotal}% visible</text>
+    <text x="20" y="${waterY+20}" fill="#0C4A6E" font-size="11" font-weight="700">SUBMERGED — what destroys ROI</text>
+    <text x="${W-20}" y="${waterY+20}" text-anchor="end" fill="#0C4A6E" font-size="11" font-weight="700">${belowTotal}% hidden</text>
+    <!-- Iceberg tip -->
+    <polygon points="${tipPoints}" fill="#F0F9FF" stroke="#0284C7" stroke-width="1.5"/>
+    <text x="300" y="80" text-anchor="middle" fill="#0C4A6E" font-size="12" font-weight="700">${above[0][0]}</text>
+    <text x="300" y="98" text-anchor="middle" fill="#0284C7" font-size="11">${above[0][1]}%</text>
+    <!-- Iceberg below water -->
+    ${slices}
+  </svg>`;
+  // Right-side breakdown table
+  const tbl = document.getElementById('icebergTable');
+  if(tbl){
+    tbl.innerHTML = sc.layers.map((l,i)=>{
+      const isAbove = i===0;
+      return `<div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-sm" style="background:${isAbove?'#F0F9FF':PALETTE[Math.min(i-1, PALETTE.length-1)]}; border:1px solid ${isAbove?'#0284C7':'#0F172A'}"></div>
+        <div class="flex-1 text-slate-700">${l[0]} ${isAbove?'<span class="text-[10px] text-sky-700 font-bold">(above water)</span>':''}</div>
+        <div class="font-bold text-slate-800">${l[1]}%</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+/* ===================================================================
+ * PROCUREMENT PENTAGON — 5-axis tradeoff
+ * =================================================================== */
+const PENT_AXES = [
+  {key:'cost',          label:'Cost',          color:'#3B82F6'},
+  {key:'quality',       label:'Quality',       color:'#10B981'},
+  {key:'delivery',      label:'Delivery',      color:'#F59E0B'},
+  {key:'sustainability',label:'Sustainability',color:'#0F766E'},
+  {key:'innovation',    label:'Innovation',    color:'#D946EF'}
+];
+let _pentWeights = {cost:20, quality:20, delivery:20, sustainability:20, innovation:20};
+let _pentChart = null;
+
+function initPentagon(){
+  // Sliders
+  const host = document.getElementById('pentSliders');
+  if(host){
+    host.innerHTML = PENT_AXES.map(a => `
+      <div>
+        <div class="flex justify-between text-xs mb-1">
+          <span class="font-medium" style="color:${a.color}">${a.label}</span>
+          <span class="text-slate-500" id="pentVal_${a.key}">${_pentWeights[a.key]}</span>
+        </div>
+        <input type="range" min="0" max="100" value="${_pentWeights[a.key]}"
+               oninput="setPentWeight('${a.key}', this.value)"
+               style="--c:${a.color}" class="w-full"/>
+      </div>`).join('');
+  }
+  drawPentagonChart();
+  recommendPentagon();
+}
+
+function setPentWeight(key, val){
+  val = +val;
+  _pentWeights[key] = val;
+  // Re-normalise so total = 100
+  const total = Object.values(_pentWeights).reduce((s,x)=>s+x, 0);
+  if(total > 0){
+    Object.keys(_pentWeights).forEach(k => { _pentWeights[k] = +(_pentWeights[k] / total * 100).toFixed(1); });
+  }
+  // Refresh slider labels
+  PENT_AXES.forEach(a => {
+    const el = document.getElementById('pentVal_' + a.key);
+    if(el) el.textContent = _pentWeights[a.key];
+  });
+  drawPentagonChart();
+  recommendPentagon();
+}
+
+function resetPentagon(){
+  _pentWeights = {cost:20, quality:20, delivery:20, sustainability:20, innovation:20};
+  initPentagon();
+}
+
+function drawPentagonChart(){
+  const ctx = document.getElementById('pentagonChart');
+  if(!ctx || typeof Chart === 'undefined') return;
+  if(_pentChart) _pentChart.destroy();
+  _pentChart = new Chart(ctx, {
+    type:'radar',
+    data:{
+      labels: PENT_AXES.map(a => a.label),
+      datasets:[{
+        label:'Your priorities',
+        data: PENT_AXES.map(a => _pentWeights[a.key]),
+        backgroundColor:'rgba(139, 92, 246, 0.25)',
+        borderColor:'#8B5CF6',
+        pointBackgroundColor: PENT_AXES.map(a => a.color),
+        pointRadius:5
+      }]
+    },
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{r:{angleLines:{display:true}, suggestedMin:0, suggestedMax:50,
+                 ticks:{display:false}, pointLabels:{font:{size:12, weight:'bold'}}}}}
+  });
+}
+
+function recommendPentagon(){
+  const sorted = [...PENT_AXES].sort((a,b) => _pentWeights[b.key] - _pentWeights[a.key]);
+  const top1 = sorted[0], top2 = sorted[1];
+  // Recommendation matrix
+  let strategy = '', rationale = '';
+  const dominant = top1.key, second = top2.key;
+  const pair = [dominant, second].sort().join('+');
+  const strategies = {
+    'cost+delivery':       {s:'Competitive multi-bid auction with index-linked LTAs', r:'Cost + Delivery dominant — drive aggressive competition, dual-source for resilience, lock pricing to indices for transparency.'},
+    'cost+quality':        {s:'Should-cost + zero-defect contracts',                  r:'Cost discipline and quality cannot conflict — engineer the cost out via VAVE, attach PPM penalties to contracts.'},
+    'cost+innovation':     {s:'CAUTION — these often conflict',                       r:'Innovation demands R&D investment; pure-cost bidding starves it. Use development partnerships with milestone payments.'},
+    'cost+sustainability': {s:'Green-cost optimisation (TCO + carbon)',                r:'Use internal carbon price + EAC to surface lifetime cost savings of greener suppliers. Often cheaper over 5-10 yrs.'},
+    'quality+delivery':    {s:'Strategic partnerships, dual-source',                  r:'Operational excellence frame — prefer fewer, better suppliers with VMI/JIT and joint capacity planning.'},
+    'quality+sustainability':{s:'Certified-supplier portfolio',                       r:'Tighten qualifications (IATF/ISO + Higg/B-Corp). Reward proven supplier ESG and certified materials.'},
+    'quality+innovation':  {s:'Design-in partnerships',                                r:'Bring strategic suppliers into design reviews; share roadmaps; co-fund prototypes.'},
+    'delivery+innovation': {s:'Agile partnerships + capacity reservation',             r:'Trade some cost for speed-to-market. Pay a flex premium for guaranteed lead-time and innovation access.'},
+    'delivery+sustainability':{s:'Near-shoring + green logistics',                     r:'Shorter lanes reduce both lead-time AND Scope-3 emissions. Frame near-shoring on both axes.'},
+    'innovation+sustainability':{s:'Strategic JV / equity sourcing',                  r:'Joint development with capital commitment to access proprietary green technology / IP.'},
+  };
+  const reco = strategies[pair] || {s:'Balanced portfolio approach', r:'No two axes dominate — split spend between strategic partners (top quadrant) and competitive bids (commodity).'};
+  document.getElementById('pentagonStrategy').innerHTML = `
+    <div class="flex items-start gap-3">
+      <div class="text-3xl">⬟</div>
+      <div class="flex-1">
+        <h3 class="font-bold text-base text-violet-900">Recommended posture: ${reco.s}</h3>
+        <p class="text-sm text-slate-700 mt-1">
+          Your priorities concentrate on <b style="color:${top1.color}">${top1.label}</b> (${_pentWeights[top1.key]}) and <b style="color:${top2.color}">${top2.label}</b> (${_pentWeights[top2.key]}).
+          ${reco.r}
+        </p>
+      </div>
+    </div>`;
+}
+
+/* ===================================================================
+ * SOURCING STRATEGY SELECTOR
+ * =================================================================== */
+const SS_STRATEGIES = [
+  {name:'Single-source (sole)',       wins:'Strategic IP or sole qualified supplier; volume too small to fragment.', warn:'Single point of failure. Lock long-term LOA + escrow + dual-tier capacity plan.'},
+  {name:'Dual-source (split award)',  wins:'High-value, qualifiable elsewhere; supply continuity required.',         warn:'Splits volume = weaker leverage. Use 70/30 or 60/40, not 50/50.'},
+  {name:'Multi-source (3+)',          wins:'Commodity, deep supply base, switching cost low.',                       warn:'Vendor mgmt cost. Risk of race-to-bottom hurting quality.'},
+  {name:'Spot-buy (auction)',         wins:'Pure commodity, transactional, low volume.',                              warn:'No relationship leverage. Suppliers price for one-shot.'},
+  {name:'Long-term partnership / LTA',wins:'Strategic, design-in, joint cost-down workshops.',                       warn:'Hard to exit if supplier underperforms. Build KPI penalties.'},
+  {name:'Joint Venture / Equity',     wins:'Strategic IP, capacity assurance, deep tech transfer.',                  warn:'Capital + governance overhead. M&A-level commitment.'},
+  {name:'Vertical integration',       wins:'Core IP + scale economics + supplier extracts too much margin.',          warn:'Burns capital, distracts from core. Hard to unwind.'},
+  {name:'Reverse auction',            wins:'Mature commodity, qualified pool of 5+, no quality differentiation.',    warn:'Damages relationships, race-to-bottom risk.'}
+];
+
+function computeSourcingStrategy(){
+  const spend = +document.getElementById('ssSpend').value || 0;
+  const risk = +document.getElementById('ssRisk').value || 3;
+  const supplyBase = +document.getElementById('ssSupplyBase').value || 1;
+  const switchCost = document.getElementById('ssSwitchCost').value;
+  const ip = document.getElementById('ssIP').value;
+  const vol = document.getElementById('ssVolatility').value;
+  // Update risk label
+  const labels = ['', 'low', 'low-medium', 'medium', 'medium-high', 'critical'];
+  document.getElementById('ssRiskLabel').textContent = `${risk} / 5 — ${labels[risk]}`;
+
+  // Decision tree
+  let strategy, rationale, kraljic;
+  // Kraljic quadrant
+  const profitImpact = spend >= 1_000_000 ? 'high' : 'low';
+  const supplyRisk   = (risk >= 4 || supplyBase <= 2) ? 'high' : 'low';
+  if(profitImpact==='high' && supplyRisk==='high')      kraljic = 'Strategic';
+  else if(profitImpact==='high' && supplyRisk==='low')  kraljic = 'Leverage';
+  else if(profitImpact==='low'  && supplyRisk==='high') kraljic = 'Bottleneck';
+  else                                                  kraljic = 'Routine';
+
+  if(ip === 'strategic'){
+    strategy = 'Long-term partnership or Joint Venture';
+    rationale = 'Strategic IP must not leak. Build deep commercial + technical alignment via LTA with milestone payments, or equity stake / JV for true control. Walk away from spot-buy / auction tactics — they destroy trust.';
+  } else if(switchCost === 'prohibitive'){
+    strategy = 'Single-source with bullet-proof safety net';
+    rationale = 'Switching cost is too high to fragment. Lock multi-year LOA, insist on dual-tier capacity, escrow critical tooling and IP, build a Plan-B qualified to dormant status.';
+  } else if(supplyBase <= 2 || risk >= 4){
+    strategy = 'Dual-source (urgent)';
+    rationale = 'Thin supply base or critical risk demands a second qualified vendor immediately. Even at 80/20 split, the second source de-risks the category and gives negotiating leverage with the primary.';
+  } else if(profitImpact==='high' && supplyRisk==='low' && switchCost==='low'){
+    strategy = 'Competitive multi-source + reverse auction for renewals';
+    rationale = 'Leverage quadrant — high spend, abundant supply, low switching cost. Run aggressive bidding events on renewal cycle. Award 60/30/10 between top 3 to keep them honest.';
+  } else if(spend < 250_000 && switchCost === 'low'){
+    strategy = 'Spot-buy via catalogue / P-card';
+    rationale = 'Low-spend, low-risk transactional category. Direct buyers to electronic catalogues, P-cards, or hosted punch-out. No central sourcing effort warranted.';
+  } else {
+    strategy = 'Dual-source with preferred-vendor list (3-5 suppliers)';
+    rationale = 'Balanced default. Award 60/40 to two qualified vendors; keep a third warm via small annual buys. Annual price benchmark + biennial RFx to refresh.';
+  }
+
+  document.getElementById('ssRecommendation').innerHTML = `
+    <div class="flex items-start gap-3">
+      <div class="text-3xl">🎯</div>
+      <div class="flex-1">
+        <h3 class="font-bold text-base text-amber-900">Kraljic = ${kraljic} → Recommended: ${strategy}</h3>
+        <p class="text-sm text-slate-700 mt-1">${rationale}</p>
+        <div class="mt-3 grid md:grid-cols-4 gap-2 text-[11px]">
+          <div class="bg-white border border-slate-200 rounded p-2"><div class="text-slate-500">Annual spend</div><div class="font-bold">$${spend.toLocaleString()}</div></div>
+          <div class="bg-white border border-slate-200 rounded p-2"><div class="text-slate-500">Supply risk</div><div class="font-bold">${labels[risk]}</div></div>
+          <div class="bg-white border border-slate-200 rounded p-2"><div class="text-slate-500">Qualified vendors</div><div class="font-bold">${supplyBase}</div></div>
+          <div class="bg-white border border-slate-200 rounded p-2"><div class="text-slate-500">Switching cost</div><div class="font-bold capitalize">${switchCost}</div></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function initSourcingStrategy(){
+  // Strategy table
+  const tbody = document.getElementById('ssTable');
+  if(tbody) tbody.innerHTML = SS_STRATEGIES.map(s =>
+    `<tr class="border-b border-slate-100">
+      <td class="py-2 px-2 font-semibold text-slate-800">${s.name}</td>
+      <td class="py-2 px-2 text-slate-700">${s.wins}</td>
+      <td class="py-2 px-2 text-slate-600">${s.warn}</td>
+    </tr>`).join('');
+  computeSourcingStrategy();
+}
+
+/* ===================================================================
+ * NEGOTIATION LEVERAGE MATRIX
+ * =================================================================== */
+const LEVERAGES = [
+  {icon:'⚓', name:'Anchoring', when:'Open with a number — first one usually defines the ZOPA.', script:'"Our should-cost analysis lands at $4.20/unit. We need to be in that neighbourhood to move forward."', risk:'Too aggressive → loss of credibility. Anchor with data, not opinion.'},
+  {icon:'🏃', name:'BATNA strength', when:'Make sure the supplier knows you have an alternative.', script:'"We have two other qualified vendors who can deliver in 8 weeks at this price band — but you\'re our first choice on quality."', risk:'Bluffing kills trust. Have the BATNA actually qualified.'},
+  {icon:'📐', name:'ZOPA expansion', when:'When the gap looks unbridgeable, expand the pie.', script:'"If we extend the term to 3 years and commit to monthly volumes, can you re-look at the price?"', risk:'Locks you into volume you may not need. Insert flex clauses.'},
+  {icon:'🎯', name:'MESO (multiple offers)', when:'Present 2-3 equivalent proposals; let them choose.', script:'"Option A: 5% lower price, NET 30. Option B: list price, NET 90. Option C: dual-source 70/30 split."', risk:'Decision fatigue if &gt; 3. Keep options crisply differentiated.'},
+  {icon:'⏰', name:'Time pressure / deadline', when:'You have a hard deadline that costs more if missed.', script:'"Our launch window closes in 6 weeks — beyond that the project moves to Q3 and changes scope."', risk:'Real deadlines work; fake ones get called. Be honest about the date.'},
+  {icon:'🔍', name:'Total-cost framing (iceberg)', when:'Supplier focusing on per-unit price; reframe.', script:'"You\'re 8% cheaper per unit but your defect rate adds $48k/yr in rework — that\'s a higher TCO."', risk:'Need actual data. See the TCO + Iceberg modules.'},
+  {icon:'🔮', name:'Future-volume promise', when:'Trade today\'s discount for tomorrow\'s growth.', script:'"If you can get us to $3.90 on the current 100k units, we have a 250k product launching next year."', risk:'Promises must be credible and contractualized with volume tiers.'},
+  {icon:'🤝', name:'Reciprocity', when:'You\'ve done them a favor recently.', script:'"We accepted the 30-day quality remediation last quarter — we\'re asking for some flex on this RFQ."', risk:'Don\'t over-leverage; reciprocity is fragile.'},
+  {icon:'🎲', name:'Scarcity / limited slots', when:'Position yourself as a rare, attractive customer.', script:'"We\'re selecting just 2 partners for this 5-year program. We want to know if you\'re positioned to be one."', risk:'Don\'t fabricate scarcity — most procurement teams talk to each other.'},
+  {icon:'🧠', name:'Multi-attribute scoring', when:'When price alone won\'t differentiate (Quote Comparison tab).', script:'"Our scorecard weights price 40%, quality 25%, lead-time 20%, ESG 15%. Your offer scores 78 — top three are 82+."', risk:'Make the rubric transparent BEFORE the bid, not after.'},
+  {icon:'🌱', name:'Pie expansion (collaborative)', when:'Win-win framing — joint cost-out workshops.', script:'"What if we co-fund a value-engineering study? Half the savings to you, half to us."', risk:'Some suppliers exploit collaboration to extract information. Have an NDA.'},
+  {icon:'🚪', name:'Walk-away willingness', when:'Your BATNA is genuinely strong.', script:'"Below this band the project doesn\'t make economic sense for us. We\'ll respect your no, and explore Plan B."', risk:'Means it. Walking away you don\'t actually want is the fastest way to lose face.'}
+];
+
+function initLeverage(){
+  const host = document.getElementById('leverageGrid');
+  if(!host) return;
+  host.innerHTML = LEVERAGES.map((l, i) => `
+    <div class="bg-white rounded-2xl card-shadow p-4 border-l-4 border-rose-500">
+      <div class="flex items-start gap-3">
+        <div class="text-2xl">${l.icon}</div>
+        <div class="flex-1">
+          <div class="font-bold text-sm text-rose-800">${i+1}. ${l.name}</div>
+          <p class="text-xs text-slate-600 mt-1"><b>When:</b> ${l.when}</p>
+          <div class="bg-slate-50 border-l-2 border-emerald-500 px-3 py-2 my-2 italic text-xs text-slate-700">
+            "${l.script}"
+          </div>
+          <p class="text-xs text-amber-700"><b>Watch-out:</b> ${l.risk}</p>
+        </div>
+      </div>
+    </div>`).join('');
 }
 </script>
 </body>
