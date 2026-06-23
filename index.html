@@ -323,6 +323,81 @@
     color: inherit;
   }
 
+  /* ===== DARK MODE PASS 6 — targeted fixes for Make-vs-Buy, Vendor, ERP, AI, SRM, Stakeholders =====
+     Backed by WCAG contrast probe data: 78 defects clustered into 4 root causes. Fixed in order. */
+
+  /* (1) Saturated badge backgrounds keep their dark text intact.
+        bg-amber-400 + text-slate-900 was getting overridden by my earlier text-slate-900 brighten rule,
+        producing light-yellow-on-light-amber = invisible. Restore dark text on saturated badges. */
+  html.dark-mode .bg-amber-300 .text-slate-900,
+  html.dark-mode .bg-amber-400 .text-slate-900,
+  html.dark-mode .bg-amber-500 .text-slate-900,
+  html.dark-mode .bg-yellow-300 .text-slate-900,
+  html.dark-mode .bg-yellow-400 .text-slate-900,
+  html.dark-mode .bg-orange-300 .text-slate-900,
+  html.dark-mode .bg-orange-400 .text-slate-900,
+  html.dark-mode span.bg-amber-400,
+  html.dark-mode span.bg-amber-500 { color: #0F172A !important; }
+
+  /* (2) .btn-secondary — custom button class not covered. */
+  html.dark-mode .btn-secondary,
+  html.dark-mode .btn.btn-secondary,
+  html.dark-mode button.btn-secondary {
+    background: #334155 !important;
+    color: #E2E8F0 !important;
+    border: 1px solid #475569 !important;
+  }
+  html.dark-mode .btn-secondary:hover,
+  html.dark-mode .btn.btn-secondary:hover { background: #475569 !important; }
+
+  /* (3) SRM-style monospaced table cells. The contrast probe identified 59 defects in SRM hub
+        clustering on `p-2 text-xs` and `p-2 font-mono text-xs` — table data cells whose bg
+        wasn't darkening because their parent was a row stripe. */
+  html.dark-mode .p-2.text-xs,
+  html.dark-mode .p-2.font-mono.text-xs,
+  html.dark-mode td.p-2.text-xs,
+  html.dark-mode #tab-srm-content .p-2.text-xs { color: #E2E8F0 !important; }
+  html.dark-mode #tab-srm-content tr:nth-child(even) { background: rgba(15,23,42,0.25) !important; }
+  html.dark-mode #tab-srm-content tr:nth-child(odd)  { background: rgba(15,23,42,0.50) !important; }
+  /* Generic table-cell readability inside any tab */
+  html.dark-mode #tab-vendor-content td,
+  html.dark-mode #tab-erp-content td,
+  html.dark-mode #tab-srm-content td,
+  html.dark-mode #tab-stakeholders-content td { color: #E2E8F0 !important; }
+
+  /* (4) text-slate-500 was dimmer than ideal in dark mode. Push to slate-300 for body-level text. */
+  html.dark-mode .text-slate-500 { color: #CBD5E1 !important; }
+
+  /* (5) Hero badges across the 6 tabs all use `bg-amber-400 text-slate-900` and several other
+        saturated yellow/amber/orange pills. Force their text to dark slate explicitly. */
+  html.dark-mode [class*="bg-amber-400"][class*="text-slate-900"],
+  html.dark-mode [class*="bg-amber-500"][class*="text-slate-900"],
+  html.dark-mode [class*="bg-yellow-400"][class*="text-slate-900"] { color: #0F172A !important; font-weight: 700 !important; }
+
+  /* (6) For tabs that use .btn — Vendor Onboarding, ERP, AI Strategist, SRM, Stakeholders.
+        These are hand-rolled buttons. Make sure their colors lift properly. */
+  html.dark-mode .btn { transition: background 0.15s; }
+  html.dark-mode .btn:not([class*="btn-"]):not([class*="bg-"]) {
+    background: #0F766E !important;
+    color: white !important;
+  }
+  html.dark-mode .btn-ghost { background: transparent !important; color: #5EEAD4 !important; border: 1px solid #334155 !important; }
+  html.dark-mode .btn-ghost:hover { background: #334155 !important; }
+
+  /* (7) AI Strategist chat panel — message bubbles and the textarea need explicit dark styling. */
+  html.dark-mode .chat-bubble-user { background: #0F766E !important; color: white !important; }
+  html.dark-mode .chat-bubble-assistant,
+  html.dark-mode .chat-bubble-bot { background: #334155 !important; color: #F1F5F9 !important; }
+  html.dark-mode #chatLog,
+  html.dark-mode #aiChat,
+  html.dark-mode .chat-container { background: #0F172A !important; }
+
+  /* (8) Stakeholder Hub persona cards — `data-stakeholder` attribute selector for safety. */
+  html.dark-mode [data-stakeholder],
+  html.dark-mode .stakeholder-card { background: #1E293B !important; color: #E2E8F0 !important; border-color: #334155 !important; }
+  html.dark-mode .stakeholder-card .text-slate-700,
+  html.dark-mode .stakeholder-card .text-slate-800 { color: #F1F5F9 !important; }
+
   /* Force every from-/to-/via- LIGHT gradient variant (-50, -100) to die so backgrounds are dark */
   html.dark-mode [class*="from-amber-50"], html.dark-mode [class*="from-cyan-50"], html.dark-mode [class*="from-emerald-50"],
   html.dark-mode [class*="from-indigo-50"], html.dark-mode [class*="from-sky-50"], html.dark-mode [class*="from-slate-50"],
