@@ -252,6 +252,21 @@
   html.dark-mode .kpi-card .text-slate-700, html.dark-mode .kpi-card .text-slate-800, html.dark-mode .kpi-card .text-slate-900 { color: #F1F5F9 !important; }
   html.dark-mode .chat-bubble-assistant { background:#334155 !important; color:#E2E8F0 !important; }
 
+  /* ===== The `.card` hand-rolled CSS class — used across glossary, welcome, etc. =====
+     `.card { background: white }` bypasses every Tailwind override. Must explicitly nuke it. */
+  html.dark-mode .card { background:#1E293B !important; color:#E2E8F0 !important; border-color:#334155 !important; }
+  html.dark-mode .card * { color: inherit; }
+  html.dark-mode .card .text-slate-400 { color:#94A3B8 !important; }
+  html.dark-mode .card .text-slate-500, html.dark-mode .card .text-slate-600 { color:#CBD5E1 !important; }
+  html.dark-mode .card .text-slate-700, html.dark-mode .card .text-slate-800, html.dark-mode .card .text-slate-900 { color:#F1F5F9 !important; }
+  html.dark-mode .card summary { color:#F1F5F9 !important; }
+  html.dark-mode .card details[open] { background:#0F172A !important; }
+  html.dark-mode .card-interactive:hover { background:#334155 !important; }
+  /* Body-class typography helpers used in glossary/welcome */
+  html.dark-mode .text-body { color:#CBD5E1 !important; }
+  html.dark-mode .text-headline { color:#F1F5F9 !important; }
+  html.dark-mode .text-display { color:#F1F5F9 !important; }
+
   /* Kraljic quadrant cells — hand-rolled CSS with hardcoded pastel gradients.
      In dark mode, swap to dark slate but keep a small color-coded left border so the brand
      identity of each quadrant is preserved. */
