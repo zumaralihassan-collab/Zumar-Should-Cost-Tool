@@ -204,6 +204,90 @@
   html.dark-mode a.text-teal-600 { color:#2DD4BF !important; }
   html.dark-mode a:not([class]) { color:#5EEAD4 !important; }
 
+  /* ===== DARK MODE PASS 4 — pale gradients + hardcoded white CSS classes =====
+     These are the cases earlier passes missed:
+     (a) Tailwind GRADIENT classes (bg-gradient-to-* + from-X-50 + to-Y-50). The gradient is
+         constructed from CSS custom properties (--tw-gradient-from / --tw-gradient-to), so my
+         .bg-X-50 overrides never reach the actual painted background. Result: card keeps a
+         pale gradient bg and brightened text becomes invisible on it.
+     (b) Hand-rolled CSS classes (.kpi-card, .chat-bubble-*, etc.) that hardcode background:white
+         outside Tailwind — these bypass every utility-class override.
+     This pass forces both back to slate-800 with proper contrast. */
+  html.dark-mode .bg-gradient-to-r[class*="from-"][class*="-50"],
+  html.dark-mode .bg-gradient-to-br[class*="from-"][class*="-50"],
+  html.dark-mode .bg-gradient-to-bl[class*="from-"][class*="-50"],
+  html.dark-mode .bg-gradient-to-l[class*="from-"][class*="-50"],
+  html.dark-mode .bg-gradient-to-t[class*="from-"][class*="-50"],
+  html.dark-mode .bg-gradient-to-tr[class*="from-"][class*="-50"],
+  html.dark-mode .bg-gradient-to-tl[class*="from-"][class*="-50"],
+  html.dark-mode .bg-gradient-to-b[class*="from-"][class*="-50"],
+  html.dark-mode [class*="bg-gradient"][class*="-50"][class*="to-"] {
+    background-image: none !important;
+    background-color: #1E293B !important;
+    color: #E2E8F0 !important;
+  }
+  /* Make sure ALL descendants of a force-darkened pale-gradient card inherit readable text */
+  html.dark-mode .bg-gradient-to-r[class*="from-"][class*="-50"] *,
+  html.dark-mode .bg-gradient-to-br[class*="from-"][class*="-50"] *,
+  html.dark-mode .bg-gradient-to-l[class*="from-"][class*="-50"] *,
+  html.dark-mode .bg-gradient-to-tr[class*="from-"][class*="-50"] *,
+  html.dark-mode .bg-gradient-to-tl[class*="from-"][class*="-50"] *,
+  html.dark-mode .bg-gradient-to-b[class*="from-"][class*="-50"] *,
+  html.dark-mode .bg-gradient-to-t[class*="from-"][class*="-50"] *,
+  html.dark-mode .bg-gradient-to-bl[class*="from-"][class*="-50"] * { color: inherit; }
+  /* Headings inside forced-dark cards explicitly bright */
+  html.dark-mode .bg-gradient-to-r[class*="from-"][class*="-50"] h1,
+  html.dark-mode .bg-gradient-to-r[class*="from-"][class*="-50"] h2,
+  html.dark-mode .bg-gradient-to-r[class*="from-"][class*="-50"] h3,
+  html.dark-mode .bg-gradient-to-r[class*="from-"][class*="-50"] h4,
+  html.dark-mode .bg-gradient-to-br[class*="from-"][class*="-50"] h1,
+  html.dark-mode .bg-gradient-to-br[class*="from-"][class*="-50"] h2,
+  html.dark-mode .bg-gradient-to-br[class*="from-"][class*="-50"] h3,
+  html.dark-mode .bg-gradient-to-br[class*="from-"][class*="-50"] h4 { color: #F1F5F9 !important; }
+
+  /* Hand-rolled CSS components that bypass Tailwind */
+  html.dark-mode .kpi-card { background: #1E293B !important; color: #E2E8F0 !important; box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important; }
+  html.dark-mode .kpi-card * { color: inherit; }
+  html.dark-mode .kpi-card .text-slate-500, html.dark-mode .kpi-card .text-slate-600 { color: #94A3B8 !important; }
+  html.dark-mode .kpi-card .text-slate-700, html.dark-mode .kpi-card .text-slate-800, html.dark-mode .kpi-card .text-slate-900 { color: #F1F5F9 !important; }
+  html.dark-mode .chat-bubble-assistant { background:#334155 !important; color:#E2E8F0 !important; }
+
+  /* Kraljic quadrant cells — hand-rolled CSS with hardcoded pastel gradients.
+     In dark mode, swap to dark slate but keep a small color-coded left border so the brand
+     identity of each quadrant is preserved. */
+  html.dark-mode .quadrant-cell { background: #1E293B !important; border-color:#334155 !important; color:#E2E8F0 !important; }
+  html.dark-mode .quadrant-strategic  { border-left: 4px solid #F59E0B !important; }
+  html.dark-mode .quadrant-bottleneck { border-left: 4px solid #FB923C !important; }
+  html.dark-mode .quadrant-leverage   { border-left: 4px solid #60A5FA !important; }
+  html.dark-mode .quadrant-routine    { border-left: 4px solid #34D399 !important; }
+  /* Force the quadrant-title brand-text classes to brighten */
+  html.dark-mode .quadrant-strategic .text-amber-900  { color:#FCD34D !important; }
+  html.dark-mode .quadrant-bottleneck .text-orange-900 { color:#FDBA74 !important; }
+  html.dark-mode .quadrant-leverage .text-blue-900   { color:#93C5FD !important; }
+  html.dark-mode .quadrant-routine .text-emerald-900 { color:#6EE7B7 !important; }
+  /* Pill-style chips inside quadrants (Tailwind generates them with white bg on light mode) */
+  html.dark-mode .quadrant-cell .bg-white,
+  html.dark-mode .quadrant-cell [class*="bg-white"] { background: rgba(15,23,42,0.55) !important; color:#E2E8F0 !important; }
+
+  /* Force every from-/to-/via- LIGHT gradient variant (-50, -100) to die so backgrounds are dark */
+  html.dark-mode [class*="from-amber-50"], html.dark-mode [class*="from-cyan-50"], html.dark-mode [class*="from-emerald-50"],
+  html.dark-mode [class*="from-indigo-50"], html.dark-mode [class*="from-sky-50"], html.dark-mode [class*="from-slate-50"],
+  html.dark-mode [class*="from-teal-50"], html.dark-mode [class*="from-purple-50"], html.dark-mode [class*="from-pink-50"],
+  html.dark-mode [class*="from-blue-50"], html.dark-mode [class*="from-fuchsia-50"], html.dark-mode [class*="from-rose-50"],
+  html.dark-mode [class*="from-orange-50"], html.dark-mode [class*="from-yellow-50"], html.dark-mode [class*="from-green-50"],
+  html.dark-mode [class*="from-red-50"], html.dark-mode [class*="from-violet-50"] {
+    --tw-gradient-from: #1E293B !important;
+    --tw-gradient-stops: #1E293B, #1E293B !important;
+  }
+  html.dark-mode [class*="to-blue-50"], html.dark-mode [class*="to-indigo-50"], html.dark-mode [class*="to-orange-50"],
+  html.dark-mode [class*="to-purple-50"], html.dark-mode [class*="to-teal-50"], html.dark-mode [class*="to-emerald-50"],
+  html.dark-mode [class*="to-amber-50"], html.dark-mode [class*="to-cyan-50"], html.dark-mode [class*="to-sky-50"],
+  html.dark-mode [class*="to-pink-50"], html.dark-mode [class*="to-fuchsia-50"], html.dark-mode [class*="to-rose-50"],
+  html.dark-mode [class*="to-yellow-50"], html.dark-mode [class*="to-green-50"], html.dark-mode [class*="to-red-50"],
+  html.dark-mode [class*="to-violet-50"], html.dark-mode [class*="to-slate-50"] {
+    --tw-gradient-to: #1E293B !important;
+  }
+
   /* ========== SIDEBAR LAYOUT ========== */
   .app-layout { display: flex; min-height: 100vh; }
   .sidebar {
