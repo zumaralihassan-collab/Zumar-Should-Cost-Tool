@@ -398,6 +398,47 @@
   html.dark-mode .stakeholder-card .text-slate-700,
   html.dark-mode .stakeholder-card .text-slate-800 { color: #F1F5F9 !important; }
 
+  /* (9) Tailwind opacity-modifier white backgrounds — bg-white/70, bg-white/80, bg-white/50.
+        These render as `rgba(255,255,255,0.7)` which my `.bg-white` rule never reaches.
+        On Make-vs-Buy, Decision panel KPI chips use bg-white/70 → invisible in dark.
+        Force the high-opacity ones dark. Keep the very low-opacity overlays alone
+        (bg-white/10, /15, /20, /25, /30) — those are decorative tints on saturated headers
+        and work fine because the underlying hero stays its saturated brand color in dark mode. */
+  html.dark-mode .bg-white\/50,
+  html.dark-mode .bg-white\/70,
+  html.dark-mode .bg-white\/80,
+  html.dark-mode .bg-white\/90,
+  html.dark-mode [class*="bg-white/5"],
+  html.dark-mode [class*="bg-white/6"],
+  html.dark-mode [class*="bg-white/7"],
+  html.dark-mode [class*="bg-white/8"],
+  html.dark-mode [class*="bg-white/9"] {
+    background-color: rgba(15, 23, 42, 0.65) !important;
+    color: #E2E8F0 !important;
+    backdrop-filter: blur(2px);
+  }
+  /* And the dark text inside those previously-white chips needs to brighten too */
+  html.dark-mode .bg-white\/50 .text-slate-500,
+  html.dark-mode .bg-white\/70 .text-slate-500,
+  html.dark-mode .bg-white\/80 .text-slate-500,
+  html.dark-mode .bg-white\/90 .text-slate-500 { color: #CBD5E1 !important; }
+  html.dark-mode .bg-white\/50 .text-slate-700,
+  html.dark-mode .bg-white\/70 .text-slate-700,
+  html.dark-mode .bg-white\/80 .text-slate-700,
+  html.dark-mode .bg-white\/90 .text-slate-700,
+  html.dark-mode .bg-white\/50 .text-slate-800,
+  html.dark-mode .bg-white\/70 .text-slate-800,
+  html.dark-mode .bg-white\/80 .text-slate-800,
+  html.dark-mode .bg-white\/90 .text-slate-800 { color: #F1F5F9 !important; }
+  html.dark-mode .bg-white\/50 .text-emerald-700,
+  html.dark-mode .bg-white\/70 .text-emerald-700,
+  html.dark-mode .bg-white\/80 .text-emerald-700,
+  html.dark-mode .bg-white\/90 .text-emerald-700 { color: #6EE7B7 !important; }
+  html.dark-mode .bg-white\/50 .text-red-700,
+  html.dark-mode .bg-white\/70 .text-red-700,
+  html.dark-mode .bg-white\/80 .text-red-700,
+  html.dark-mode .bg-white\/90 .text-red-700 { color: #FCA5A5 !important; }
+
   /* Force every from-/to-/via- LIGHT gradient variant (-50, -100) to die so backgrounds are dark */
   html.dark-mode [class*="from-amber-50"], html.dark-mode [class*="from-cyan-50"], html.dark-mode [class*="from-emerald-50"],
   html.dark-mode [class*="from-indigo-50"], html.dark-mode [class*="from-sky-50"], html.dark-mode [class*="from-slate-50"],
