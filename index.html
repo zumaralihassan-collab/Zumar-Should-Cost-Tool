@@ -177,6 +177,33 @@
   html.dark-mode .hover\:bg-cyan-50:hover, html.dark-mode .hover\:bg-blue-50:hover, html.dark-mode .hover\:bg-amber-50:hover,
   html.dark-mode .hover\:bg-orange-50:hover { background:#334155 !important; }
 
+  /* ===== DARK MODE PASS 3 — comprehensive sweep =====
+     The earlier passes covered the most common offenders. This pass picks up everything else:
+     200/300/400/500/600 text variants of all brand colors, the 950 darkest shade, and the
+     -50 / -100 / -200 / -300 background variants in case any were missed. */
+  html.dark-mode .text-slate-950, html.dark-mode .text-gray-950, html.dark-mode .text-zinc-950, html.dark-mode .text-neutral-950, html.dark-mode .text-stone-950 { color:#F1F5F9 !important; }
+  html.dark-mode .text-teal-600, html.dark-mode .text-emerald-600, html.dark-mode .text-green-600, html.dark-mode .text-blue-600, html.dark-mode .text-sky-600, html.dark-mode .text-cyan-600, html.dark-mode .text-indigo-600, html.dark-mode .text-violet-600, html.dark-mode .text-purple-600, html.dark-mode .text-fuchsia-600, html.dark-mode .text-pink-600, html.dark-mode .text-rose-600, html.dark-mode .text-red-600, html.dark-mode .text-orange-600, html.dark-mode .text-amber-600, html.dark-mode .text-yellow-600 { color:#E5E7EB !important; }
+  /* Brand 500 variants — keep brand identity but lift to readable on dark */
+  html.dark-mode .text-teal-500 { color:#2DD4BF !important; }
+  html.dark-mode .text-emerald-500 { color:#34D399 !important; }
+  html.dark-mode .text-blue-500 { color:#60A5FA !important; }
+  html.dark-mode .text-indigo-500 { color:#818CF8 !important; }
+  html.dark-mode .text-fuchsia-500 { color:#E879F9 !important; }
+  html.dark-mode .text-pink-500 { color:#EC4899 !important; }
+  html.dark-mode .text-red-500 { color:#F87171 !important; }
+  html.dark-mode .text-amber-500 { color:#FBBF24 !important; }
+  html.dark-mode .text-orange-500 { color:#FB923C !important; }
+  /* Any bg-{brand}-200/300 (badges, pills) gets a slightly lighter slate so the colored text reads */
+  html.dark-mode .bg-teal-200, html.dark-mode .bg-emerald-200, html.dark-mode .bg-green-200, html.dark-mode .bg-blue-200, html.dark-mode .bg-sky-200, html.dark-mode .bg-cyan-200, html.dark-mode .bg-indigo-200, html.dark-mode .bg-violet-200, html.dark-mode .bg-purple-200, html.dark-mode .bg-fuchsia-200, html.dark-mode .bg-pink-200, html.dark-mode .bg-rose-200, html.dark-mode .bg-red-200, html.dark-mode .bg-orange-200, html.dark-mode .bg-amber-200, html.dark-mode .bg-yellow-200,
+  html.dark-mode .bg-teal-300, html.dark-mode .bg-emerald-300, html.dark-mode .bg-green-300, html.dark-mode .bg-blue-300, html.dark-mode .bg-sky-300, html.dark-mode .bg-cyan-300, html.dark-mode .bg-indigo-300, html.dark-mode .bg-violet-300, html.dark-mode .bg-purple-300, html.dark-mode .bg-fuchsia-300, html.dark-mode .bg-pink-300, html.dark-mode .bg-rose-300, html.dark-mode .bg-red-300, html.dark-mode .bg-orange-300, html.dark-mode .bg-amber-300, html.dark-mode .bg-yellow-300 { background:#334155 !important; }
+  /* Default Tailwind text-color for non-suffixed elements (h1, p without class) — body color already covers it but ensure inheritance */
+  html.dark-mode .bg-white *:not(input):not(select):not(textarea):not(button):not([class*="bg-"]) { color: inherit; }
+  /* Force-update any inline-styled dark text inside a darkened card. CATEGORY_COLORS pills are the main case. */
+  html.dark-mode [style*="background:#94A3B820"] [style*="color:#475569"], html.dark-mode [style*="color:#475569"] { color:#94A3B8 !important; }
+  /* Footer (uses slate-500 / -700 already covered, but the link colors need lifting) */
+  html.dark-mode a.text-teal-600 { color:#2DD4BF !important; }
+  html.dark-mode a:not([class]) { color:#5EEAD4 !important; }
+
   /* ========== SIDEBAR LAYOUT ========== */
   .app-layout { display: flex; min-height: 100vh; }
   .sidebar {
@@ -7922,6 +7949,11 @@ function computeCapex(){
   const totalIn = cf.slice(1).reduce((s,c)=>s+c,0);
   const roi = (v.capex+v.wc) > 0 ? (totalIn - (v.capex+v.wc)) / (v.capex+v.wc) : 0;
 
+  // Formatters — declared BEFORE the row update loop because it uses fmt$ (TDZ fix)
+  const fmt$ = n => typeof fxFormat==='function' ? fxFormat(n,{digits:0}) : '$'+Math.round(n).toLocaleString();
+  const fmtPct = n => n===null||isNaN(n) ? 'n/a' : (n*100).toFixed(1)+'%';
+  const fmtYrs = n => n===null ? 'never' : n.toFixed(2)+' yrs';
+
   // Update table rows
   let cum = 0, cumDisc = 0;
   for(let y=0;y<=v.life;y++){
@@ -7938,9 +7970,6 @@ function computeCapex(){
   }
 
   // Render metric cards
-  const fmt$ = n => typeof fxFormat==='function' ? fxFormat(n,{digits:0}) : '$'+Math.round(n).toLocaleString();
-  const fmtPct = n => n===null||isNaN(n) ? 'n/a' : (n*100).toFixed(1)+'%';
-  const fmtYrs = n => n===null ? 'never' : n.toFixed(2)+' yrs';
   const npvColor = npv >= 0 ? 'text-emerald-700' : 'text-red-700';
   const irrColor = (irr!==null && irr >= v.wacc) ? 'text-emerald-700' : 'text-red-700';
   const piColor  = (pi!==null && pi >= 1) ? 'text-emerald-700' : 'text-red-700';
