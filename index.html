@@ -136,9 +136,46 @@
   /* Hover surfaces */
   html.dark-mode .hover\:bg-slate-50:hover, html.dark-mode .hover\:bg-slate-100:hover, html.dark-mode .hover\:bg-gray-50:hover { background:#334155 !important; }
   /* Card-like wrappers that use a colored faint background — keep brand color but lift contrast */
-  html.dark-mode .bg-teal-50, html.dark-mode .bg-emerald-50, html.dark-mode .bg-green-50, html.dark-mode .bg-blue-50, html.dark-mode .bg-sky-50 { background:#1E293B !important; }
-  html.dark-mode .bg-fuchsia-50, html.dark-mode .bg-pink-50, html.dark-mode .bg-rose-50 { background:#1E293B !important; }
-  html.dark-mode .bg-orange-50, html.dark-mode .bg-yellow-50, html.dark-mode .bg-amber-50 { background:#1E293B !important; }
+  html.dark-mode .bg-teal-50, html.dark-mode .bg-emerald-50, html.dark-mode .bg-green-50, html.dark-mode .bg-blue-50, html.dark-mode .bg-sky-50,
+  html.dark-mode .bg-fuchsia-50, html.dark-mode .bg-pink-50, html.dark-mode .bg-rose-50,
+  html.dark-mode .bg-orange-50, html.dark-mode .bg-yellow-50, html.dark-mode .bg-amber-50,
+  html.dark-mode .bg-indigo-50, html.dark-mode .bg-violet-50, html.dark-mode .bg-purple-50, html.dark-mode .bg-cyan-50, html.dark-mode .bg-red-50,
+  html.dark-mode .bg-teal-100, html.dark-mode .bg-emerald-100, html.dark-mode .bg-green-100, html.dark-mode .bg-blue-100, html.dark-mode .bg-sky-100,
+  html.dark-mode .bg-fuchsia-100, html.dark-mode .bg-pink-100, html.dark-mode .bg-rose-100,
+  html.dark-mode .bg-orange-100, html.dark-mode .bg-yellow-100, html.dark-mode .bg-amber-100,
+  html.dark-mode .bg-indigo-100, html.dark-mode .bg-violet-100, html.dark-mode .bg-purple-100, html.dark-mode .bg-cyan-100, html.dark-mode .bg-red-100 { background:#1E293B !important; }
+
+  /* All "dark variant" colored text — brighten to readable 300 variants on dark bg.
+     This catches text-{brand}-700/800/900 which is invisible on dark cards. */
+  html.dark-mode .text-teal-700, html.dark-mode .text-teal-800, html.dark-mode .text-teal-900 { color:#5EEAD4 !important; }
+  html.dark-mode .text-emerald-700, html.dark-mode .text-emerald-800, html.dark-mode .text-emerald-900 { color:#6EE7B7 !important; }
+  html.dark-mode .text-green-700, html.dark-mode .text-green-800, html.dark-mode .text-green-900 { color:#86EFAC !important; }
+  html.dark-mode .text-blue-700, html.dark-mode .text-blue-800, html.dark-mode .text-blue-900 { color:#93C5FD !important; }
+  html.dark-mode .text-sky-700, html.dark-mode .text-sky-800, html.dark-mode .text-sky-900 { color:#7DD3FC !important; }
+  html.dark-mode .text-cyan-700, html.dark-mode .text-cyan-800, html.dark-mode .text-cyan-900 { color:#67E8F9 !important; }
+  html.dark-mode .text-indigo-700, html.dark-mode .text-indigo-800, html.dark-mode .text-indigo-900 { color:#A5B4FC !important; }
+  html.dark-mode .text-violet-700, html.dark-mode .text-violet-800, html.dark-mode .text-violet-900 { color:#C4B5FD !important; }
+  html.dark-mode .text-purple-700, html.dark-mode .text-purple-800, html.dark-mode .text-purple-900 { color:#D8B4FE !important; }
+  html.dark-mode .text-fuchsia-700, html.dark-mode .text-fuchsia-800, html.dark-mode .text-fuchsia-900 { color:#F0ABFC !important; }
+  html.dark-mode .text-pink-700, html.dark-mode .text-pink-800, html.dark-mode .text-pink-900 { color:#F9A8D4 !important; }
+  html.dark-mode .text-rose-700, html.dark-mode .text-rose-800, html.dark-mode .text-rose-900 { color:#FDA4AF !important; }
+  html.dark-mode .text-red-700, html.dark-mode .text-red-800, html.dark-mode .text-red-900 { color:#FCA5A5 !important; }
+  html.dark-mode .text-orange-700, html.dark-mode .text-orange-800, html.dark-mode .text-orange-900 { color:#FDBA74 !important; }
+  html.dark-mode .text-amber-700, html.dark-mode .text-amber-800, html.dark-mode .text-amber-900 { color:#FCD34D !important; }
+  html.dark-mode .text-yellow-700, html.dark-mode .text-yellow-800, html.dark-mode .text-yellow-900 { color:#FDE047 !important; }
+
+  /* Faint outline-style colored borders — push toward darker variants for readability */
+  html.dark-mode .border-fuchsia-200, html.dark-mode .border-fuchsia-300, html.dark-mode .border-pink-200, html.dark-mode .border-pink-300,
+  html.dark-mode .border-teal-200, html.dark-mode .border-teal-300, html.dark-mode .border-emerald-200, html.dark-mode .border-emerald-300,
+  html.dark-mode .border-indigo-200, html.dark-mode .border-indigo-300, html.dark-mode .border-purple-200, html.dark-mode .border-purple-300,
+  html.dark-mode .border-cyan-200, html.dark-mode .border-cyan-300, html.dark-mode .border-amber-200, html.dark-mode .border-amber-300,
+  html.dark-mode .border-orange-200, html.dark-mode .border-orange-300, html.dark-mode .border-blue-200, html.dark-mode .border-blue-300 { border-color:#334155 !important; }
+
+  /* Outline-style ghost buttons (border + faint-bg + dark text) — make their hover bg darker */
+  html.dark-mode .hover\:bg-fuchsia-50:hover, html.dark-mode .hover\:bg-teal-50:hover, html.dark-mode .hover\:bg-emerald-50:hover,
+  html.dark-mode .hover\:bg-indigo-50:hover, html.dark-mode .hover\:bg-purple-50:hover, html.dark-mode .hover\:bg-pink-50:hover,
+  html.dark-mode .hover\:bg-cyan-50:hover, html.dark-mode .hover\:bg-blue-50:hover, html.dark-mode .hover\:bg-amber-50:hover,
+  html.dark-mode .hover\:bg-orange-50:hover { background:#334155 !important; }
 
   /* ========== SIDEBAR LAYOUT ========== */
   .app-layout { display: flex; min-height: 100vh; }
@@ -1593,6 +1630,21 @@
             <option value="macrs7">MACRS 7-year</option>
             <option value="none">None (cash-only model)</option>
           </select>
+        </div>
+      </div>
+
+      <!-- Generate / Recalculate CTA -->
+      <div class="mt-5 flex flex-wrap gap-3 items-center justify-between border-t border-slate-200 pt-4">
+        <div class="text-xs text-slate-600">
+          Click <b>Generate Insights</b> to recompute NPV, IRR, MIRR, Payback, EAC, ROI &amp; the Accept/Reject recommendation below.
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <button id="cxGenerateBtn" onclick="generateCapexInsights()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-md transition flex items-center gap-2">
+            <span>⚡</span><span>Generate Insights &amp; Results</span>
+          </button>
+          <button onclick="exportCapexExcel()" class="px-4 py-2.5 bg-white border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 rounded-lg text-sm font-bold transition flex items-center gap-2">
+            <span>⬇</span><span>Export Excel</span>
+          </button>
         </div>
       </div>
     </div>
@@ -8122,9 +8174,50 @@ function rankPortfolio(){
   });
 }
 
+/* Explicit "generate" button — recompute everything, scroll to results, and briefly flash the
+   metric grid so the user sees that the values just updated. */
+function generateCapexInsights(){
+  // Force a fresh compute
+  try { computeCapex(); }
+  catch(e){
+    console.error('CapEx compute error', e);
+    alert('Could not compute results: ' + e.message + ' — please check your inputs.');
+    return;
+  }
+  // Visual feedback on the button
+  const btn = document.getElementById('cxGenerateBtn');
+  if(btn){
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<span>✓</span><span>Insights generated</span>';
+    btn.classList.add('bg-emerald-700');
+    setTimeout(()=>{ btn.innerHTML = orig; btn.classList.remove('bg-emerald-700'); }, 1400);
+  }
+  // Scroll to the metric grid so the user actually sees the result
+  const grid = document.getElementById('cxMetricGrid');
+  if(grid){
+    grid.scrollIntoView({behavior:'smooth', block:'start'});
+    // Flash highlight on each metric card
+    grid.querySelectorAll('.bg-white').forEach((card, i)=>{
+      card.style.transition = 'box-shadow .35s ease, transform .35s ease';
+      setTimeout(()=>{
+        card.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.55)';
+        card.style.transform = 'scale(1.015)';
+      }, i*55);
+      setTimeout(()=>{
+        card.style.boxShadow = '';
+        card.style.transform = '';
+      }, 900 + i*55);
+    });
+  }
+}
+
 function exportCapexExcel(){
-  if(typeof XLSX==='undefined'){ alert('XLSX library not loaded.'); return; }
-  const c = window._lastCapex; if(!c){ computeCapex(); return; }
+  if(typeof XLSX==='undefined'){ alert('Excel export library is still loading — try again in 2 seconds.'); return; }
+  // Always recompute first so the latest input values are captured. This also fixes the
+  // first-click bug where _lastCapex was undefined and the function returned without exporting.
+  try { computeCapex(); } catch(e){ console.error('CapEx compute error', e); }
+  const c = window._lastCapex;
+  if(!c){ alert('Please load a template or enter project data first, then click Export Excel.'); return; }
   const wb = XLSX.utils.book_new();
   // Inputs + per-year CF
   const rows = [
