@@ -284,6 +284,45 @@
   html.dark-mode .quadrant-cell .bg-white,
   html.dark-mode .quadrant-cell [class*="bg-white"] { background: rgba(15,23,42,0.55) !important; color:#E2E8F0 !important; }
 
+  /* ===== Glossary <details class="card"> elements — bulletproof override =====
+     Each glossary entry is `<details class="card p-3"><summary>...term...</summary><p>...def...</p></details>`.
+     The `.card` rule earlier sets bg #1E293B but at certain font weights the system rendering
+     can still wash out. Force max contrast here. */
+  html.dark-mode #glossaryList details.card,
+  html.dark-mode #glossaryList details.card[open] {
+    background: #1E293B !important;
+    border: 1px solid #475569 !important;
+    color: #F1F5F9 !important;
+  }
+  html.dark-mode #glossaryList details.card summary {
+    color: #F8FAFC !important;
+    font-weight: 700 !important;
+  }
+  html.dark-mode #glossaryList details.card summary::marker { color: #5EEAD4; }
+  html.dark-mode #glossaryList details.card p,
+  html.dark-mode #glossaryList details.card .text-slate-600,
+  html.dark-mode #glossaryList details.card .text-slate-500 {
+    color: #CBD5E1 !important;
+  }
+  /* The same belt-and-braces for any .card anywhere — explicit, no relying on inheritance */
+  html.dark-mode details.card { background: #1E293B !important; color: #E2E8F0 !important; border-color: #475569 !important; }
+  html.dark-mode details.card summary { color: #F1F5F9 !important; }
+  html.dark-mode details.card > * { color: #E2E8F0 !important; }
+
+  /* ===== UNIVERSAL HIGH-CONTRAST GUARANTEE =====
+     For elements inside ANY card-like container in dark mode, force readable colors. This
+     belongs LAST so it wins specificity battles against any earlier weaker rules. */
+  html.dark-mode .card,
+  html.dark-mode .card-shadow,
+  html.dark-mode .kpi-card,
+  html.dark-mode .quadrant-cell {
+    background-color: #1E293B !important;
+  }
+  html.dark-mode .card *:not(button):not(input):not(select):not(textarea):not([class*="bg-"]),
+  html.dark-mode .kpi-card *:not(button):not(input):not(select):not(textarea):not([class*="bg-"]) {
+    color: inherit;
+  }
+
   /* Force every from-/to-/via- LIGHT gradient variant (-50, -100) to die so backgrounds are dark */
   html.dark-mode [class*="from-amber-50"], html.dark-mode [class*="from-cyan-50"], html.dark-mode [class*="from-emerald-50"],
   html.dark-mode [class*="from-indigo-50"], html.dark-mode [class*="from-sky-50"], html.dark-mode [class*="from-slate-50"],
