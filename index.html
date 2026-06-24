@@ -1537,6 +1537,114 @@
       <h2 class="text-xl font-bold">AI Analysis — Detected Cost Drivers</h2>
     </div>
     <div id="aiSummary" class="bg-gradient-to-r from-teal-50 to-blue-50 border border-teal-200 rounded-xl p-4 mb-6"></div>
+
+    <!-- ===== Extended Should-Cost panels: Tooling Amortization · Yield · Setup · Target-cost ===== -->
+    <div class="grid md:grid-cols-2 gap-4 mb-6">
+
+      <!-- 1) Tooling & Machine Amortization Calculator -->
+      <details class="bg-white border border-slate-200 rounded-xl p-4 group" open>
+        <summary class="cursor-pointer font-bold text-sm text-teal-800 flex items-center justify-between">
+          <span>🛠️ Tooling &amp; Machine Amortization</span>
+          <span class="text-[10px] bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full font-semibold">extended</span>
+        </summary>
+        <p class="text-[11px] text-slate-500 mt-2">CapEx of a dedicated machine or custom tool divided by its useful life = per-unit amortization to feed into the cost stack.</p>
+        <div class="grid grid-cols-2 gap-3 mt-3 text-xs">
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Tool / machine CapEx ($)</label>
+            <input id="exTool_capex" type="number" value="85000" oninput="recalcExtended()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+          </div>
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Tool life (cycles / parts)</label>
+            <input id="exTool_life" type="number" value="250000" oninput="recalcExtended()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+          </div>
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Tool refurbishment cost ($)</label>
+            <input id="exTool_refurb" type="number" value="8000" oninput="recalcExtended()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+          </div>
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Refurb interval (cycles)</label>
+            <input id="exTool_refurbInt" type="number" value="80000" oninput="recalcExtended()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+          </div>
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Machine hours per unit</label>
+            <input id="exMach_hours" type="number" step="0.001" value="0.02" oninput="recalcExtended()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+          </div>
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Machine $/hr rate (loaded)</label>
+            <input id="exMach_rate" type="number" value="45" oninput="recalcExtended()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+          </div>
+        </div>
+        <div id="exToolingOut" class="mt-3 grid grid-cols-3 gap-2 text-[11px]"></div>
+      </details>
+
+      <!-- 2) Yield / Scrap / Setup -->
+      <details class="bg-white border border-slate-200 rounded-xl p-4 group" open>
+        <summary class="cursor-pointer font-bold text-sm text-amber-800 flex items-center justify-between">
+          <span>📉 Yield · Scrap · Setup</span>
+          <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">extended</span>
+        </summary>
+        <p class="text-[11px] text-slate-500 mt-2">Real production never runs at 100% yield. Scrap inflates material consumption; setup amortizes a per-batch cost over batch size.</p>
+        <div class="grid grid-cols-2 gap-3 mt-3 text-xs">
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">First-pass yield %</label>
+            <input id="exYield" type="number" min="0" max="100" value="96" oninput="recalcExtended()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+          </div>
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Scrap recovery value % (of mat cost)</label>
+            <input id="exScrapRecovery" type="number" min="0" max="100" value="10" oninput="recalcExtended()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+          </div>
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Setup cost per batch ($)</label>
+            <input id="exSetupCost" type="number" value="350" oninput="recalcExtended()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+          </div>
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Batch size (units)</label>
+            <input id="exBatch" type="number" value="500" oninput="recalcExtended()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+          </div>
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Quality cost (PPM defect)</label>
+            <input id="exPPM" type="number" value="500" oninput="recalcExtended()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+          </div>
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Cost per defective unit ($)</label>
+            <input id="exDefectCost" type="number" value="3.50" step="0.01" oninput="recalcExtended()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+          </div>
+        </div>
+        <div id="exYieldOut" class="mt-3 grid grid-cols-3 gap-2 text-[11px]"></div>
+      </details>
+
+      <!-- 3) Target-Cost reverse engineering -->
+      <details class="bg-white border border-slate-200 rounded-xl p-4 group">
+        <summary class="cursor-pointer font-bold text-sm text-fuchsia-800 flex items-center justify-between">
+          <span>🎯 Target-Cost Reverse Engineering</span>
+          <span class="text-[10px] bg-fuchsia-100 text-fuchsia-800 px-2 py-0.5 rounded-full font-semibold">extended</span>
+        </summary>
+        <p class="text-[11px] text-slate-500 mt-2">Given a target selling price and required margin, solves what cost has to be to hit it — and shows the gap vs current should-cost.</p>
+        <div class="grid grid-cols-2 gap-3 mt-3 text-xs">
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Target sell price ($/unit)</label>
+            <input id="exTargetPrice" type="number" step="0.01" value="0" oninput="recalcExtended()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+          </div>
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Required gross margin %</label>
+            <input id="exTargetMargin" type="number" value="25" oninput="recalcExtended()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+          </div>
+        </div>
+        <div id="exTargetOut" class="mt-3 text-xs"></div>
+      </details>
+
+      <!-- 4) Confidence Index -->
+      <details class="bg-white border border-slate-200 rounded-xl p-4 group">
+        <summary class="cursor-pointer font-bold text-sm text-emerald-800 flex items-center justify-between">
+          <span>🛡️ Confidence Index</span>
+          <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">extended</span>
+        </summary>
+        <p class="text-[11px] text-slate-500 mt-2">How defensible is this estimate? Scored on data-source, template freshness, and override frequency.</p>
+        <div id="exConfidenceOut" class="mt-3"></div>
+      </details>
+    </div>
+    <!-- ===== End extended panels ===== -->
+
     <div class="grid md:grid-cols-12 gap-6">
       <div class="md:col-span-8 space-y-4" id="paramContainer"></div>
       <aside class="md:col-span-4">
@@ -5341,6 +5449,166 @@ function compareScenarios(){
   document.getElementById('compareContent').innerHTML=html;
   document.getElementById('compareModal').classList.remove('hidden');
 }
+
+/* =================================================================
+ * EXTENDED SHOULD-COST PANELS
+ *   1) Tooling & Machine Amortization
+ *   2) Yield · Scrap · Setup · Quality
+ *   3) Target-Cost Reverse Engineering
+ *   4) Confidence Index
+ * Re-runs on any input change. Numbers are pure functions — also
+ * directly callable for tests.
+ * ================================================================= */
+function _exVal(id, fallback){ const el=document.getElementById(id); if(!el) return fallback; const n=parseFloat(el.value); return isNaN(n)?fallback:n; }
+function _exMoney(n){ return typeof fxFormat==='function' ? fxFormat(n,{digits:n<1?4:2}) : '$'+Number(n).toFixed(n<1?4:2); }
+
+function computeToolingAmortization(capex, toolLife, refurbCost, refurbInt, machHrs, machRate){
+  // Total tool life-cycle cost = initial CapEx + (# refurbs × refurb cost)
+  const refurbs = refurbInt > 0 ? Math.floor(toolLife / refurbInt) : 0;
+  const totalToolCost = capex + (refurbs * refurbCost);
+  const toolingPerUnit = toolLife > 0 ? totalToolCost / toolLife : 0;
+  const machinePerUnit = machHrs * machRate;
+  return { toolingPerUnit, machinePerUnit, total: toolingPerUnit + machinePerUnit, refurbs, totalToolCost };
+}
+
+function computeYieldImpact(materialCost, yieldPct, scrapRecoveryPct, setupCost, batchSize, ppm, defectCost){
+  const yieldFactor = yieldPct > 0 ? (100 / yieldPct) : 1; // need to make more to get one good one
+  const inflatedMaterial = materialCost * yieldFactor;
+  const scrapValue = (inflatedMaterial - materialCost) * (scrapRecoveryPct / 100);
+  const netMaterialImpact = inflatedMaterial - materialCost - scrapValue;
+  const setupPerUnit = batchSize > 0 ? setupCost / batchSize : 0;
+  const qualityCost = (ppm / 1_000_000) * defectCost;
+  return { yieldFactor, inflatedMaterial, scrapValue, netMaterialImpact, setupPerUnit, qualityCost };
+}
+
+function computeTargetGap(currentUnitCost, targetPrice, requiredMargin){
+  if(targetPrice <= 0) return null;
+  const targetCost = targetPrice * (1 - requiredMargin / 100);
+  const gap = currentUnitCost - targetCost;
+  const gapPct = targetCost > 0 ? (gap / targetCost * 100) : 0;
+  return { targetCost, gap, gapPct, feasible: gap <= 0 };
+}
+
+function computeConfidence(paramsCount, templateUsed, anyOverridden){
+  // Heuristic 0-100 score
+  let score = 50;
+  if(templateUsed) score += 25;        // Built from a curated template
+  if(paramsCount >= 8) score += 10;    // Many drivers = more complete
+  if(paramsCount >= 14) score += 5;
+  if(anyOverridden) score -= 8;        // User overrode = template is no longer the truth
+  return Math.max(0, Math.min(100, score));
+}
+
+function recalcExtended(){
+  // Inputs
+  const capex = _exVal('exTool_capex', 0);
+  const toolLife = _exVal('exTool_life', 0);
+  const refurbCost = _exVal('exTool_refurb', 0);
+  const refurbInt = _exVal('exTool_refurbInt', 0);
+  const machHrs = _exVal('exMach_hours', 0);
+  const machRate = _exVal('exMach_rate', 0);
+  // Tooling output
+  const T = computeToolingAmortization(capex, toolLife, refurbCost, refurbInt, machHrs, machRate);
+  const toolOut = document.getElementById('exToolingOut');
+  if(toolOut){
+    toolOut.innerHTML = `
+      <div class="bg-teal-50 border border-teal-200 rounded p-2"><div class="text-slate-500 text-[10px]">Tooling / unit</div><div class="font-bold text-teal-800">${_exMoney(T.toolingPerUnit)}</div></div>
+      <div class="bg-teal-50 border border-teal-200 rounded p-2"><div class="text-slate-500 text-[10px]">Machine / unit</div><div class="font-bold text-teal-800">${_exMoney(T.machinePerUnit)}</div></div>
+      <div class="bg-teal-100 border border-teal-300 rounded p-2"><div class="text-slate-600 text-[10px]">TOTAL amortized</div><div class="font-bold text-teal-900">${_exMoney(T.total)}</div></div>
+      <div class="col-span-3 text-[10px] text-slate-500 mt-1">${T.refurbs} refurbs over tool life → lifecycle cost ${_exMoney(T.totalToolCost)} / ${toolLife.toLocaleString()} units.</div>`;
+  }
+
+  // Yield / setup / quality
+  const yPct = _exVal('exYield', 100);
+  const scrapRec = _exVal('exScrapRecovery', 0);
+  const setupCost = _exVal('exSetupCost', 0);
+  const batch = _exVal('exBatch', 1);
+  const ppm = _exVal('exPPM', 0);
+  const defCost = _exVal('exDefectCost', 0);
+  // Estimate material baseline from currentParams if available
+  let materialBaseline = 0;
+  if(typeof currentParams !== 'undefined' && currentParams.length){
+    materialBaseline = currentParams.filter(p=>p.group==='material').reduce((s,p)=>s + p.qty*p.rate, 0);
+  }
+  const Y = computeYieldImpact(materialBaseline, yPct, scrapRec, setupCost, batch, ppm, defCost);
+  const yieldOut = document.getElementById('exYieldOut');
+  if(yieldOut){
+    yieldOut.innerHTML = `
+      <div class="bg-amber-50 border border-amber-200 rounded p-2"><div class="text-slate-500 text-[10px]">Net material inflation</div><div class="font-bold text-amber-800">+${_exMoney(Y.netMaterialImpact)}/u</div></div>
+      <div class="bg-amber-50 border border-amber-200 rounded p-2"><div class="text-slate-500 text-[10px]">Setup amortized</div><div class="font-bold text-amber-800">${_exMoney(Y.setupPerUnit)}/u</div></div>
+      <div class="bg-amber-100 border border-amber-300 rounded p-2"><div class="text-slate-600 text-[10px]">Quality reserve</div><div class="font-bold text-amber-900">${_exMoney(Y.qualityCost)}/u</div></div>
+      <div class="col-span-3 text-[10px] text-slate-500 mt-1">${yPct}% FPY means you make ${Y.yieldFactor.toFixed(3)} units per saleable unit. ${scrapRec}% scrap-recovery credits ${_exMoney(Y.scrapValue)}/u back.</div>`;
+  }
+
+  // Target-cost
+  const targetPrice = _exVal('exTargetPrice', 0);
+  const targetMargin = _exVal('exTargetMargin', 0);
+  const currentUnit = (typeof window._lastUnit === 'number') ? window._lastUnit : 0;
+  const G = computeTargetGap(currentUnit, targetPrice, targetMargin);
+  const targetOut = document.getElementById('exTargetOut');
+  if(targetOut){
+    if(!G){
+      targetOut.innerHTML = '<div class="text-[11px] text-slate-500">Enter a target sell price to see the cost-gap analysis.</div>';
+    } else {
+      const cls = G.feasible ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-rose-50 border-rose-300 text-rose-900';
+      targetOut.innerHTML = `
+        <div class="grid grid-cols-3 gap-2 text-[11px] mb-2">
+          <div class="bg-slate-50 border border-slate-200 rounded p-2"><div class="text-slate-500 text-[10px]">Target cost (post-margin)</div><div class="font-bold">${_exMoney(G.targetCost)}</div></div>
+          <div class="bg-slate-50 border border-slate-200 rounded p-2"><div class="text-slate-500 text-[10px]">Current should-cost</div><div class="font-bold">${_exMoney(currentUnit)}</div></div>
+          <div class="${cls} border rounded p-2"><div class="text-[10px]">Cost gap to close</div><div class="font-bold">${G.gap>=0?'+':''}${_exMoney(G.gap)} (${G.gapPct.toFixed(1)}%)</div></div>
+        </div>
+        <div class="text-[11px] ${G.feasible?'text-emerald-700':'text-rose-700'}">
+          ${G.feasible ? '✅ Feasible — your should-cost is at or below target. Negotiate aggressively to capture supplier margin.' : `⚠️ Gap of ${_exMoney(G.gap)}/u — to hit target you must reduce cost ~${Math.abs(G.gapPct).toFixed(0)}%. Focus on the top-2 cost drivers in the breakdown chart.`}
+        </div>`;
+    }
+  }
+
+  // Confidence index
+  const cOut = document.getElementById('exConfidenceOut');
+  if(cOut){
+    const paramsCount = (typeof currentParams !== 'undefined') ? currentParams.length : 0;
+    const templateUsed = !!window._lastTemplateUsed;
+    const overridden = !!window._anyParamOverridden;
+    const score = computeConfidence(paramsCount, templateUsed, overridden);
+    const band = score >= 80 ? 'HIGH' : score >= 60 ? 'MEDIUM' : 'LOW';
+    const color = score >= 80 ? 'emerald' : score >= 60 ? 'amber' : 'rose';
+    cOut.innerHTML = `
+      <div class="flex items-center gap-3 mb-2">
+        <div class="text-3xl font-extrabold text-${color}-700">${score}</div>
+        <div>
+          <div class="text-xs font-bold text-${color}-800">${band} confidence</div>
+          <div class="text-[10px] text-slate-500">based on data sources + driver completeness</div>
+        </div>
+      </div>
+      <div class="bg-slate-100 h-2 rounded-full overflow-hidden">
+        <div class="bg-${color}-500 h-full transition-all" style="width:${score}%"></div>
+      </div>
+      <ul class="text-[10px] text-slate-600 mt-3 space-y-0.5 list-disc pl-4">
+        <li>${paramsCount} cost drivers populated ${paramsCount>=10?'✓':'(more = higher confidence)'}</li>
+        <li>${templateUsed ? '✓ Built from curated template' : '✗ Drivers are user-entered, not template-backed'}</li>
+        <li>${overridden ? '⚠ At least one driver was overridden — re-verify with a quote' : '✓ Template defaults intact'}</li>
+        <li>For production decisions, always cross-reference with at least one supplier quote.</li>
+      </ul>`;
+  }
+}
+
+// Auto-fire extended recalc whenever the main recalc fires
+const _origRecalc = (typeof recalc === 'function') ? recalc : null;
+if(_origRecalc){
+  window.recalc = function(){
+    _origRecalc.apply(this, arguments);
+    try {
+      // Capture current unit-cost for target-gap calc
+      const u = document.getElementById('unitCost');
+      if(u){
+        const m = (u.textContent||'').match(/[\d,.]+/);
+        if(m) window._lastUnit = parseFloat(m[0].replace(/,/g,''));
+      }
+      recalcExtended();
+    } catch(_e){}
+  };
+}
+
 function exportExcel(){
   const cur=document.getElementById('currency').value, sym=SYM[cur], fx=FX[cur];
   const product=document.getElementById('productName').value||'product';
