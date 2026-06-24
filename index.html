@@ -4694,6 +4694,323 @@ const TEMPLATES = {
     {cat:"Logistics & Warehousing",name:"Warehousing",qty:1,qtyUnit:"unit",rate:1.5,rateUnit:"/unit",group:"logistics"},
     {cat:"Logistics & Warehousing",name:"Outbound freight",qty:1,qtyUnit:"unit",rate:3,rateUnit:"/unit",group:"logistics"},
     {cat:"Supplier Margin",name:"Supplier margin",qty:1,qtyUnit:"unit",rate:0.12,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  /* =============================================================================
+   * EXTENDED TEMPLATE LIBRARY — 20+ new templates across direct + indirect spend.
+   * Every template now carries a `scope` tag ('direct' = goes into product / BoM,
+   * 'indirect' = MRO/SaaS/services), an `industry` tag, and uses the same shape so
+   * the calculator engine treats them identically.
+   * Several use new driver groups: 'capex' (machine amortization),
+   * 'yield' (scrap loss), 'setup' (changeover amortized over batch).
+   * ============================================================================= */
+
+  /* ---- DIRECT: Automotive & Industrial ---- */
+  cnc_machined_bracket:{label:"CNC-Machined Steel Bracket", scope:"direct", industry:"Automotive / Industrial",
+    description:"AISI 4140 steel bracket, 3-axis CNC milled from billet, black-oxide finish.", params:[
+    {cat:"Raw Materials",name:"AISI 4140 billet",qty:1.8,qtyUnit:"kg",rate:1.95,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Yield loss / chip recovery credit",qty:-0.45,qtyUnit:"kg",rate:0.42,rateUnit:"/kg",group:"yield"},
+    {cat:"Direct Labor",name:"CNC operator (load + inspect)",qty:0.18,qtyUnit:"hr",rate:32,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Spindle electricity",qty:1.2,qtyUnit:"kWh",rate:0.10,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"CNC machine amortization (~$8/spindle-hr)",qty:0.18,qtyUnit:"hr",rate:8.0,rateUnit:"/hr",group:"capex"},
+    {cat:"Equipment & Tooling",name:"Tooling wear (inserts + endmills)",qty:1,qtyUnit:"unit",rate:0.55,rateUnit:"/unit",group:"equipment"},
+    {cat:"Equipment & Tooling",name:"Setup amortized (1 hr / 250-pc batch)",qty:1,qtyUnit:"unit",rate:0.14,rateUnit:"/unit",group:"setup"},
+    {cat:"Surface & Finish",name:"Black-oxide treatment",qty:1,qtyUnit:"unit",rate:0.38,rateUnit:"/unit",group:"material"},
+    {cat:"Quality & Compliance",name:"CMM inspection (1 in 25)",qty:1,qtyUnit:"unit",rate:0.22,rateUnit:"/unit",group:"quality"},
+    {cat:"Facility & Overhead",name:"Plant overhead",qty:1,qtyUnit:"unit",rate:1.10,rateUnit:"/unit",group:"overhead"},
+    {cat:"Logistics & Warehousing",name:"Outbound freight",qty:1,qtyUnit:"unit",rate:0.30,rateUnit:"/unit",group:"logistics"},
+    {cat:"Supplier Margin",name:"Margin (10%)",qty:1,qtyUnit:"unit",rate:0.10,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  injection_molded_part:{label:"Injection-Molded ABS Housing", scope:"direct", industry:"Consumer Electronics",
+    description:"ABS plastic housing, 65g shot weight, single-cavity tool, 35-sec cycle.", params:[
+    {cat:"Raw Materials",name:"ABS resin (impact-grade)",qty:0.068,qtyUnit:"kg",rate:1.95,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Master batch colorant",qty:0.003,qtyUnit:"kg",rate:4.8,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Regrind scrap recovery (4%)",qty:-0.003,qtyUnit:"kg",rate:1.50,rateUnit:"/kg",group:"yield"},
+    {cat:"Direct Labor",name:"Press operator (1 per 4 presses)",qty:0.0024,qtyUnit:"hr",rate:24,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Press + dryer electricity",qty:0.08,qtyUnit:"kWh",rate:0.10,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"180-ton press amortization",qty:0.0097,qtyUnit:"hr",rate:18,rateUnit:"/hr",group:"capex"},
+    {cat:"Equipment & Tooling",name:"Mold amortization ($28k / 250k shots)",qty:1,qtyUnit:"unit",rate:0.112,rateUnit:"/unit",group:"capex"},
+    {cat:"Quality & Compliance",name:"In-line vision check",qty:1,qtyUnit:"unit",rate:0.04,rateUnit:"/unit",group:"quality"},
+    {cat:"Facility & Overhead",name:"Plant overhead",qty:1,qtyUnit:"unit",rate:0.18,rateUnit:"/unit",group:"overhead"},
+    {cat:"Logistics & Warehousing",name:"Packaging + freight",qty:1,qtyUnit:"unit",rate:0.06,rateUnit:"/unit",group:"logistics"},
+    {cat:"Supplier Margin",name:"Margin (12%)",qty:1,qtyUnit:"unit",rate:0.12,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  /* ---- DIRECT: Pharmaceutical ---- */
+  pharma_tablet:{label:"Generic Pharmaceutical Tablet (500mg)", scope:"direct", industry:"Pharma / Life Sciences",
+    description:"500mg generic tablet, immediate-release, blister-packed.", params:[
+    {cat:"Raw Materials",name:"API (active ingredient)",qty:0.0005,qtyUnit:"kg",rate:1400,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"MCC (excipient filler)",qty:0.0003,qtyUnit:"kg",rate:8,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Mg-stearate lubricant",qty:0.00002,qtyUnit:"kg",rate:18,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Film-coating polymer",qty:0.00005,qtyUnit:"kg",rate:65,rateUnit:"/kg",group:"material"},
+    {cat:"Packaging",name:"Blister PVC + foil",qty:1,qtyUnit:"pc",rate:0.025,rateUnit:"/pc",group:"material"},
+    {cat:"Packaging",name:"Carton + insert leaflet",qty:0.05,qtyUnit:"pc",rate:0.45,rateUnit:"/pc",group:"material"},
+    {cat:"Direct Labor",name:"Compression + coating operator",qty:0.0009,qtyUnit:"hr",rate:28,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"QC analyst (batch sampling)",qty:0.0004,qtyUnit:"hr",rate:38,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"HVAC + tablet press kWh",qty:0.006,qtyUnit:"kWh",rate:0.10,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Tablet press amortization",qty:1,qtyUnit:"unit",rate:0.018,rateUnit:"/unit",group:"capex"},
+    {cat:"Quality & Compliance",name:"GMP overhead (28% of direct)",qty:1,qtyUnit:"unit",rate:0.075,rateUnit:"/unit",group:"overhead"},
+    {cat:"Quality & Compliance",name:"Stability + release testing",qty:1,qtyUnit:"unit",rate:0.020,rateUnit:"/unit",group:"quality"},
+    {cat:"Quality & Compliance",name:"Serialization (DSCSA)",qty:1,qtyUnit:"unit",rate:0.012,rateUnit:"/unit",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"Cold-chain not required (room temp)",qty:1,qtyUnit:"unit",rate:0.025,rateUnit:"/unit",group:"logistics"},
+    {cat:"Supplier Margin",name:"Margin (18%)",qty:1,qtyUnit:"unit",rate:0.18,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  /* ---- DIRECT: Food & Beverage ---- */
+  uht_milk:{label:"UHT Milk 1L (Tetra Pak)", scope:"direct", industry:"Food & Beverage",
+    description:"Ultra-heat-treated whole milk in 1L Tetra Brik Aseptic carton.", params:[
+    {cat:"Raw Materials",name:"Raw milk (farmgate)",qty:1.02,qtyUnit:"L",rate:0.42,rateUnit:"/L",group:"material"},
+    {cat:"Raw Materials",name:"Yield loss (cream + spoilage)",qty:-0.02,qtyUnit:"L",rate:0.42,rateUnit:"/L",group:"yield"},
+    {cat:"Packaging",name:"Tetra Brik 1L carton",qty:1,qtyUnit:"pc",rate:0.085,rateUnit:"/pc",group:"material"},
+    {cat:"Packaging",name:"HDPE screw cap",qty:1,qtyUnit:"pc",rate:0.018,rateUnit:"/pc",group:"material"},
+    {cat:"Direct Labor",name:"UHT line operator",qty:0.0008,qtyUnit:"hr",rate:22,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"UHT thermal (steam + cooling)",qty:0.18,qtyUnit:"kWh-eq",rate:0.08,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"UHT line amortization",qty:1,qtyUnit:"unit",rate:0.022,rateUnit:"/unit",group:"capex"},
+    {cat:"Quality & Compliance",name:"Microbiology + BRCGS audit cost",qty:1,qtyUnit:"unit",rate:0.012,rateUnit:"/unit",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"Ambient warehousing (1 wk)",qty:1,qtyUnit:"unit",rate:0.018,rateUnit:"/unit",group:"logistics"},
+    {cat:"Logistics & Warehousing",name:"DC + last-mile",qty:1,qtyUnit:"unit",rate:0.085,rateUnit:"/unit",group:"logistics"},
+    {cat:"Supplier Margin",name:"Margin (8%)",qty:1,qtyUnit:"unit",rate:0.08,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  /* ---- DIRECT: Construction ---- */
+  ready_mix_concrete:{label:"Ready-Mix Concrete M30 (per m³)", scope:"direct", industry:"Construction",
+    description:"M30-grade ready-mix concrete per cubic metre.", params:[
+    {cat:"Raw Materials",name:"OPC 53 cement",qty:380,qtyUnit:"kg",rate:0.135,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Coarse aggregate (20mm)",qty:1100,qtyUnit:"kg",rate:0.014,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Fine aggregate (sand)",qty:650,qtyUnit:"kg",rate:0.018,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Water",qty:175,qtyUnit:"L",rate:0.003,rateUnit:"/L",group:"material"},
+    {cat:"Raw Materials",name:"Plasticizer admixture",qty:2.5,qtyUnit:"L",rate:1.8,rateUnit:"/L",group:"material"},
+    {cat:"Direct Labor",name:"Batching-plant operator",qty:0.012,qtyUnit:"hr",rate:18,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Mixer-truck driver (allocated)",qty:0.25,qtyUnit:"hr",rate:22,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Plant electricity",qty:3.5,qtyUnit:"kWh",rate:0.10,rateUnit:"/kWh",group:"energy"},
+    {cat:"Energy & Utilities",name:"Diesel (mixer + load)",qty:0.45,qtyUnit:"L",rate:0.95,rateUnit:"/L",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Plant + mixer amortization",qty:1,qtyUnit:"unit",rate:1.85,rateUnit:"/unit",group:"capex"},
+    {cat:"Quality & Compliance",name:"Cube testing (per truck batch)",qty:1,qtyUnit:"unit",rate:0.80,rateUnit:"/unit",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"Site delivery (within 25km)",qty:1,qtyUnit:"unit",rate:8.50,rateUnit:"/unit",group:"logistics"},
+    {cat:"Supplier Margin",name:"Margin (15%)",qty:1,qtyUnit:"unit",rate:0.15,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  /* ---- DIRECT: Aerospace ---- */
+  aero_titanium_fitting:{label:"Aerospace Titanium Fitting (Ti-6Al-4V)", scope:"direct", industry:"Aerospace & Defense",
+    description:"5-axis machined Ti-6Al-4V structural fitting, AS9100 + NADCAP NDT.", params:[
+    {cat:"Raw Materials",name:"Ti-6Al-4V billet",qty:1.8,qtyUnit:"kg",rate:62,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Buy-to-fly waste (60% chip)",qty:-1.08,qtyUnit:"kg",rate:14,rateUnit:"/kg",group:"yield"},
+    {cat:"Direct Labor",name:"5-axis CNC operator (cleared)",qty:0.42,qtyUnit:"hr",rate:68,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Cert-stamp inspector",qty:0.12,qtyUnit:"hr",rate:75,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Spindle + coolant",qty:4.5,qtyUnit:"kWh",rate:0.10,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"5-axis machine amortization",qty:0.42,qtyUnit:"hr",rate:185,rateUnit:"/hr",group:"capex"},
+    {cat:"Equipment & Tooling",name:"Specialty tooling (carbide for Ti)",qty:1,qtyUnit:"unit",rate:14.50,rateUnit:"/unit",group:"equipment"},
+    {cat:"Surface & Finish",name:"Chromic acid anodise",qty:1,qtyUnit:"unit",rate:18,rateUnit:"/unit",group:"material"},
+    {cat:"Quality & Compliance",name:"NDT — fluorescent penetrant inspection",qty:1,qtyUnit:"unit",rate:42,rateUnit:"/unit",group:"quality"},
+    {cat:"Quality & Compliance",name:"First Article Inspection (amortized)",qty:1,qtyUnit:"unit",rate:8,rateUnit:"/unit",group:"quality"},
+    {cat:"Quality & Compliance",name:"AS9100 + ITAR documentation",qty:1,qtyUnit:"unit",rate:6,rateUnit:"/unit",group:"overhead"},
+    {cat:"Facility & Overhead",name:"Plant overhead",qty:1,qtyUnit:"unit",rate:22,rateUnit:"/unit",group:"overhead"},
+    {cat:"Logistics & Warehousing",name:"Insured shipping + traceability",qty:1,qtyUnit:"unit",rate:8,rateUnit:"/unit",group:"logistics"},
+    {cat:"Supplier Margin",name:"Margin (15% of cost+OH)",qty:1,qtyUnit:"unit",rate:0.15,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  /* ---- DIRECT: Electronics ---- */
+  pcb_2_layer:{label:"PCB 2-Layer FR4 (100×80mm)", scope:"direct", industry:"Electronics",
+    description:"2-layer FR4 PCB, HASL finish, green soldermask, 100×80mm.", params:[
+    {cat:"Raw Materials",name:"FR4 laminate",qty:0.008,qtyUnit:"m²",rate:42,rateUnit:"/m²",group:"material"},
+    {cat:"Raw Materials",name:"Copper foil (35µm × 2 sides)",qty:0.008,qtyUnit:"m²",rate:8.5,rateUnit:"/m²",group:"material"},
+    {cat:"Raw Materials",name:"Soldermask + silkscreen ink",qty:1,qtyUnit:"unit",rate:0.04,rateUnit:"/unit",group:"material"},
+    {cat:"Direct Labor",name:"Lamination + drill operator",qty:0.0006,qtyUnit:"hr",rate:18,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Process electricity",qty:0.014,qtyUnit:"kWh",rate:0.10,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Plant amortization",qty:1,qtyUnit:"unit",rate:0.09,rateUnit:"/unit",group:"capex"},
+    {cat:"Equipment & Tooling",name:"Tooling — drill bits",qty:1,qtyUnit:"unit",rate:0.012,rateUnit:"/unit",group:"equipment"},
+    {cat:"Quality & Compliance",name:"AOI + electrical test",qty:1,qtyUnit:"unit",rate:0.025,rateUnit:"/unit",group:"quality"},
+    {cat:"Quality & Compliance",name:"IPC-A-600 acceptance",qty:1,qtyUnit:"unit",rate:0.008,rateUnit:"/unit",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"Vacuum-pack + freight (China-US sea)",qty:1,qtyUnit:"unit",rate:0.045,rateUnit:"/unit",group:"logistics"},
+    {cat:"Supplier Margin",name:"Margin (10%)",qty:1,qtyUnit:"unit",rate:0.10,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  /* ---- DIRECT: Apparel ---- */
+  cotton_tshirt_premium:{label:"Cotton T-Shirt (180gsm, OEKO-TEX)", scope:"direct", industry:"Apparel & Textile",
+    description:"Combed cotton tee, 180 gsm single jersey, OEKO-TEX certified.", params:[
+    {cat:"Raw Materials",name:"Combed cotton yarn (30s)",qty:0.22,qtyUnit:"kg",rate:3.40,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Dye + chemical auxiliaries",qty:1,qtyUnit:"unit",rate:0.32,rateUnit:"/unit",group:"material"},
+    {cat:"Raw Materials",name:"Trims: thread + label + hangtag",qty:1,qtyUnit:"unit",rate:0.18,rateUnit:"/unit",group:"material"},
+    {cat:"Direct Labor",name:"Knit + dye + cut-make-trim",qty:0.42,qtyUnit:"hr",rate:1.20,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Steam + dyehouse electricity",qty:0.85,qtyUnit:"kWh",rate:0.08,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Knitting + CMT equipment amortization",qty:1,qtyUnit:"unit",rate:0.18,rateUnit:"/unit",group:"capex"},
+    {cat:"Quality & Compliance",name:"OEKO-TEX cert + AQL 2.5 inspection",qty:1,qtyUnit:"unit",rate:0.085,rateUnit:"/unit",group:"quality"},
+    {cat:"Facility & Overhead",name:"Factory overhead",qty:1,qtyUnit:"unit",rate:0.42,rateUnit:"/unit",group:"overhead"},
+    {cat:"Logistics & Warehousing",name:"Poly-bag + carton + sea freight",qty:1,qtyUnit:"unit",rate:0.35,rateUnit:"/unit",group:"logistics"},
+    {cat:"Supplier Margin",name:"Margin (12%)",qty:1,qtyUnit:"unit",rate:0.12,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  /* ---- DIRECT: Energy/Solar ---- */
+  solar_panel:{label:"Solar PV Panel — 450W Monocrystalline", scope:"direct", industry:"Energy / Renewables",
+    description:"Mono-PERC half-cut 450W solar module, 144 cells.", params:[
+    {cat:"Raw Materials",name:"Mono PERC cells (144)",qty:144,qtyUnit:"cell",rate:0.42,rateUnit:"/cell",group:"material"},
+    {cat:"Raw Materials",name:"Aluminum frame",qty:2.6,qtyUnit:"kg",rate:2.80,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Tempered glass (3.2mm)",qty:11.5,qtyUnit:"kg",rate:0.62,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"EVA encapsulant + backsheet + junction box",qty:1,qtyUnit:"unit",rate:18,rateUnit:"/unit",group:"material"},
+    {cat:"Direct Labor",name:"Stringing + lamination operator",qty:0.42,qtyUnit:"hr",rate:14,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Lamination heat + clean-room HVAC",qty:8.5,qtyUnit:"kWh",rate:0.09,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Stringer + laminator amortization",qty:1,qtyUnit:"unit",rate:5.20,rateUnit:"/unit",group:"capex"},
+    {cat:"Quality & Compliance",name:"EL + Hi-pot + flash test",qty:1,qtyUnit:"unit",rate:2.10,rateUnit:"/unit",group:"quality"},
+    {cat:"Quality & Compliance",name:"UL 1703 / IEC 61215 certification (amortized)",qty:1,qtyUnit:"unit",rate:0.85,rateUnit:"/unit",group:"overhead"},
+    {cat:"Logistics & Warehousing",name:"Crating + ocean freight (CN→US)",qty:1,qtyUnit:"unit",rate:9,rateUnit:"/unit",group:"logistics"},
+    {cat:"Supplier Margin",name:"Margin (8%)",qty:1,qtyUnit:"unit",rate:0.08,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  /* ---- DIRECT: Battery ---- */
+  liion_cell_21700:{label:"Li-Ion 21700 Cell (5000mAh, NMC)", scope:"direct", industry:"Battery / EV",
+    description:"21700 cylindrical Li-ion cell, NMC811 chemistry, 5000mAh.", params:[
+    {cat:"Raw Materials",name:"NMC811 cathode powder",qty:0.018,qtyUnit:"kg",rate:38,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Graphite anode",qty:0.012,qtyUnit:"kg",rate:5.40,rateUnit:"/kg",group:"material"},
+    {cat:"Raw Materials",name:"Separator (polyolefin)",qty:1,qtyUnit:"unit",rate:0.085,rateUnit:"/unit",group:"material"},
+    {cat:"Raw Materials",name:"Electrolyte (LiPF₆)",qty:0.004,qtyUnit:"L",rate:18,rateUnit:"/L",group:"material"},
+    {cat:"Raw Materials",name:"Copper + aluminum current collectors",qty:1,qtyUnit:"unit",rate:0.42,rateUnit:"/unit",group:"material"},
+    {cat:"Raw Materials",name:"Steel can + cap + safety vent",qty:1,qtyUnit:"unit",rate:0.32,rateUnit:"/unit",group:"material"},
+    {cat:"Direct Labor",name:"Coating + assembly (gigafactory rate)",qty:0.0045,qtyUnit:"hr",rate:22,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Drying + formation cycling",qty:0.42,qtyUnit:"kWh",rate:0.09,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Gigafactory line amortization",qty:1,qtyUnit:"unit",rate:0.65,rateUnit:"/unit",group:"capex"},
+    {cat:"Quality & Compliance",name:"Hi-pot + capacity test",qty:1,qtyUnit:"unit",rate:0.12,rateUnit:"/unit",group:"quality"},
+    {cat:"Quality & Compliance",name:"UN 38.3 + IEC 62133 cert (amortized)",qty:1,qtyUnit:"unit",rate:0.05,rateUnit:"/unit",group:"overhead"},
+    {cat:"Logistics & Warehousing",name:"Class-9 haz packaging + freight",qty:1,qtyUnit:"unit",rate:0.18,rateUnit:"/unit",group:"logistics"},
+    {cat:"Supplier Margin",name:"Margin (12%)",qty:1,qtyUnit:"unit",rate:0.12,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  /* ---- DIRECT: Industrial chemicals ---- */
+  industrial_lubricant:{label:"Industrial Lubricant (ISO VG 68, 20L pail)", scope:"direct", industry:"Chemicals",
+    description:"ISO VG 68 hydraulic oil in 20L HDPE pail.", params:[
+    {cat:"Raw Materials",name:"Group-II base oil",qty:18.5,qtyUnit:"L",rate:0.95,rateUnit:"/L",group:"material"},
+    {cat:"Raw Materials",name:"AW + corrosion-inhibitor additive pkg",qty:1.5,qtyUnit:"L",rate:4.20,rateUnit:"/L",group:"material"},
+    {cat:"Packaging",name:"20L HDPE pail + closure",qty:1,qtyUnit:"unit",rate:2.40,rateUnit:"/unit",group:"material"},
+    {cat:"Packaging",name:"Label + tamper seal",qty:1,qtyUnit:"unit",rate:0.45,rateUnit:"/unit",group:"material"},
+    {cat:"Direct Labor",name:"Blending + filling operator",qty:0.025,qtyUnit:"hr",rate:24,rateUnit:"/hr",group:"labor"},
+    {cat:"Energy & Utilities",name:"Heating + pumping electricity",qty:0.85,qtyUnit:"kWh",rate:0.10,rateUnit:"/kWh",group:"energy"},
+    {cat:"Equipment & Tooling",name:"Blending line amortization",qty:1,qtyUnit:"unit",rate:0.42,rateUnit:"/unit",group:"capex"},
+    {cat:"Quality & Compliance",name:"Viscosity + acidity batch test",qty:1,qtyUnit:"unit",rate:0.18,rateUnit:"/unit",group:"quality"},
+    {cat:"Logistics & Warehousing",name:"Palletized truck (regional)",qty:1,qtyUnit:"unit",rate:1.85,rateUnit:"/unit",group:"logistics"},
+    {cat:"Supplier Margin",name:"Margin (18%)",qty:1,qtyUnit:"unit",rate:0.18,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  /* =====================================================================
+   * INDIRECT TEMPLATES — Services / MRO / IT / Marketing / Professional
+   * ===================================================================== */
+
+  saas_subscription:{label:"SaaS Subscription (per seat/year)", scope:"indirect", industry:"IT / SaaS",
+    description:"Enterprise SaaS license — per-seat annual cost build-up.", params:[
+    {cat:"License Fee",name:"List price per seat",qty:1,qtyUnit:"seat-yr",rate:1500,rateUnit:"/seat-yr",group:"material"},
+    {cat:"License Fee",name:"Multi-year discount (10%)",qty:-0.10,qtyUnit:"× list",rate:1500,rateUnit:"/seat-yr",group:"yield"},
+    {cat:"Implementation",name:"SI implementation (amortized 3yr)",qty:1,qtyUnit:"seat-yr",rate:120,rateUnit:"/seat-yr",group:"setup"},
+    {cat:"Implementation",name:"Data migration + integration",qty:1,qtyUnit:"seat-yr",rate:65,rateUnit:"/seat-yr",group:"setup"},
+    {cat:"Support",name:"Premium support (15% of license)",qty:1,qtyUnit:"seat-yr",rate:202,rateUnit:"/seat-yr",group:"overhead"},
+    {cat:"Internal Cost",name:"In-house admin labor (allocated)",qty:1,qtyUnit:"seat-yr",rate:85,rateUnit:"/seat-yr",group:"labor"},
+    {cat:"Internal Cost",name:"User training (year-1 onboarding)",qty:1,qtyUnit:"seat-yr",rate:45,rateUnit:"/seat-yr",group:"labor"},
+    {cat:"Compliance",name:"SOC2 + GDPR audit allocation",qty:1,qtyUnit:"seat-yr",rate:12,rateUnit:"/seat-yr",group:"overhead"},
+    {cat:"Risk Reserve",name:"Renewal-price-creep reserve (5%)",qty:1,qtyUnit:"seat-yr",rate:75,rateUnit:"/seat-yr",group:"margin"}
+  ]},
+
+  consulting_engagement:{label:"Management Consulting Engagement (Day-Rate)", scope:"indirect", industry:"Professional Services",
+    description:"Typical strategy consulting per-day all-in cost.", params:[
+    {cat:"Direct Labor",name:"Partner day (30% blend)",qty:0.30,qtyUnit:"day",rate:6500,rateUnit:"/day",group:"labor"},
+    {cat:"Direct Labor",name:"Senior manager day (40% blend)",qty:0.40,qtyUnit:"day",rate:3200,rateUnit:"/day",group:"labor"},
+    {cat:"Direct Labor",name:"Consultant day (30% blend)",qty:0.30,qtyUnit:"day",rate:1800,rateUnit:"/day",group:"labor"},
+    {cat:"Overhead",name:"Firm overhead (160%)",qty:1,qtyUnit:"day",rate:0.0,rateUnit:"× labor",group:"overhead"},
+    {cat:"Expenses",name:"T&E (flights + hotel + per-diem)",qty:1,qtyUnit:"day",rate:480,rateUnit:"/day",group:"logistics"},
+    {cat:"Expenses",name:"Knowledge/IP licensing allocation",qty:1,qtyUnit:"day",rate:120,rateUnit:"/day",group:"material"},
+    {cat:"Profit",name:"Firm margin (20%)",qty:1,qtyUnit:"day",rate:0.20,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  facility_cleaning_service:{label:"Facility Cleaning Service ($/sq-ft/month)", scope:"indirect", industry:"Facilities / MRO",
+    description:"Office cleaning service per square foot per month.", params:[
+    {cat:"Direct Labor",name:"Cleaner labor (loaded)",qty:0.012,qtyUnit:"hr",rate:22,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Supervisor allocation",qty:0.0008,qtyUnit:"hr",rate:34,rateUnit:"/hr",group:"labor"},
+    {cat:"Materials",name:"Chemicals + consumables",qty:1,qtyUnit:"sq-ft-mo",rate:0.018,rateUnit:"/sq-ft-mo",group:"material"},
+    {cat:"Equipment",name:"Vacuum + buffer amortization",qty:1,qtyUnit:"sq-ft-mo",rate:0.012,rateUnit:"/sq-ft-mo",group:"capex"},
+    {cat:"Overhead",name:"Vendor admin overhead",qty:1,qtyUnit:"sq-ft-mo",rate:0.022,rateUnit:"/sq-ft-mo",group:"overhead"},
+    {cat:"Compliance",name:"Insurance + bonding",qty:1,qtyUnit:"sq-ft-mo",rate:0.008,rateUnit:"/sq-ft-mo",group:"quality"},
+    {cat:"Margin",name:"Vendor margin (14%)",qty:1,qtyUnit:"sq-ft-mo",rate:0.14,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  freight_ftl_lane:{label:"FTL Freight ($/mile, full truckload, USA dry van)", scope:"indirect", industry:"Logistics & 3PL",
+    description:"Full truckload dry van lane all-in cost per loaded mile.", params:[
+    {cat:"Driver",name:"Driver pay (cents per mile)",qty:1,qtyUnit:"mi",rate:0.62,rateUnit:"/mi",group:"labor"},
+    {cat:"Equipment",name:"Tractor amortization + maintenance",qty:1,qtyUnit:"mi",rate:0.38,rateUnit:"/mi",group:"capex"},
+    {cat:"Equipment",name:"Trailer amortization",qty:1,qtyUnit:"mi",rate:0.12,rateUnit:"/mi",group:"capex"},
+    {cat:"Energy",name:"Diesel (6.5 mpg @ $3.20/gal)",qty:1,qtyUnit:"mi",rate:0.49,rateUnit:"/mi",group:"energy"},
+    {cat:"Compliance",name:"Insurance + permits + IRP",qty:1,qtyUnit:"mi",rate:0.18,rateUnit:"/mi",group:"overhead"},
+    {cat:"Overhead",name:"Dispatch + admin overhead",qty:1,qtyUnit:"mi",rate:0.21,rateUnit:"/mi",group:"overhead"},
+    {cat:"Risk",name:"Empty-mile factor (14%)",qty:1,qtyUnit:"mi",rate:0.28,rateUnit:"/mi",group:"logistics"},
+    {cat:"Margin",name:"Carrier margin (8%)",qty:1,qtyUnit:"mi",rate:0.08,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  marketing_paid_acquisition:{label:"Marketing Paid User Acquisition ($/CAC)", scope:"indirect", industry:"Marketing",
+    description:"Customer acquisition cost decomposed by channel + tooling.", params:[
+    {cat:"Media Spend",name:"Paid search + social",qty:1,qtyUnit:"customer",rate:65,rateUnit:"/customer",group:"material"},
+    {cat:"Media Spend",name:"Programmatic display",qty:1,qtyUnit:"customer",rate:22,rateUnit:"/customer",group:"material"},
+    {cat:"Creative",name:"Creative production allocation",qty:1,qtyUnit:"customer",rate:12,rateUnit:"/customer",group:"material"},
+    {cat:"Martech",name:"Mar-tech tooling per customer",qty:1,qtyUnit:"customer",rate:8,rateUnit:"/customer",group:"capex"},
+    {cat:"Internal Labor",name:"Marketing team allocation",qty:1,qtyUnit:"customer",rate:18,rateUnit:"/customer",group:"labor"},
+    {cat:"Attribution",name:"Conversion-lift haircut (10%)",qty:1,qtyUnit:"customer",rate:8,rateUnit:"/customer",group:"overhead"},
+    {cat:"Margin",name:"Agency fee (15%)",qty:1,qtyUnit:"customer",rate:0.15,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  mro_industrial_pump_service:{label:"MRO — Industrial Pump Service Call", scope:"indirect", industry:"MRO / Maintenance",
+    description:"Per-incident MRO service call (industrial pump, on-site).", params:[
+    {cat:"Technician",name:"Field tech labor (loaded)",qty:4,qtyUnit:"hr",rate:85,rateUnit:"/hr",group:"labor"},
+    {cat:"Travel",name:"Trip charge (round trip)",qty:1,qtyUnit:"trip",rate:140,rateUnit:"/trip",group:"logistics"},
+    {cat:"Spare Parts",name:"Wear-part kit (seals, bearings)",qty:1,qtyUnit:"call",rate:285,rateUnit:"/call",group:"material"},
+    {cat:"Diagnostics",name:"Vibration + thermal scan",qty:1,qtyUnit:"call",rate:75,rateUnit:"/call",group:"quality"},
+    {cat:"Truck",name:"Service-van amortization + fuel",qty:1,qtyUnit:"call",rate:48,rateUnit:"/call",group:"capex"},
+    {cat:"Overhead",name:"Vendor admin + dispatch",qty:1,qtyUnit:"call",rate:65,rateUnit:"/call",group:"overhead"},
+    {cat:"Risk",name:"Callback warranty reserve (4%)",qty:1,qtyUnit:"call",rate:35,rateUnit:"/call",group:"quality"},
+    {cat:"Margin",name:"Margin (18%)",qty:1,qtyUnit:"call",rate:0.18,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  office_supplies_catalog:{label:"Office Supplies Catalog Item (avg basket)", scope:"indirect", industry:"Office / Admin",
+    description:"Average office-supplies basket per requisition (all-in).", params:[
+    {cat:"Goods",name:"Item COGS",qty:1,qtyUnit:"req",rate:85,rateUnit:"/req",group:"material"},
+    {cat:"Vendor Margin",name:"Distributor margin (28%)",qty:1,qtyUnit:"req",rate:23,rateUnit:"/req",group:"margin"},
+    {cat:"Logistics",name:"Next-day fulfillment + last-mile",qty:1,qtyUnit:"req",rate:12,rateUnit:"/req",group:"logistics"},
+    {cat:"Internal Process",name:"P2P transaction cost (every requisition adds $40-80 of internal overhead)",qty:1,qtyUnit:"req",rate:55,rateUnit:"/req",group:"overhead"},
+    {cat:"Tail Risk",name:"Maverick spend premium (15%)",qty:1,qtyUnit:"req",rate:13,rateUnit:"/req",group:"overhead"}
+  ]},
+
+  legal_engagement:{label:"Legal — Hourly Engagement (Big-Law blended)", scope:"indirect", industry:"Professional Services",
+    description:"Big-law blended hourly rate decomposition.", params:[
+    {cat:"Direct Labor",name:"Partner-hour (25% blend)",qty:0.25,qtyUnit:"hr",rate:1450,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Associate-hour (60% blend)",qty:0.60,qtyUnit:"hr",rate:680,rateUnit:"/hr",group:"labor"},
+    {cat:"Direct Labor",name:"Paralegal-hour (15% blend)",qty:0.15,qtyUnit:"hr",rate:240,rateUnit:"/hr",group:"labor"},
+    {cat:"Overhead",name:"Firm overhead (180%)",qty:1,qtyUnit:"hr",rate:0.0,rateUnit:"× labor",group:"overhead"},
+    {cat:"Disbursements",name:"Filing + research (avg)",qty:1,qtyUnit:"hr",rate:85,rateUnit:"/hr",group:"material"},
+    {cat:"Margin",name:"Firm profit (25%)",qty:1,qtyUnit:"hr",rate:0.25,rateUnit:"× cost",group:"margin"}
+  ]},
+
+  facility_lease_per_sqft:{label:"Facility Lease (Class-A Office, $/sq-ft/yr)", scope:"indirect", industry:"Real Estate",
+    description:"All-in occupancy cost per square foot per year.", params:[
+    {cat:"Base Rent",name:"Annual base rent",qty:1,qtyUnit:"sq-ft-yr",rate:42,rateUnit:"/sq-ft-yr",group:"material"},
+    {cat:"Operating",name:"CAM (cleaning, security, common area)",qty:1,qtyUnit:"sq-ft-yr",rate:8.50,rateUnit:"/sq-ft-yr",group:"overhead"},
+    {cat:"Utilities",name:"Electricity + HVAC (pass-through)",qty:1,qtyUnit:"sq-ft-yr",rate:3.20,rateUnit:"/sq-ft-yr",group:"energy"},
+    {cat:"Tax",name:"Property tax pass-through",qty:1,qtyUnit:"sq-ft-yr",rate:4.50,rateUnit:"/sq-ft-yr",group:"overhead"},
+    {cat:"Tax",name:"Insurance pass-through",qty:1,qtyUnit:"sq-ft-yr",rate:1.80,rateUnit:"/sq-ft-yr",group:"quality"},
+    {cat:"Fit-out",name:"TI amortization (over 5 years)",qty:1,qtyUnit:"sq-ft-yr",rate:6,rateUnit:"/sq-ft-yr",group:"capex"},
+    {cat:"Reserve",name:"Annual escalation reserve (3%)",qty:1,qtyUnit:"sq-ft-yr",rate:2,rateUnit:"/sq-ft-yr",group:"margin"}
+  ]},
+
+  travel_corporate_trip:{label:"Corporate Business Trip (1-day, domestic)", scope:"indirect", industry:"T&E",
+    description:"Loaded cost of one day of corporate travel, domestic US.", params:[
+    {cat:"Airfare",name:"Same-week economy domestic round-trip",qty:1,qtyUnit:"trip",rate:485,rateUnit:"/trip",group:"material"},
+    {cat:"Hotel",name:"4-star hotel night (NYC/SFO blended)",qty:1,qtyUnit:"night",rate:325,rateUnit:"/night",group:"material"},
+    {cat:"Ground",name:"Rideshare / cab + airport parking",qty:1,qtyUnit:"trip",rate:140,rateUnit:"/trip",group:"logistics"},
+    {cat:"Meals",name:"Per-diem allowance",qty:1,qtyUnit:"day",rate:75,rateUnit:"/day",group:"material"},
+    {cat:"Internal",name:"Lost productivity travel time (4 hr × $150/hr loaded)",qty:1,qtyUnit:"trip",rate:600,rateUnit:"/trip",group:"labor"},
+    {cat:"Booking",name:"TMC + corporate-card admin fees",qty:1,qtyUnit:"trip",rate:35,rateUnit:"/trip",group:"overhead"}
+  ]},
+
+  insurance_premium_general:{label:"Corporate General Liability Insurance (per $M coverage)", scope:"indirect", industry:"Insurance & Risk",
+    description:"Annual GL premium per $1M of coverage.", params:[
+    {cat:"Premium",name:"Base premium",qty:1,qtyUnit:"$M-yr",rate:1850,rateUnit:"/$M-yr",group:"material"},
+    {cat:"Loading",name:"Industry-loading (manufacturing +25%)",qty:1,qtyUnit:"$M-yr",rate:460,rateUnit:"/$M-yr",group:"quality"},
+    {cat:"Loading",name:"Loss-history surcharge (avg)",qty:1,qtyUnit:"$M-yr",rate:180,rateUnit:"/$M-yr",group:"quality"},
+    {cat:"Tax",name:"State premium tax (avg 2.5%)",qty:1,qtyUnit:"$M-yr",rate:62,rateUnit:"/$M-yr",group:"overhead"},
+    {cat:"Broker",name:"Broker commission (10%)",qty:1,qtyUnit:"$M-yr",rate:0.10,rateUnit:"× cost",group:"margin"}
   ]}
 };
 // Order matters — most-specific multi-word patterns FIRST, generic single words LAST.
