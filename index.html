@@ -738,6 +738,7 @@
     <button class="tab-btn tab-inactive" data-tab="tariff" onclick="switchTab('tariff')"><span>🌐</span><span>Tariff Optimizer</span></button>
     <button class="tab-btn tab-inactive" data-tab="tlc" onclick="switchTab('tlc')"><span>🚢</span><span>Total Landed Cost</span></button>
     <button class="tab-btn tab-inactive" data-tab="quotecompare" onclick="switchTab('quotecompare')"><span>⚖️</span><span>Quote Comparison</span></button>
+    <button class="tab-btn tab-inactive" data-tab="bidlevel" onclick="switchTab('bidlevel')"><span>🍎</span><span>Bid Levelling</span></button>
     <button class="tab-btn tab-inactive" data-tab="sourcing" onclick="switchTab('sourcing')"><span>🎯</span><span>Sourcing Strategy</span></button>
     <button class="tab-btn tab-inactive" data-tab="globalmap" onclick="switchTab('globalmap')"><span>🗺️</span><span>Global Sourcing Map</span></button>
     <button class="tab-btn tab-inactive" data-tab="vendor" onclick="switchTab('vendor')"><span>🤝</span><span>Vendor Onboarding</span></button>
@@ -1412,6 +1413,100 @@
       </tr></thead>
       <tbody id="ssTable"></tbody>
     </table>
+  </div>
+</section>
+
+<!-- ========= BID LEVELLING — apples-to-apples normalization ========= -->
+<section id="tab-bidlevel-content" class="tab-content hidden">
+  <div class="bg-gradient-to-r from-lime-700 via-emerald-700 to-teal-700 text-white rounded-2xl p-6 mb-6">
+    <h2 class="text-2xl font-bold">🍎 Bid Levelling — Apples-to-Apples Comparison</h2>
+    <p class="text-emerald-100 text-sm mt-1">Real bids are never directly comparable. One quotes FOB, another DDP. One includes tooling, another doesn't. One offers NET 90, another NET 30. This module normalizes them onto a single basis so you compare equals.</p>
+  </div>
+
+  <!-- Levelling basis (the "target" everything gets normalized to) -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <h3 class="font-bold text-sm mb-3">📐 Levelling Basis (the apples standard)</h3>
+    <div class="grid md:grid-cols-5 gap-3 text-xs">
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Target Incoterm</label>
+        <select id="blTargetIncoterm" class="w-full border border-slate-300 rounded px-2 py-1.5" onchange="recalcBidLevel()">
+          <option value="EXW">EXW — Ex Works</option>
+          <option value="FOB">FOB — Free On Board</option>
+          <option value="CIF">CIF — Cost, Insurance, Freight</option>
+          <option value="DAP">DAP — Delivered At Place</option>
+          <option value="DDP" selected>DDP — Delivered Duty Paid</option>
+        </select>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Target payment terms (days)</label>
+        <input id="blTargetTerms" type="number" value="60" oninput="recalcBidLevel()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Target lead time (days)</label>
+        <input id="blTargetLT" type="number" value="30" oninput="recalcBidLevel()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">WACC % for terms NPV</label>
+        <input id="blWacc" type="number" value="10" step="0.5" oninput="recalcBidLevel()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Cost of stockout ($/day delay)</label>
+        <input id="blStockoutCost" type="number" value="850" oninput="recalcBidLevel()" class="w-full border border-slate-300 rounded px-2 py-1.5"/>
+      </div>
+    </div>
+    <p class="text-[11px] text-slate-500 mt-3">Every bid below gets adjusted toward this standard. Bids missing scope items (e.g. freight when target is DDP) get a +adjustment for what you'd have to add yourself.</p>
+  </div>
+
+  <!-- Bid inputs (4 columns) -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6 overflow-x-auto">
+    <h3 class="font-bold text-sm mb-3">📋 The Four Bids</h3>
+    <table class="w-full text-xs" id="blInputTable">
+      <thead><tr class="border-b-2 border-slate-200 bg-slate-50">
+        <th class="text-left py-2 px-2 text-slate-600 w-1/4">Attribute</th>
+        <th class="text-right py-2 px-2 text-emerald-700">Bid A</th>
+        <th class="text-right py-2 px-2 text-blue-700">Bid B</th>
+        <th class="text-right py-2 px-2 text-amber-700">Bid C</th>
+        <th class="text-right py-2 px-2 text-rose-700">Bid D</th>
+      </tr></thead>
+      <tbody id="blInputBody"></tbody>
+    </table>
+  </div>
+
+  <!-- KPI cards — levelled price per bid -->
+  <div id="blKpiCards" class="grid md:grid-cols-4 gap-3 mb-6"></div>
+
+  <!-- Adjustment audit table -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6 overflow-x-auto">
+    <h3 class="font-bold text-sm mb-3">🔍 Adjustment Audit — what was added/subtracted to level each bid</h3>
+    <table class="w-full text-xs" id="blAuditTable">
+      <thead><tr class="border-b-2 border-slate-200 bg-slate-50">
+        <th class="text-left py-2 px-2 text-slate-600">Adjustment line</th>
+        <th class="text-right py-2 px-2 text-emerald-700">Bid A</th>
+        <th class="text-right py-2 px-2 text-blue-700">Bid B</th>
+        <th class="text-right py-2 px-2 text-amber-700">Bid C</th>
+        <th class="text-right py-2 px-2 text-rose-700">Bid D</th>
+      </tr></thead>
+      <tbody id="blAuditBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Visual stack chart -->
+  <div class="bg-white rounded-2xl card-shadow p-5 mb-6">
+    <h3 class="font-bold text-sm mb-2">📊 Levelled Cost Stack — quoted price + every adjustment</h3>
+    <div class="h-72"><canvas id="bidLevelChart"></canvas></div>
+  </div>
+
+  <!-- Recommendation -->
+  <div id="bidLevelRecommendation" class="bg-gradient-to-r from-lime-50 to-emerald-50 border border-lime-200 rounded-2xl p-5 mb-6"></div>
+
+  <div class="bg-white rounded-2xl card-shadow p-4 mb-6">
+    <div class="font-bold text-xs mb-2">🔗 Related</div>
+    <div class="flex flex-wrap gap-2 text-xs">
+      <button onclick="switchTab('quotecompare')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg">→ Quote Comparison (weighted score)</button>
+      <button onclick="switchTab('tco')" class="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg">→ TCO (10-yr ownership)</button>
+      <button onclick="switchTab('tlc')" class="px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 border border-cyan-200 rounded-lg">→ Total Landed Cost</button>
+      <button onclick="switchTab('calc')" class="px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded-lg">→ Should-Cost (target)</button>
+    </div>
   </div>
 </section>
 
@@ -4405,6 +4500,7 @@ function switchTab(name){
   if(name==='pentagon') initPentagon();
   if(name==='sourcing') initSourcingStrategy();
   if(name==='leverage') initLeverage();
+  if(name==='bidlevel') initBidLevel();
 }
 
 const TEMPLATES = {
@@ -12306,6 +12402,251 @@ const LEVERAGES = [
   {icon:'🌱', name:'Pie expansion (collaborative)', when:'Win-win framing — joint cost-out workshops.', script:'"What if we co-fund a value-engineering study? Half the savings to you, half to us."', risk:'Some suppliers exploit collaboration to extract information. Have an NDA.'},
   {icon:'🚪', name:'Walk-away willingness', when:'Your BATNA is genuinely strong.', script:'"Below this band the project doesn\'t make economic sense for us. We\'ll respect your no, and explore Plan B."', risk:'Means it. Walking away you don\'t actually want is the fastest way to lose face.'}
 ];
+
+/* ===================================================================
+ * BID LEVELLING — apples-to-apples normalization engine
+ * =================================================================== */
+const BID_LEVEL_DEFAULTS = {
+  A:{name:'Acme Stamping (China)',   price:4.20, qty:100000, incoterm:'FOB',  termsDays:30, leadDays:42, currency:'USD',
+     inc:{tooling:false, freight:false, install:false, packaging:true,  warranty:true,  training:false}},
+  B:{name:'Globex Forge (Mexico)',    price:4.85, qty:100000, incoterm:'DDP',  termsDays:60, leadDays:18, currency:'USD',
+     inc:{tooling:true,  freight:true,  install:true,  packaging:true,  warranty:true,  training:true}},
+  C:{name:'Tata-Sons (India tier-1)', price:3.95, qty:100000, incoterm:'CIF',  termsDays:90, leadDays:35, currency:'USD',
+     inc:{tooling:false, freight:true,  install:false, packaging:true,  warranty:false, training:false}},
+  D:{name:'EuroPress (Poland)',       price:5.10, qty:100000, incoterm:'DAP',  termsDays:45, leadDays:14, currency:'EUR',
+     inc:{tooling:true,  freight:true,  install:false, packaging:true,  warranty:true,  training:false}}
+};
+// Cost of each scope item if buyer has to add it back (per unit @ 100k qty default)
+const BID_SCOPE_COSTS = {
+  tooling:    {label:'Tooling/NRE amortized',  cost:0.45},
+  freight:    {label:'Inbound freight + duty', cost:0.32},
+  install:    {label:'Install / commissioning', cost:0.08},
+  packaging:  {label:'Export packaging',       cost:0.06},
+  warranty:   {label:'Warranty reserve',       cost:0.12},
+  training:   {label:'On-site training',       cost:0.05}
+};
+// Incoterm coverage map: which scope items are included by default in each Incoterm
+const INCOTERM_SCOPE = {
+  EXW:{freight:false, packaging:false},
+  FOB:{freight:false, packaging:true},
+  CIF:{freight:true,  packaging:true},
+  DAP:{freight:true,  packaging:true},
+  DDP:{freight:true,  packaging:true}
+};
+
+let _blChart = null;
+let _bidLevelState = JSON.parse(JSON.stringify(BID_LEVEL_DEFAULTS));
+
+function initBidLevel(){
+  // Render inputs once
+  const body = document.getElementById('blInputBody');
+  if(!body) return;
+  const bids = ['A','B','C','D'];
+  const colorMap = {A:'emerald', B:'blue', C:'amber', D:'rose'};
+  // Build attribute rows
+  const rows = [
+    {label:'Vendor name', type:'text', key:'name'},
+    {label:'Quoted price / unit', type:'number', key:'price', step:'0.01'},
+    {label:'Quantity (annual)', type:'number', key:'qty'},
+    {label:'Incoterm', type:'select', key:'incoterm', opts:['EXW','FOB','CIF','DAP','DDP']},
+    {label:'Payment terms (days)', type:'number', key:'termsDays'},
+    {label:'Lead time (days)', type:'number', key:'leadDays'},
+    {label:'Currency', type:'select', key:'currency', opts:['USD','EUR','GBP','INR','CNY','MXN']}
+  ];
+  let html = '';
+  rows.forEach(r => {
+    html += `<tr class="border-b border-slate-100"><td class="py-1 px-2 font-medium text-slate-700">${r.label}</td>`;
+    bids.forEach(b => {
+      const cur = _bidLevelState[b][r.key];
+      if(r.type === 'select'){
+        html += `<td class="py-1 px-2"><select onchange="_bidLevelState['${b}'].${r.key}=this.value;recalcBidLevel()" class="w-full border border-slate-200 rounded px-1 py-0.5 text-xs text-right">${
+          r.opts.map(o => `<option ${o===cur?'selected':''}>${o}</option>`).join('')
+        }</select></td>`;
+      } else {
+        html += `<td class="py-1 px-2"><input type="${r.type}" ${r.step?`step="${r.step}"`:''} value="${cur}" oninput="_bidLevelState['${b}'].${r.key}=${r.type==='number'?'parseFloat(this.value)||0':'this.value'};recalcBidLevel()" class="w-full border border-slate-200 rounded px-1 py-0.5 text-xs text-right"/></td>`;
+      }
+    });
+    html += '</tr>';
+  });
+  // Scope inclusion checkboxes row by row
+  html += `<tr><td colspan="5" class="py-2 px-2 text-[10px] uppercase tracking-wider font-bold text-slate-500 bg-slate-50">Scope inclusions (toggle = quoted price already includes this)</td></tr>`;
+  Object.entries(BID_SCOPE_COSTS).forEach(([k, sc]) => {
+    html += `<tr class="border-b border-slate-100"><td class="py-1 px-2 text-slate-700">${sc.label} <span class="text-[10px] text-slate-400">(+${_money(sc.cost)} if missing)</span></td>`;
+    bids.forEach(b => {
+      const chk = _bidLevelState[b].inc[k] ? 'checked' : '';
+      html += `<td class="py-1 px-2 text-right"><input type="checkbox" ${chk} onchange="_bidLevelState['${b}'].inc['${k}']=this.checked;recalcBidLevel()" class="w-4 h-4 accent-${colorMap[b]}-600"/></td>`;
+    });
+    html += '</tr>';
+  });
+  body.innerHTML = html;
+  recalcBidLevel();
+}
+
+function _money(n){ return typeof fxFormat==='function' ? fxFormat(n,{digits:n<1?4:2}) : '$'+Number(n).toFixed(n<1?4:2); }
+
+// PURE compute (testable) — returns levelled price + adjustments per bid
+function computeBidLevel(bid, target){
+  const adj = {};
+  // 1) Scope adjustments — add back items the bid doesn't include
+  let scopeAdd = 0;
+  Object.entries(BID_SCOPE_COSTS).forEach(([k, sc]) => {
+    // Incoterm-derived inclusions auto-counted if the bid's Incoterm covers it
+    const incScope = INCOTERM_SCOPE[bid.incoterm] || {};
+    const incoOverrides = (k === 'freight' && incScope.freight) || (k === 'packaging' && incScope.packaging);
+    const included = bid.inc[k] || incoOverrides;
+    if(!included){
+      adj[sc.label] = +sc.cost.toFixed(4);
+      scopeAdd += sc.cost;
+    } else {
+      adj[sc.label] = 0;
+    }
+  });
+  // 2) Payment-terms NPV adjustment.
+  //    Longer terms = cheaper for buyer (more interest-free float).
+  //    Adjustment = price × (target_days - bid_days) ÷ 365 × WACC
+  //    If bid offers LONGER terms than target → that's a benefit → NEGATIVE adjustment.
+  const termsDelta = (target.termsDays - bid.termsDays) / 365 * (target.wacc / 100);
+  const termsAdj = +(bid.price * termsDelta).toFixed(4);
+  adj['Payment terms (NPV vs target)'] = termsAdj;
+  // 3) Lead-time penalty. If bid's lead is LONGER than target → stockout cost × extra days
+  //    Express per-unit: total stockout cost ÷ qty.
+  const extraDays = Math.max(0, bid.leadDays - target.leadDays);
+  const leadAdj = +((extraDays * target.stockoutCost) / Math.max(1, bid.qty)).toFixed(4);
+  adj['Lead-time penalty'] = leadAdj;
+  // 4) Currency exposure (simple: 1.5% FX hedging cost if non-USD)
+  const fxAdj = (bid.currency !== 'USD') ? +(bid.price * 0.015).toFixed(4) : 0;
+  adj['Currency hedge / FX exposure'] = fxAdj;
+  // Total levelled price
+  const levelled = bid.price + scopeAdd + termsAdj + leadAdj + fxAdj;
+  return {
+    quoted: bid.price,
+    scopeAdd: +scopeAdd.toFixed(4),
+    termsAdj, leadAdj, fxAdj,
+    adjustments: adj,
+    levelled: +levelled.toFixed(4),
+    delta: +(levelled - bid.price).toFixed(4),
+    deltaPct: bid.price > 0 ? +(((levelled - bid.price) / bid.price * 100).toFixed(1)) : 0
+  };
+}
+
+function recalcBidLevel(){
+  const target = {
+    incoterm: (document.getElementById('blTargetIncoterm')||{}).value || 'DDP',
+    termsDays: parseFloat((document.getElementById('blTargetTerms')||{}).value) || 60,
+    leadDays: parseFloat((document.getElementById('blTargetLT')||{}).value) || 30,
+    wacc: parseFloat((document.getElementById('blWacc')||{}).value) || 10,
+    stockoutCost: parseFloat((document.getElementById('blStockoutCost')||{}).value) || 0
+  };
+  const bids = ['A','B','C','D'];
+  const colorMap = {A:'emerald', B:'blue', C:'amber', D:'rose'};
+  const results = {};
+  bids.forEach(b => { results[b] = computeBidLevel(_bidLevelState[b], target); });
+
+  // Find winner (lowest levelled)
+  let winner = bids[0];
+  bids.forEach(b => { if(results[b].levelled < results[winner].levelled) winner = b; });
+
+  // KPI cards
+  const kpiHost = document.getElementById('blKpiCards');
+  if(kpiHost){
+    kpiHost.innerHTML = bids.map(b => {
+      const r = results[b];
+      const isWin = b === winner;
+      const c = colorMap[b];
+      const wonBadge = isWin ? `<span class="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold ml-2">LEVELLED WINNER</span>` : '';
+      const sticker = (r.levelled < r.quoted) ? '↓ better than sticker' : '↑ adjustments raise true cost';
+      return `<div class="bg-white rounded-2xl card-shadow p-4 border-l-4 border-${c}-500 ${isWin?'ring-2 ring-emerald-400':''}">
+        <div class="flex items-start justify-between gap-2">
+          <div class="font-bold text-sm text-${c}-700">Bid ${b} — ${_bidLevelState[b].name}</div>
+          ${wonBadge}
+        </div>
+        <div class="text-xs text-slate-500 mt-1">Quoted ${_money(r.quoted)}/u → <b>Levelled ${_money(r.levelled)}/u</b></div>
+        <div class="text-[11px] mt-1">
+          <span class="${r.delta>=0?'text-rose-700':'text-emerald-700'}">${r.delta>=0?'+':''}${_money(r.delta)} (${r.deltaPct>=0?'+':''}${r.deltaPct}%)</span>
+          <span class="text-slate-400 ml-1">${sticker}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Audit table
+  const auditBody = document.getElementById('blAuditBody');
+  if(auditBody){
+    const adjustmentKeys = Object.keys(results.A.adjustments);
+    let html = '';
+    html += `<tr class="border-b border-slate-200"><td class="py-2 px-2 font-bold">Quoted price (as-bid)</td>${bids.map(b => `<td class="py-2 px-2 text-right font-mono">${_money(results[b].quoted)}</td>`).join('')}</tr>`;
+    adjustmentKeys.forEach(adj => {
+      html += `<tr class="border-b border-slate-100"><td class="py-1 px-2 text-slate-600">${adj}</td>${bids.map(b => {
+        const v = results[b].adjustments[adj];
+        const cls = v > 0 ? 'text-rose-700' : v < 0 ? 'text-emerald-700' : 'text-slate-400';
+        return `<td class="py-1 px-2 text-right font-mono ${cls}">${v === 0 ? '—' : (v>0?'+':'') + _money(v)}</td>`;
+      }).join('')}</tr>`;
+    });
+    html += `<tr class="border-t-2 border-slate-300 bg-slate-50"><td class="py-2 px-2 font-bold">LEVELLED $/unit</td>${bids.map(b => {
+      const r = results[b];
+      const isWin = b === winner;
+      return `<td class="py-2 px-2 text-right font-mono font-bold ${isWin?'text-emerald-700':'text-slate-800'}">${_money(r.levelled)}${isWin?' 🏆':''}</td>`;
+    }).join('')}</tr>`;
+    auditBody.innerHTML = html;
+  }
+
+  // Chart — stacked bar
+  const ctx = document.getElementById('bidLevelChart');
+  if(ctx && typeof Chart !== 'undefined'){
+    if(_blChart) _blChart.destroy();
+    const adjustmentKeys = Object.keys(results.A.adjustments);
+    const palette = ['#0D9488','#3B82F6','#F59E0B','#EC4899','#8B5CF6','#10B981'];
+    const datasets = [
+      {label:'Quoted price', data: bids.map(b => results[b].quoted), backgroundColor:'#0F766E'}
+    ];
+    adjustmentKeys.forEach((adj, i) => {
+      datasets.push({
+        label: adj,
+        data: bids.map(b => results[b].adjustments[adj] || 0),
+        backgroundColor: palette[i % palette.length]
+      });
+    });
+    _blChart = new Chart(ctx, {
+      type:'bar',
+      data:{labels: bids.map(b => 'Bid ' + b), datasets},
+      options:{responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{position:'bottom', labels:{font:{size:10}}},
+                 tooltip:{callbacks:{label:c => c.dataset.label + ': ' + _money(c.parsed.y)}}},
+        scales:{x:{stacked:true}, y:{stacked:true, ticks:{callback:v => '$'+v}}}}
+    });
+  }
+
+  // Recommendation card
+  const rec = document.getElementById('bidLevelRecommendation');
+  if(rec){
+    const ranked = bids.slice().sort((a,b) => results[a].levelled - results[b].levelled);
+    const winner = ranked[0];
+    const runner = ranked[1];
+    const stickerWinner = bids.slice().sort((a,b) => results[a].quoted - results[b].quoted)[0];
+    const swap = (stickerWinner !== winner);
+    const savings = results[ranked[ranked.length-1]].levelled - results[winner].levelled;
+    rec.innerHTML = `
+      <div class="flex items-start gap-3">
+        <div class="text-3xl">🏆</div>
+        <div class="flex-1">
+          <h3 class="font-bold text-base text-emerald-900">
+            Levelled winner: ${_bidLevelState[winner].name} (Bid ${winner}) at ${_money(results[winner].levelled)}/unit
+            ${swap ? `<span class="text-amber-700">— flipped from sticker winner Bid ${stickerWinner}!</span>` : ''}
+          </h3>
+          <p class="text-sm text-slate-700 mt-1">
+            Bid ${winner} is the true low cost after normalizing for Incoterm, payment terms, lead-time and currency exposure.
+            ${swap ? `<b>This is exactly why bid-levelling matters</b> — the lowest sticker price (Bid ${stickerWinner}) is NOT the lowest true cost. The scope gaps add up.` : 'The sticker winner is also the levelled winner — scope inclusions and terms are aligned.'}
+          </p>
+          <div class="mt-3 grid md:grid-cols-3 gap-2 text-[11px]">
+            <div class="bg-white border border-slate-200 rounded p-2"><div class="text-slate-500">Range (high-low)</div><div class="font-bold text-slate-800">${_money(savings)}/unit</div></div>
+            <div class="bg-white border border-slate-200 rounded p-2"><div class="text-slate-500">Annual savings vs worst</div><div class="font-bold text-emerald-700">${_money(savings * _bidLevelState[winner].qty)}</div></div>
+            <div class="bg-white border border-slate-200 rounded p-2"><div class="text-slate-500">Sticker flipped?</div><div class="font-bold ${swap?'text-amber-700':'text-slate-700'}">${swap?'Yes — normalization changed the answer':'No — sticker matches levelled'}</div></div>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-2"><b>Read the audit table above</b> to see exactly which adjustment moved the ranking. Use it as the talking-points sheet for the final negotiation.</p>
+        </div>
+      </div>`;
+  }
+}
 
 function initLeverage(){
   const host = document.getElementById('leverageGrid');
